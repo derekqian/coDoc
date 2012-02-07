@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: coDocWizard
+Bundle-SymbolicName: coDocWizard;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: coDocWizard.Activator
+Bundle-Vendor: Derek
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.eclipse.core.resources,
+ org.eclipse.ui.ide
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-ActivationPolicy: lazy

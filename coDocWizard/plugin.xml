@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.newWizards">
+         
+       <!--category name in dialog(File-New-Project...)-->
+       <category
+           name="coDoc"
+           id="coDocWizard.category">
+       </category>
+       
+       <!--wizard name in dialog(File-New-Project...)-->
+       <!--the class is invoked when the "next" button is pressed.-->
+       <wizard
+           name="coDoc Project"
+           icon="icons/coDoc.gif"
+           category="coDocWizard.category"
+           class="coDocWizard.WizardMain"
+           id="coDocWizard.wizard"
+           project="true">
+	     <description>
+	         Generate a new coDoc project through the wizard.
+	     </description>
+	     <selection
+	         class="org.eclipse.core.resources.IResource">
+	     </selection>
+       </wizard>
+   </extension>
+
+</plugin>
