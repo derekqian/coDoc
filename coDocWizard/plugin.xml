@@ -18,7 +18,8 @@
            category="coDocWizard.category"
            class="coDocWizard.WizardMain"
            id="coDocWizard.wizard"
-           project="true">
+           project="true"
+           finalPerspective="coDoc.perspectives.Perspective">
 	     <description>
 	         Generate a new coDoc project through the wizard.
 	     </description>
