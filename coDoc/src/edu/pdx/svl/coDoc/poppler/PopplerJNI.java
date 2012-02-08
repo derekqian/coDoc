@@ -1,5 +1,8 @@
 package edu.pdx.svl.coDoc.poppler;
 
+import java.io.File;
+import java.util.Properties;
+
 import org.eclipse.swt.graphics.Point;
 
 
@@ -10,11 +13,30 @@ public class PopplerJNI {
 		System.out.println(System.getProperty("java.library.path"));
 		try
 		{
-			System.loadLibrary("PopplerJNI");
+			String popperLibPath = null;
+			File currentWorkingDirFile = new File(".");
+			String currentWorkingDir = currentWorkingDirFile.getAbsolutePath();
+			Properties props=System.getProperties();
+			String osName = props.getProperty("os.name");
+			if(osName.equals("Linux"))
+			{
+				popperLibPath = currentWorkingDir + "/bin/libPopplerJNI.so";
+			} 
+			else if(osName.equals("Windows"))
+			{
+			}
+			System.load(popperLibPath);
 		}
 		catch(UnsatisfiedLinkError e)
 		{
-			System.err.println("Cannot load PopplerJNI library:" + e.toString());
+			try
+			{
+				System.loadLibrary("PopplerJNI");
+			}
+			catch (Exception e2)
+			{
+				System.err.println("Cannot load PopplerJNI library:" + e2.toString());
+			}
 		}
 	}
 
