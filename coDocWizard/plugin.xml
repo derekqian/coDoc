@@ -7,7 +7,7 @@
        <!--category name in dialog(File-New-Project...)-->
        <category
            name="coDoc"
-           id="coDocWizard.category">
+           id="edu.pdx.svl.coDocWizard.category">
        </category>
        
        <!--wizard name in dialog(File-New-Project...)-->
@@ -15,11 +15,11 @@
        <wizard
            name="coDoc Project"
            icon="icons/coDoc.gif"
-           category="coDocWizard.category"
-           class="coDocWizard.WizardMain"
-           id="coDocWizard.wizard"
+           category="edu.pdx.svl.coDocWizard.category"
+           class="edu.pdx.svl.coDocWizard.WizardMain"
+           id="edu.pdx.svl.coDocWizard.wizard"
            project="true"
-           finalPerspective="coDoc.perspectives.Perspective">
+           finalPerspective="edu.pdx.svl.coDoc.perspectives.Perspective">
 	     <description>
 	         Generate a new coDoc project through the wizard.
 	     </description>
