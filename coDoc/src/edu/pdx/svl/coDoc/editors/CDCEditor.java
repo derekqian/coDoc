@@ -56,9 +56,7 @@ import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
 import com.sun.pdfview.OutlineNode;
 import com.sun.pdfview.PDFDestination;
-import com.sun.pdfview.PDFFile;
 import com.sun.pdfview.PDFObject;
-import com.sun.pdfview.PDFPage;
 
 import edu.pdx.svl.coDoc.editors.StatusLinePageSelector.IPageChangeListener;
 import edu.pdx.svl.coDoc.poppler.PopplerJNI;
@@ -67,8 +65,8 @@ import edu.pdx.svl.coDoc.poppler.PopplerJNI;
 public class CDCEditor extends EditorPart implements IResourceChangeListener, INavigationLocationProvider, IPageChangeListener
 {
 
-	public static final String ID = "edu.pdx.svl.coDoc.editors.CDCEditor";
-	public static final String CONTEXT_ID = "PDFViewer.editors.contextid";
+	public static final String ID = "edu.pdx.svl.coDoc.editors.CDCEditor"; // editor id, plugin.xml
+	public static final String CONTEXT_ID = "PDFViewer.editors.contextid"; // key binding, plugin.xml
 
 	public static final int FORWARD_SEARCH_OK = 0;
 	public static final int FORWARD_SEARCH_NO_SYNCTEX = -1;
@@ -82,7 +80,6 @@ public class CDCEditor extends EditorPart implements IResourceChangeListener, IN
 	
 	private PopplerJNI poppler;
 
-	private PDFFile f;
 	private ScrolledComposite sc;
 	int currentPage;
 	private int pageNumbers;
@@ -104,8 +101,14 @@ public class CDCEditor extends EditorPart implements IResourceChangeListener, IN
 		ResourcesPlugin.getWorkspace().removeResourceChangeListener(this);
 		if (position != null) position.removePageChangeListener(this);
 
-		f = null;
+    	poppler.document_release_page();
+    	poppler.document_close();
+		poppler = null;
+		
+		position = null;
+		outline = null;
 		pv = null;
+		sc = null;
 	}
 
 	@Override
@@ -115,6 +118,7 @@ public class CDCEditor extends EditorPart implements IResourceChangeListener, IN
 		setInput(input);
 		currentPage = 1;
 		setPartName(input.getName());
+		poppler = new PopplerJNI();
 		readPdfFile();
 	}
 
@@ -138,8 +142,7 @@ public class CDCEditor extends EditorPart implements IResourceChangeListener, IN
 			throw new PartInitException("Messages.PDFEditor_ErrorMsg1");
 		}
 		pathname = uri.toString();
-		poppler = null;
-		poppler = new PopplerJNI();
+    	//poppler.document_new_from_file("file:///home/derek/Data Check and Restore Manual.pdf", null);
 		poppler.document_new_from_file(pathname, null);
 		pageNumbers = poppler.document_get_n_pages();
 	}
@@ -173,13 +176,13 @@ public class CDCEditor extends EditorPart implements IResourceChangeListener, IN
 				final IFile currentfile = ((IFileEditorInput) getEditorInput()).getFile();
 				if (event.getDelta().findMember(currentfile.getFullPath()) != null){
 					readPdfFile();
-					final OutlineNode n = f.getOutline();
+					//derek final OutlineNode n = f.getOutline();
 					Display.getDefault().asyncExec(new Runnable() {										
 						@Override
 						public void run() {
 							if (pv != null && !pv.isDisposed()) {
 								showPage(currentPage);
-								if (outline != null) outline.setInput(n);		
+								//derek if (outline != null) outline.setInput(n);		
 								pv.redraw();
 							}
 						}
@@ -188,10 +191,10 @@ public class CDCEditor extends EditorPart implements IResourceChangeListener, IN
 			} catch (PartInitException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			} catch (IOException e) {
+			} //derek catch (IOException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			//derek e.printStackTrace();
+			//derek }
 		}				
 	}
 
@@ -300,9 +303,8 @@ public class CDCEditor extends EditorPart implements IResourceChangeListener, IN
 
 		ResourcesPlugin.getWorkspace().addResourceChangeListener(this);
 
-		if (f != null) {
-			showPage(currentPage);
-		}
+		showPage(currentPage);
+		
 		initKeyBindingContext();
 	}
 
@@ -378,18 +380,23 @@ public class CDCEditor extends EditorPart implements IResourceChangeListener, IN
 
 	}
 
+	public PopplerJNI getPoppler() {
+		return poppler;
+	}
+	
 	private void showPage (PDFObject page) {
-		try {	
-			int pageNr = f.getPageNumber(page)+1;
+		//derek try {	
+			//derek int pageNr = p.getPageNumber(page)+1;
+			int pageNr = 1;
 			if (pageNr < 1) pageNr = 1;
 			if (pageNr > pageNumbers) pageNr = pageNumbers;
-			PDFPage pager = f.getPage(pageNr);
+			poppler.document_get_page(pageNr);
 			currentPage = pageNr;
-			pv.showPage(pager);
+			pv.showPage(pageNr);
 			updateStatusLine();
-		} catch (IOException e) {
-			System.err.println("Messages.PDFEditor_ErrorMsg5");
-		}
+		//derek } catch (IOException e) {
+			//derek System.err.println("Messages.PDFEditor_ErrorMsg5");
+		//derek }
 	}
 
 	public void showPage(int pageNr) {
@@ -397,7 +404,7 @@ public class CDCEditor extends EditorPart implements IResourceChangeListener, IN
 		if (pageNr > pageNumbers) pageNr = pageNumbers;
 		poppler.document_get_page(pageNr);
 		currentPage = pageNr;
-		pv.showPage(page);
+		pv.showPage(pageNr);
 		updateStatusLine();
 	}
 
@@ -436,15 +443,16 @@ public class CDCEditor extends EditorPart implements IResourceChangeListener, IN
 	public Object getAdapter(@SuppressWarnings("rawtypes") Class required) {
 		if (IContentOutlinePage.class.equals(required)) {
 			if (outline == null) {
-				try {
-					OutlineNode n = f.getOutline();
+				//derek try {
+					//derek OutlineNode n = f.getOutline();
+					OutlineNode n = null;
 					if (n == null) return null;
 					outline = new PDFFileOutline(this);
 					outline.setInput(n);
-				} catch (IOException e) {
+				//derek } catch (IOException e) {
 					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+					//derek e.printStackTrace();
+				//derek }
 			}
 			else return outline;
 		}
@@ -468,14 +476,17 @@ public class CDCEditor extends EditorPart implements IResourceChangeListener, IN
 
 	public void fitHorizontal() {
 		int w = sc.getClientArea().width;
-		pv.setZoomFactor((1.0f*w)/pv.getPage().getWidth());
+    	Point size = poppler.page_get_size();
+		float pw = size.x;
+		pv.setZoomFactor((1.0f*w)/pw);
 	}
 
 	public void fit() {
 		float w = 1.f * sc.getClientArea().width;
 		float h = 1.f * sc.getClientArea().height;
-		float pw = pv.getPage().getWidth();
-		float ph = pv.getPage().getHeight();
+    	Point size = poppler.page_get_size();
+		float pw = size.x;
+		float ph = size.y;
 		if (w/pw < h/ph) pv.setZoomFactor(w/pw);
 		else pv.setZoomFactor(h/ph);
 	}

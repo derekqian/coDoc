@@ -31,6 +31,7 @@ JNIEXPORT jint JNICALL Java_edu_pdx_svl_coDoc_poppler_PopplerJNI_document_1new_1
 	assert(_uri != NULL);
 	uri = (gchar *)env->GetStringUTFChars(_uri, JNI_FALSE);
 
+	if(g_document != NULL) g_object_unref(g_document);
 	g_document = poppler_document_new_from_file (uri, NULL, &error);
 	if(error) 
 	{
@@ -66,7 +67,7 @@ JNIEXPORT jint JNICALL Java_edu_pdx_svl_coDoc_poppler_PopplerJNI_document_1new_1
 JNIEXPORT jint JNICALL Java_edu_pdx_svl_coDoc_poppler_PopplerJNI_document_1close
   (JNIEnv *, jobject)
 {
-	assert(g_document != NULL);
+	if(g_document == NULL) return 0;
 
 	printf("%s (%d): %s\n", __FILE__, __LINE__, __FUNCTION__);
 	g_object_unref(g_document);
@@ -103,8 +104,9 @@ JNIEXPORT jint JNICALL Java_edu_pdx_svl_coDoc_poppler_PopplerJNI_document_1get_1
 
 	printf("%s (%d): %s\n", __FILE__, __LINE__, __FUNCTION__);
 
-	g_pagenum = (int)pagenum_j;
+	g_pagenum = (int)(pagenum_j-1);
 
+	if(g_page != NULL) g_object_unref(g_page);
 	g_page = poppler_document_get_page (g_document, g_pagenum);
 	assert(g_page != NULL);
 
@@ -121,7 +123,8 @@ JNIEXPORT jint JNICALL Java_edu_pdx_svl_coDoc_poppler_PopplerJNI_document_1relea
   (JNIEnv *, jobject)
 {
 	assert(g_document != NULL);
-	assert(g_page != NULL);
+
+	if(g_page == NULL) return 0;
 
 	printf("%s (%d): %s\n", __FILE__, __LINE__, __FUNCTION__);
 	g_pagenum = -1;
@@ -174,6 +177,25 @@ JNIEXPORT jobject JNICALL Java_edu_pdx_svl_coDoc_poppler_PopplerJNI_page_1get_1s
     
     return obj_Point;   
 }
+
+
+/*
+ * Class:     edu_pdx_svl_coDoc_poppler_PopplerJNI
+ * Method:    page_get_index
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_edu_pdx_svl_coDoc_poppler_PopplerJNI_page_1get_1index
+  (JNIEnv *, jobject)
+{
+	assert(g_document != NULL);
+
+	printf("%s (%d): %s\n", __FILE__, __LINE__, __FUNCTION__);
+    
+	if(g_page == NULL) return -1;
+
+    return (jint)poppler_page_get_index(g_page);   
+}
+
 
 
 /*

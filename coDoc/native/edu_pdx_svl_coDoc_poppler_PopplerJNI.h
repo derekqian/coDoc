@@ -57,6 +57,14 @@ JNIEXPORT jobject JNICALL Java_edu_pdx_svl_coDoc_poppler_PopplerJNI_page_1get_1s
 
 /*
  * Class:     edu_pdx_svl_coDoc_poppler_PopplerJNI
+ * Method:    page_get_index
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_edu_pdx_svl_coDoc_poppler_PopplerJNI_page_1get_1index
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     edu_pdx_svl_coDoc_poppler_PopplerJNI
  * Method:    page_render
  * Signature: ([B)I
  */

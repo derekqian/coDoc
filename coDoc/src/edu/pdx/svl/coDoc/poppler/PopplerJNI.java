@@ -21,6 +21,7 @@ public class PopplerJNI {
 			if(osName.equals("Linux"))
 			{
 				popperLibPath = currentWorkingDir + "/bin/libPopplerJNI.so";
+				popperLibPath = "/home/derek/Research/coDoc/coDoc/bin/libPopplerJNI.so";
 			} 
 			else if(osName.equals("Windows"))
 			{
@@ -59,6 +60,7 @@ public class PopplerJNI {
 	public native int document_release_page();
 	
 	public native Point page_get_size();
-	
+	public native int page_get_index();
+
 	public native int page_render(byte[] data);
 }
