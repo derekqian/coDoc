@@ -6,6 +6,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -15,7 +16,6 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
@@ -40,6 +40,7 @@ public class ProjectCreationPage extends WizardPage
 	/**
 	 * @see org.eclipse.jface.dialogs.IDialogPage#createControl(org.eclipse.swt.widgets.Composite)
 	 */
+	@Override
 	public void createControl(Composite parent) 
 	{
 		initializeDialogUnits(parent);
@@ -73,6 +74,7 @@ public class ProjectCreationPage extends WizardPage
 		Button button = new Button(container, SWT.PUSH);
 		button.setText("Browse...");
 		button.addSelectionListener(new SelectionAdapter() {
+			@Override
 			public void widgetSelected(SelectionEvent e) 
 			{
 				handleBrowse();
@@ -85,6 +87,7 @@ public class ProjectCreationPage extends WizardPage
 		gd = new GridData(GridData.FILL_HORIZONTAL);
 		fileText.setLayoutData(gd);
 		fileText.addModifyListener(new ModifyListener() {
+			@Override
 			public void modifyText(ModifyEvent e) 
 			{
 				dialogChanged();
@@ -136,7 +139,7 @@ public class ProjectCreationPage extends WizardPage
 	{
 		//ContainerSelectionDialog(Shell parentShell, IContainer initialRoot, boolean allowNewContainerName, String message)
 		ContainerSelectionDialog dialog = new ContainerSelectionDialog(getShell(), ResourcesPlugin.getWorkspace().getRoot(), false, "Select new file container");
-		if (dialog.open() == ContainerSelectionDialog.OK) 
+		if (dialog.open() == Window.OK) 
 		{
 			Object[] result = dialog.getResult();
 			if (result.length == 1) 

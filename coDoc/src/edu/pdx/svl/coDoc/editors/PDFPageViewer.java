@@ -1,12 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2011 Boris von Loesch.
+ * Copyright (c) 2012 Derek Qian.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors:
- *     Boris von Loesch - initial API and implementation
+ *     Derek Qian - initial API and implementation
  ******************************************************************************/
 package edu.pdx.svl.coDoc.editors;
 
@@ -32,6 +32,9 @@ import org.eclipse.core.runtime.preferences.IEclipsePreferences.IPreferenceChang
 import org.eclipse.core.runtime.preferences.IEclipsePreferences.PreferenceChangeEvent;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
@@ -49,13 +52,13 @@ import org.eclipse.ui.PlatformUI;
 
 
 import com.sun.pdfview.ImageInfo;
+import edu.pdx.svl.coDoc.poppler.PDFDestination;
 import com.sun.pdfview.PDFRenderer;
 import com.sun.pdfview.RefImage;
 import com.sun.pdfview.Watchable;
-import com.sun.pdfview.action.GoToAction;
-import com.sun.pdfview.action.UriAction;
-import com.sun.pdfview.annotation.LinkAnnotation;
-import com.sun.pdfview.annotation.PDFAnnotation;
+import edu.pdx.svl.coDoc.poppler.GoToAction;
+import edu.pdx.svl.coDoc.poppler.UriAction;
+import edu.pdx.svl.coDoc.poppler.LinkAnnotation;
 
 import edu.pdx.svl.coDoc.handlers.ToggleLinkHighlightHandler;
 import edu.pdx.svl.coDoc.poppler.PopplerJNI;
@@ -63,10 +66,8 @@ import edu.pdx.svl.coDoc.poppler.PopplerJNI;
 
 /**
  * SWT Canvas which shows a whole pdf-page. It also handles click on links.
- * Since the pdf library returns an awt BufferedImage, we need to convert it
- * to an SWT image. This was avoided in {@link PDFPageViewerAWT}.
  * 
- * @author Boris von Loesch
+ * @author Derek Qian
  *
  */
 public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceChangeListener{
@@ -90,15 +91,18 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
     
     private float zoomFactor;
     
+    private ScrolledComposite sc;
+    
     private org.eclipse.swt.graphics.Image swtImage;
 
     /**
      * Create a new PagePanel.
      */
-    public PDFPageViewer(Composite parent, final CDCEditor editor) {
+    public PDFPageViewer(Composite parent, final IPDFEditor editor) {
         //super(parent, SWT.NO_BACKGROUND|SWT.NO_REDRAW_RESIZE);
     	//super(parent, SWT.EMBEDDED | SWT.NO_BACKGROUND | SWT.NO_REDRAW_RESIZE);
     	super(parent, SWT.NO_BACKGROUND);
+    	sc = (ScrolledComposite) parent;
 
     	this.addMouseListener(new MouseListener() {
 			
@@ -112,8 +116,8 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
 				if (e.button != 1) return;
 				
 				//derek List<PDFAnnotation> annos = getPage().getAnnots(PDFAnnotation.LINK_ANNOTATION);
-				List<PDFAnnotation> annos = null;
-            	for (PDFAnnotation a : annos) {
+				List<LinkAnnotation> annos = null;
+            	for (LinkAnnotation a : annos) {
             		LinkAnnotation aa = (LinkAnnotation) a;
             		Rectangle2D r = convertPDF2ImageCoord(aa.getRect());
             		if (r.contains(e.x, e.y)) {
@@ -172,10 +176,83 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
 			}
 		});
 
+		this.addKeyListener(new KeyAdapter() {
+
+			@Override
+			public void keyPressed(KeyEvent e) {
+				int height = sc.getClientArea().height;
+				int pInc = 3* height / 4;
+				int lInc = height / 20;
+				int hInc = sc.getClientArea().width / 20;
+				int pheight = sc.getContent().getBounds().height;
+				Point p = sc.getOrigin();
+				if (e.keyCode == SWT.PAGE_DOWN) {
+					if (p.y < pheight - height) {
+						int y = p.y + pInc;
+						if (y > pheight - height) {
+							y = pheight - height;
+						}
+						sc.setOrigin(sc.getOrigin().x, y);
+					}
+					else {
+						//We are at the end of the page
+						editor.showNextPage();
+						setOrigin(sc.getOrigin().x, 0);
+					}
+				}
+				else if (e.keyCode == SWT.PAGE_UP) {
+					if (p.y > 0) {
+						int y = p.y - pInc;
+						if (y < 0) y = 0;
+						sc.setOrigin(sc.getOrigin().x, y);
+					}
+					else {
+						//We are at the top of the page
+						editor.showPreviousPage();
+						setOrigin(sc.getOrigin().x, pheight);
+					}					
+				}
+				else if (e.keyCode == SWT.ARROW_DOWN) {
+					if (p.y < pheight - height) {
+						sc.setOrigin(sc.getOrigin().x, p.y + lInc);
+					}					
+				}
+				else if (e.keyCode == SWT.ARROW_UP) {
+					if (p.y > 0) {
+						int y = p.y - lInc;
+						if (y < 0) y = 0;
+						sc.setOrigin(sc.getOrigin().x, y);
+					}					
+				}
+				else if (e.keyCode == SWT.ARROW_RIGHT) {
+					if (p.x < sc.getContent().getBounds().width - sc.getClientArea().width) {
+						sc.setOrigin(p.x + hInc, sc.getOrigin().y);
+					}
+				}
+				else if (e.keyCode == SWT.ARROW_LEFT) {
+					if (p.x > 0) {
+						int x = p.x - hInc;
+						if (x < 0) x = 0;
+						sc.setOrigin(x, sc.getOrigin().y);
+					}					
+				}
+				else if (e.keyCode == SWT.HOME) {
+					editor.showFirstPage();
+					setOrigin(sc.getOrigin().x, 0);
+				}
+				else if (e.keyCode == SWT.END) {
+					editor.showLastPage();
+					setOrigin(sc.getOrigin().x, pheight);
+				}	
+
+			}
+		});
+
 
     	display = parent.getDisplay();
     	poppler = editor.getPoppler();
         setSize(800, 600);
+        swtImage = null;
         zoomFactor = 1.f;
         this.addPaintListener(this);
         
@@ -204,8 +281,8 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
      * Stop the generation of any previous page, and draw the new one.
      * @param page the PDFPage to draw.
      */
-    public void showPage(int page) {
-    	poppler.document_get_page(page);
+    public void showPage(int page) 
+    {
     	Point size = poppler.page_get_size();
     	
     	ImageData imgdata = new ImageData(size.x, size.y, 32, new PaletteData(0x0000FF00, 0x00FF0000, 0xFF000000));
@@ -213,7 +290,6 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
     	if (swtImage != null) swtImage.dispose();
     	swtImage = new org.eclipse.swt.graphics.Image(display, imgdata);
 
-    	
     	// stop drawing the previous page
 
     	// set up the new page
@@ -303,16 +379,20 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
     /**
      * Draw the image.
      */
-    public void paintControl(PaintEvent event) {
+    public void paintControl(PaintEvent event) 
+    {
     	GC g = event.gc;
         Point sz = getSize();
     	
-        if (poppler.page_get_index() == -1) {
+        if (swtImage == null) 
+        {
             g.setForeground(getBackground());
             g.fillRectangle(0, 0, sz.x, sz.y);
             g.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
-            g.drawString("currentImage == NULL", sz.x / 2 - 30, sz.y / 2);
-        } else {
+            g.drawString("swtImage == NULL", sz.x / 2 - 30, sz.y / 2);
+        } 
+        else 
+        {
         	Point size = poppler.page_get_size();
         	
             // draw the image
@@ -323,29 +403,35 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
             offx = (sz.x - imwid) / 2;
             offy = (sz.y - imhgt) / 2;
 
-            if ((imwid == sz.x && imhgt <= sz.y) ||
-                    (imhgt == sz.y && imwid <= sz.x)) {
+            if ((imwid == sz.x && imhgt <= sz.y) || (imhgt == sz.y && imwid <= sz.x)) 
+            {
             	
-            	if (swtImage != null) g.drawImage(swtImage, offx, offy);
+            	g.drawImage(swtImage, offx, offy);
 
-            	if (highlightLinks) {
+            	//if (highlightLinks) 
+            	if (false) 
+            	{
             		//derek List<PDFAnnotation> anno = currentPageNum.getAnnots(PDFAnnotation.LINK_ANNOTATION);
-            		List<PDFAnnotation> anno = null;
+            		List<LinkAnnotation> anno = null;
             		g.setForeground(display.getSystemColor(SWT.COLOR_RED));
-            		for (PDFAnnotation a : anno) {
+            		for (LinkAnnotation a : anno) {
             			Rectangle r = getRectangle(convertPDF2ImageCoord(a.getRect()));
             			g.drawRectangle(r);
             		}
             	}
             	//Draw highlight frame
-            	if (highlight != null) {
+            	if (highlight != null) 
+            	{
                 	g.setForeground(display.getSystemColor(SWT.COLOR_BLUE));
             		g.drawRectangle(getRectangle(highlight));
             	}
 
-            } else {
+            } 
+            else 
+            {
                 // the image is bogus.  try again, or give up.
-                if (currentPageNum != -1) {
+                if (currentPageNum != -1) 
+                {
                     showPage(currentPageNum);
                 }
                 g.setForeground(getBackground());
@@ -375,4 +461,42 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
     	IEclipsePreferences prefs = (new InstanceScope()).getNode(edu.pdx.svl.coDoc.Activator.PLUGIN_ID);
     	prefs.removePreferenceChangeListener(this);
     }
+
+	public void fitHorizontal() {
+		int w = sc.getClientArea().width;
+    	Point size = poppler.page_get_size();
+		float pw = size.x;
+		setZoomFactor((1.0f*w)/pw);
+	}
+
+	public void fit() {
+		float w = 1.f * sc.getClientArea().width;
+		float h = 1.f * sc.getClientArea().height;
+    	Point size = poppler.page_get_size();
+		float pw = size.x;
+		float ph = size.y;
+		if (w/pw < h/ph) setZoomFactor(w/pw);
+		else setZoomFactor(h/ph);
+	}
+
+	public Point getOrigin() {
+		if (!sc.isDisposed()) return sc.getOrigin();
+		else return null;
+	}
+
+	public void setOrigin(int x, int y) {
+		sc.setRedraw(false);
+		sc.setOrigin(x, y);
+		sc.setRedraw(true);
+	}
+
+	public interface IPDFEditor {
+		public PopplerJNI getPoppler();
+		public void showFirstPage();
+		public void showPreviousPage();
+		public void showNextPage();
+		public void showLastPage();
+		public void gotoAction(PDFDestination dest);
+		public void writeStatusLineError(String text);
+	}
 }

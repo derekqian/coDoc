@@ -8,6 +8,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.core.runtime.*;
+
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 
@@ -21,6 +22,7 @@ import org.eclipse.ui.actions.WorkspaceModifyOperation;
 import org.eclipse.ui.dialogs.WizardNewProjectCreationPage;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.wizards.newresource.BasicNewProjectResourceWizard;
+import org.eclipse.ui.wizards.newresource.BasicNewResourceWizard;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -39,6 +41,7 @@ public class WizardMain extends Wizard implements INewWizard, IExecutableExtensi
     	super();
     }
 
+	@Override
 	public void init(IWorkbench workbench, IStructuredSelection selection) 
     {
         this.workbench = workbench;
@@ -46,6 +49,7 @@ public class WizardMain extends Wizard implements INewWizard, IExecutableExtensi
         setWindowTitle("Generate a new coDoc project");
     }
 	
+	@Override
 	public void setInitializationData(IConfigurationElement config, String propertyName, Object data) throws CoreException 
 	{
 		this.config = config;
@@ -54,7 +58,8 @@ public class WizardMain extends Wizard implements INewWizard, IExecutableExtensi
     /** 
      * @see org.eclipse.jface.wizard.Wizard#addPages()
      */
-    public void addPages() 
+    @Override
+	public void addPages() 
     {
         super.addPages();
         page1 = new WelcomePage();
@@ -68,7 +73,8 @@ public class WizardMain extends Wizard implements INewWizard, IExecutableExtensi
     /** 
      * @see org.eclipse.jface.wizard.Wizard#performFinish()
      */
-    public boolean performFinish() 
+    @Override
+	public boolean performFinish() 
     {
 		if (project != null) 
 		{
@@ -90,6 +96,7 @@ public class WizardMain extends Wizard implements INewWizard, IExecutableExtensi
 		 * that modifies workspaces.
 		 */
 		WorkspaceModifyOperation op = new WorkspaceModifyOperation() {
+			@Override
 			protected void execute(IProgressMonitor monitor) throws CoreException 
 			{
 				createProject(desc, projectHandle, monitor);
@@ -125,7 +132,7 @@ public class WizardMain extends Wizard implements INewWizard, IExecutableExtensi
 		// switching to the specified perspective.
 		// plugin.xml: finalPerspective="coDoc.perspectives.Perspective"
 		BasicNewProjectResourceWizard.updatePerspective(config);
-		BasicNewProjectResourceWizard.selectAndReveal(project, workbench.getActiveWorkbenchWindow());
+		BasicNewResourceWizard.selectAndReveal(project, workbench.getActiveWorkbenchWindow());
 
 		return true;
     }
@@ -149,7 +156,7 @@ public class WizardMain extends Wizard implements INewWizard, IExecutableExtensi
 			 * Okay, now we have the project and we can do more things with it
 			 * before updating the perspective.
 			 */
-			IContainer container = (IContainer) proj;
+			IContainer container = proj;
 
 			/* Add an readme file */
 			addFileToProject(container, new Path("readme.txt"), openContentStream(), monitor);
@@ -162,7 +169,7 @@ public class WizardMain extends Wizard implements INewWizard, IExecutableExtensi
 			final IFolder specFolder = container.getFolder(new Path("spec"));
 			specFolder.create(true, true, monitor);
 			InputStream resourceStream2 = this.getClass().getResourceAsStream("templates/pdf-sample.resource");
-			final IFile file2 = container.getFile(new Path(specFolder.getName() + Path.SEPARATOR + "sample.pdf"));
+			final IFile file2 = container.getFile(new Path(specFolder.getName() + IPath.SEPARATOR + "sample.pdf"));
 			if (file2.exists()) 
 			{
 				file2.setContents(resourceStream2, true, true, monitor);
@@ -179,12 +186,13 @@ public class WizardMain extends Wizard implements INewWizard, IExecutableExtensi
 			IFolder codeFolder = container.getFolder(new Path("code"));
 			codeFolder.create(true, true, monitor);
 			InputStream resourceStream3 = this.getClass().getResourceAsStream("templates/c-sample.resource");
-			addFileToProject(container, new Path(codeFolder.getName() + Path.SEPARATOR + "sample.c"), resourceStream3, monitor);
+			addFileToProject(container, new Path(codeFolder.getName() + IPath.SEPARATOR + "sample.c"), resourceStream3, monitor);
 			resourceStream3.close();
 
 			monitor.worked(1);
 			monitor.setTaskName("Opening file for editing...");
 			getShell().getDisplay().asyncExec(new Runnable() {
+				@Override
 				public void run() 
 				{
 					IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();

@@ -1,6 +1,5 @@
 package edu.pdx.svl.coDocWizard;
 
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -26,6 +25,7 @@ public class WelcomePage extends WizardPage
 	/**
 	 * @see org.eclipse.jface.dialogs.IDialogPage#createControl(org.eclipse.swt.widgets.Composite)
 	 */
+	@Override
 	public void createControl(Composite parent) 
 	{
 		initializeDialogUnits(parent);

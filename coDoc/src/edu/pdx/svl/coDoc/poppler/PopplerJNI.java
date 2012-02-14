@@ -47,6 +47,11 @@ public class PopplerJNI {
 	public PopplerJNI() 
 	{
 	}
+
+	public OutlineNode getOutline() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 	
 	// return pointer to document
 	public native int document_new_from_file(String uri, String password);

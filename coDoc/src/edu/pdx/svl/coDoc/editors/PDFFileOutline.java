@@ -20,10 +20,12 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.views.contentoutline.ContentOutlinePage;
 
 
-import com.sun.pdfview.OutlineNode;
-import com.sun.pdfview.PDFDestination;
-import com.sun.pdfview.action.GoToAction;
-import com.sun.pdfview.action.PDFAction;
+import edu.pdx.svl.coDoc.poppler.OutlineNode;
+import edu.pdx.svl.coDoc.poppler.PDFDestination;
+import edu.pdx.svl.coDoc.poppler.GoToAction;
+import edu.pdx.svl.coDoc.poppler.PDFAction;
+
+import edu.pdx.svl.coDoc.editors.PDFPageViewer.IPDFEditor;
 
 /**
  * A simple outline, which directly uses the outline of the pdf file.
@@ -34,9 +36,9 @@ import com.sun.pdfview.action.PDFAction;
 public class PDFFileOutline extends ContentOutlinePage {
 	
 	private OutlineNode input;
-	private CDCEditor editor;
+	private IPDFEditor editor;
 	
-	public PDFFileOutline(CDCEditor editor) {
+	public PDFFileOutline(IPDFEditor editor) {
 		super();
 		this.editor = editor;
 	}
