@@ -2,6 +2,29 @@
 <?eclipse version="3.4"?>
 <plugin>
 
+<!-- Defines the document providers and partitioners for C/C++ documents -->
+   <extension
+         id="edu.pdx.svl.coDoc.cdt.ui.CDocumentSetupParticipant"
+         name="%cDocumentSetupParticipant"
+         point="org.eclipse.core.filebuffers.documentSetup">
+      <participant
+            class="edu.pdx.svl.coDoc.cdt.internal.ui.editor.CDocumentSetupParticipant"
+            contentTypeId="edu.pdx.svl.coDoc.cdt.core.cSource">
+      </participant>
+      <participant
+            class="edu.pdx.svl.coDoc.cdt.internal.ui.editor.CDocumentSetupParticipant"
+            contentTypeId="edu.pdx.svl.coDoc.cdt.core.cHeader">
+      </participant>
+      <participant
+            class="edu.pdx.svl.coDoc.cdt.internal.ui.editor.CDocumentSetupParticipant"
+            contentTypeId="edu.pdx.svl.coDoc.cdt.core.cxxSource">
+      </participant>
+      <participant
+            class="edu.pdx.svl.coDoc.cdt.internal.ui.editor.CDocumentSetupParticipant"
+            contentTypeId="edu.pdx.svl.coDoc.cdt.core.cxxHeader">
+      </participant>
+   </extension>
+
    <extension
          point="org.eclipse.ui.newWizards">
          

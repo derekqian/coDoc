@@ -1,5 +1,7 @@
 package edu.pdx.svl.coDoc.cdt.internal.ui.editor;
 
+import java.util.Iterator;
+
 import edu.pdx.svl.coDoc.cdt.core.model.CoreModel;
 import edu.pdx.svl.coDoc.cdt.core.model.ITranslationUnit;
 import edu.pdx.svl.coDoc.cdt.core.model.IWorkingCopy;
@@ -66,5 +68,27 @@ public class CDocumentProvider extends TextFileDocumentProvider
     System.out.println("Creating a WorkingCopy");
 		tuInfo.fCopy = copy;
 		return tuInfo;
+	}
+
+	/*
+	 * @see org.eclipse.jdt.internal.ui.javaeditor.ICompilationUnitDocumentProvider#getWorkingCopy(java.lang.Object)
+	 */
+	public IWorkingCopy getWorkingCopy(Object element) {
+		FileInfo fileInfo = getFileInfo(element);
+		if (fileInfo instanceof TranslationUnitInfo) {
+			TranslationUnitInfo info = (TranslationUnitInfo) fileInfo;
+			return info.fCopy;
+		}
+		return null;
+	}
+
+	/*
+	 * @see org.eclipse.jdt.internal.ui.javaeditor.ICompilationUnitDocumentProvider#shutdown()
+	 */
+	public void shutdown() {
+		// CUIPlugin.getDefault().getPreferenceStore().removePropertyChangeListener(fPropertyListener);
+		Iterator e = getConnectedElementsIterator();
+		while (e.hasNext())
+			disconnect(e.next());
 	}
 }

@@ -6,10 +6,15 @@ import java.util.ResourceBundle;
 import edu.pdx.svl.coDoc.cdt.internal.core.model.IBufferFactory;
 import edu.pdx.svl.coDoc.cdt.internal.ui.editor.CDocumentProvider;
 import edu.pdx.svl.coDoc.cdt.internal.ui.editor.CustomBufferFactory;
+import edu.pdx.svl.coDoc.cdt.internal.ui.editor.SharedTextColors;
+import edu.pdx.svl.coDoc.cdt.internal.ui.text.CTextTools;
+import edu.pdx.svl.coDoc.cdt.internal.ui.editor.WorkingCopyManager;
+import edu.pdx.svl.coDoc.cdt.ui.IWorkingCopyManager;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.ErrorDialog;
+import org.eclipse.jface.text.source.ISharedTextColors;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
@@ -20,6 +25,12 @@ public class CUIPlugin extends AbstractUIPlugin
 	private IBufferFactory fBufferFactory;
 	private CDocumentProvider fDocumentProvider;
 	
+	private CTextTools fTextTools;
+
+	private ISharedTextColors fSharedTextColors;
+
+	private WorkingCopyManager fWorkingCopyManager;
+
 	private static ResourceBundle fgResourceBundle;
 	public static final String PLUGIN_ID = "edu.pdx.svl.coDoc.cdt.ui"; //$NON-NLS-1$
 	
@@ -61,7 +72,26 @@ public class CUIPlugin extends AbstractUIPlugin
     }
     return fDocumentProvider;
   }
-  
+
+	public ISharedTextColors getSharedTextColors() {
+		if (fSharedTextColors == null)
+			fSharedTextColors = new SharedTextColors();
+		return fSharedTextColors;
+	}
+
+	/**
+	 * Returns the working copy manager
+	 * 
+	 * @return IWorkingCopyManager
+	 */
+	public synchronized IWorkingCopyManager getWorkingCopyManager() {
+		if (fWorkingCopyManager == null) {
+			CDocumentProvider provider = getDocumentProvider();
+			fWorkingCopyManager = new WorkingCopyManager(provider);
+		}
+		return fWorkingCopyManager;
+	}
+
 	public static String getResourceString(String key) {
 		try {
 			return fgResourceBundle.getString(key);
@@ -104,5 +134,14 @@ public class CUIPlugin extends AbstractUIPlugin
 			status = new Status(IStatus.ERROR, CUIPlugin.PLUGIN_ID, -1, "Internal Error: ", t); //$NON-NLS-1$	
 		}
 		ErrorDialog.openError(shell, title, message, status);
+	}
+
+	/**
+	 * Returns the shared text tools
+	 */
+	public CTextTools getTextTools() {
+		if (fTextTools == null)
+			fTextTools = new CTextTools();
+		return fTextTools;
 	}
 }
