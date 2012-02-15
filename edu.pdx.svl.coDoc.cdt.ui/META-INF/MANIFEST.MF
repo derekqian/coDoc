@@ -1,0 +1,21 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: coDoc CDT UI Plugin
+Bundle-SymbolicName: edu.pdx.svl.coDoc.cdt.ui;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: edu.pdx.svl.coDoc.cdt.ui.CUIPlugin
+Bundle-Vendor: Derek.QIAN
+Bundle-Localization: plugin
+Require-Bundle: org.eclipse.core.resources,
+ org.eclipse.core.runtime,
+ org.eclipse.ui.workbench.texteditor,
+ org.eclipse.ui.editors,
+ org.eclipse.ui.workbench,
+ org.eclipse.core.commands,
+ org.eclipse.jface,
+ org.eclipse.jface.text,
+ org.eclipse.ui.ide,
+ org.eclipse.ui.views,
+ edu.pdx.svl.coDoc.cdt.core
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-ActivationPolicy: lazy

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.newWizards">
+         
+<!-- Project wizards -->
+      <category
+            name="%newProjectCategory.name"
+            id="edu.pdx.svl.coDoc.cdt.ui.newProjectWizards">
+      </category>
+      <wizard
+            name="%newCProjectCategory.name"
+            icon="icons/newcprj_wiz.gif"
+            category="edu.pdx.svl.coDoc.cdt.ui.newProjectWizards"
+            id="edu.pdx.svl.coDoc.cdt.ui.wizards.NewCProjectWizard"
+            project="true"
+            class="edu.pdx.svl.coDoc.cdt.ui.wizards.NewCProjectWizard">
+      </wizard>
+            <wizard
+            name="%newCCProjectCategory.name"
+            icon="icons/newcprj_wiz.gif"
+            category="edu.pdx.svl.coDoc.cdt.ui.newProjectWizards"
+            id="edu.pdx.svl.coDoc.cdt.ui.wizards.NewCCProjectWizard"
+            project="true"
+            class="edu.pdx.svl.coDoc.cdt.ui.wizards.NewCCProjectWizard">
+      </wizard>
+      
+<!-- File Wizards -->         
+      <category
+            name="%newFileCategory.name"
+            id="edu.pdx.svl.coDoc.cdt.ui.newCWizards">
+      </category>
+      <wizard
+            name="%newCFileCategory.name"
+            icon="icons/newcfile_wiz.gif"
+            category="edu.pdx.svl.coDoc.cdt.ui.newCWizards"
+            id="edu.pdx.svl.coDoc.cdt.ui.wizards.CFileWizard"
+            class="edu.pdx.svl.coDoc.cdt.ui.wizards.CFileWizard">
+      </wizard>
+      <wizard
+            name="%newCCFileCategory.name"
+            icon="icons/newclass_wiz.gif"
+            category="edu.pdx.svl.coDoc.cdt.ui.newCWizards"
+            id="edu.pdx.svl.coDoc.cdt.ui.wizards.CCFileWizard"
+            class="edu.pdx.svl.coDoc.cdt.ui.wizards.CCFileWizard">
+      </wizard>
+   </extension>
+   
+<!-- The Editor -->
+   <extension
+      id="org.eclipse.bbcdt.ui.ceditor"
+      point="org.eclipse.ui.editors">
+      <editor
+         default="true"
+         name="%CEditor.name"
+         icon="icons/c_file_obj.gif"
+         class="edu.pdx.svl.coDoc.cdt.internal.ui.editor.CEditor"
+         id="edu.pdx.svl.coDoc.cdt.ui.editor.CEditor">
+            <contentTypeBinding contentTypeId="edu.pdx.svl.coDoc.cdt.core.cSource"/>
+            <contentTypeBinding contentTypeId="edu.pdx.svl.coDoc.cdt.core.cxxSource"/>
+            <contentTypeBinding contentTypeId="edu.pdx.svl.coDoc.cdt.core.cxxHeader"/>
+            <contentTypeBinding contentTypeId="edu.pdx.svl.coDoc.cdt.core.cHeader"/>
+      </editor>
+   </extension>
+ 
+<!-- Create image for C/C++ projects -->
+   <extension
+         point="org.eclipse.ui.ide.projectNatureImages">
+      <image
+            icon="icons/c_ovr.gif"
+            natureId="edu.pdx.svl.coDoc.cdt.core.cnature"
+            id="edu.pdx.svl.coDoc.cdt.ui.cProjectNatureImage">
+      </image>
+   </extension>
+   
+<!-- Set up CElements as Resource Adapters -->
+   <extension
+         point="org.eclipse.core.runtime.adapters">
+      <factory
+            class="edu.pdx.svl.coDoc.cdt.ui.CElementAdapterFactory"
+            adaptableType="edu.pdx.svl.coDoc.cdt.core.model.ICElement">
+         <adapter
+               type="org.eclipse.core.resources.IResource">
+         </adapter>
+         <adapter
+               type="org.eclipse.core.resources.IProject">
+         </adapter>
+         <adapter
+               type="org.eclipse.ui.model.IWorkbenchAdapter">
+         </adapter>
+         <adapter
+               type="org.eclipse.ui.views.properties.IPropertySource">
+         </adapter>
+         <adapter type="org.eclipse.ui.progress.IDeferredWorkbenchAdapter"/>
+         <adapter type="org.eclipse.ui.IActionFilter"/>
+         <adapter type="org.eclipse.core.resources.IWorkspaceRoot"/>
+      </factory>
+   </extension>
+</plugin>
