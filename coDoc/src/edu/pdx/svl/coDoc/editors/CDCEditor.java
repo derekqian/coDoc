@@ -18,6 +18,7 @@ import java.util.zip.GZIPInputStream;
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -26,6 +27,9 @@ import org.eclipse.jface.action.IContributionItem;
 import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.source.ISharedTextColors;
+import org.eclipse.jface.text.source.ISourceViewer;
+import org.eclipse.jface.text.source.IVerticalRuler;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -48,6 +52,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.contexts.IContextActivation;
 import org.eclipse.ui.contexts.IContextService;
+import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.EditorPart;
@@ -58,13 +63,24 @@ import edu.pdx.svl.coDoc.poppler.OutlineNode;
 import edu.pdx.svl.coDoc.poppler.PDFDestination;
 import com.sun.pdfview.PDFObject;
 
+import edu.pdx.svl.coDoc.cdt.core.model.CoreModel;
+import edu.pdx.svl.coDoc.cdt.core.model.ITranslationUnit;
+import edu.pdx.svl.coDoc.cdt.internal.ui.editor.CSourceViewer;
+import edu.pdx.svl.coDoc.cdt.internal.ui.text.CSourceViewerConfiguration;
+import edu.pdx.svl.coDoc.cdt.internal.ui.text.CTextTools;
+import edu.pdx.svl.coDoc.cdt.ui.CUIPlugin;
+import edu.pdx.svl.coDoc.cdt.ui.IWorkingCopyManager;
 import edu.pdx.svl.coDoc.editors.PDFPageViewer.IPDFEditor;
 import edu.pdx.svl.coDoc.editors.StatusLinePageSelector.IPageChangeListener;
 import edu.pdx.svl.coDoc.poppler.PopplerJNI;
 
 
-public class CDCEditor extends EditorPart implements IResourceChangeListener, INavigationLocationProvider, IPageChangeListener, IPDFEditor
+public class CDCEditor extends TextEditor/*EditorPart*/ implements IResourceChangeListener, INavigationLocationProvider, IPageChangeListener, IPDFEditor
 {
+	/* Source code language to display */
+	public final static String LANGUAGE_CPP = "CEditor.language.cpp"; //$NON-NLS-1$
+
+	public final static String LANGUAGE_C = "CEditor.language.c"; //$NON-NLS-1$	
 
 	public static final String ID = "edu.pdx.svl.coDoc.editors.CDCEditor"; // editor id, plugin.xml
 	public static final String CONTEXT_ID = "PDFViewer.editors.contextid"; // key binding, plugin.xml
@@ -81,8 +97,8 @@ public class CDCEditor extends EditorPart implements IResourceChangeListener, IN
 	public int currentPage;
 	public int pageNumbers;
 
-	private ScrolledComposite scc;
-	private ScrolledComposite sc;
+	private ScrolledComposite sc1;
+	private ScrolledComposite sc2;
 	
 	public PDFPageViewer pv;
 	private PDFFileOutline outline;
@@ -91,6 +107,47 @@ public class CDCEditor extends EditorPart implements IResourceChangeListener, IN
 	public CDCEditor() {
 		super();
 	}
+
+	  /**
+	   * @see org.eclipse.ui.texteditor.AbstractDecoratedTextEditor#initializeEditor()
+	   */
+	  protected void initializeEditor() 
+	  {
+			CTextTools textTools = CUIPlugin.getDefault().getTextTools();
+			setSourceViewerConfiguration(new CSourceViewerConfiguration(textTools, this));
+	    setDocumentProvider(CUIPlugin.getDefault().getDocumentProvider());
+	  }
+
+		/*
+		 * @see AbstractTextEditor#createSourceViewer(Composite, IVerticalRuler,
+		 *      int)
+		 */
+		protected ISourceViewer createSourceViewer(Composite parent,
+				IVerticalRuler ruler, int styles) {
+			// Figure out if this is a C or C++ source file
+			IWorkingCopyManager mgr = CUIPlugin.getDefault()
+					.getWorkingCopyManager();
+			ITranslationUnit unit = mgr.getWorkingCopy(getEditorInput());
+			String fileType = LANGUAGE_CPP;
+			if (unit != null) {
+				// default is C++ unless the project as C Nature Only
+				// we can then be smarter.
+				IProject p = unit.getCProject().getProject();
+				if (!CoreModel.hasCCNature(p)) {
+					fileType = unit.isCXXLanguage() ? LANGUAGE_CPP : LANGUAGE_C;
+				}
+			}
+
+			fAnnotationAccess = createAnnotationAccess();
+
+			ISharedTextColors sharedColors = CUIPlugin.getDefault()
+					.getSharedTextColors();
+			fOverviewRuler = createOverviewRuler(sharedColors);
+
+			ISourceViewer sourceViewer = new CSourceViewer(this, parent, ruler,
+					styles, fOverviewRuler, isOverviewRulerVisible(), fileType);
+			return sourceViewer;
+		}
 
 	@Override
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException 
@@ -158,7 +215,7 @@ public class CDCEditor extends EditorPart implements IResourceChangeListener, IN
 	public void dispose() {
 		super.dispose();
 		
-		if (sc != null) sc.dispose();
+		if (sc2 != null) sc2.dispose();
 		if (pv != null) pv.dispose();
 		if (outline != null) outline.dispose();
 		
@@ -172,21 +229,22 @@ public class CDCEditor extends EditorPart implements IResourceChangeListener, IN
 		position = null;
 		outline = null;
 		pv = null;
-		sc = null;
+		sc2 = null;
 	}
 
 	@Override
 	public void createPartControl(final Composite parent) {
-		parent.setLayout(new FillLayout());
 		
-		scc = new ScrolledComposite(parent, SWT.H_SCROLL | SWT.V_SCROLL);
+		  super.createPartControl(parent);
+		//parent.setLayout(new FillLayout());
+		//sc1 = new ScrolledComposite(parent, SWT.H_SCROLL | SWT.V_SCROLL);
 		
-		sc = new ScrolledComposite(parent, SWT.H_SCROLL | SWT.V_SCROLL);
-		pv = new PDFPageViewer(sc, this);
-		//pv = new PDFPageViewerAWT(sc, this);
-		sc.setContent(pv);
+		sc2 = new ScrolledComposite(parent, SWT.H_SCROLL | SWT.V_SCROLL);
+		pv = new PDFPageViewer(sc2, this);
+		//pv = new PDFPageViewerAWT(sc2, this);
+		sc2.setContent(pv);
 		// Speed up scrolling when using a wheel mouse
-		ScrollBar vBar = sc.getVerticalBar();
+		ScrollBar vBar = sc2.getVerticalBar();
 		vBar.setIncrement(10);
 
 		IStatusLineManager statusLineM = getEditorSite().getActionBars().getStatusLineManager();
@@ -234,7 +292,7 @@ public class CDCEditor extends EditorPart implements IResourceChangeListener, IN
 	@Override
 	public void pageChange(int pageNr) {
 		showPage(pageNr);
-		pv.setOrigin(sc.getOrigin().x, 0);
+		pv.setOrigin(sc2.getOrigin().x, 0);
 	}
 
 	@Override
@@ -271,9 +329,9 @@ public class CDCEditor extends EditorPart implements IResourceChangeListener, IN
 		showPage(page);
 		pv.highlight(0, 0, 30, 4);
 		Rectangle2D re = pv.convertPDF2ImageCoord(new Rectangle(0, 0, 1, 1));
-		int x = sc.getOrigin().x;
-		if (re.getX() < sc.getOrigin().x) x = (int)Math.round(re.getX() - 10);
-		pv.setOrigin(x, (int)Math.round(re.getY() - sc.getBounds().height / 4.));
+		int x = sc2.getOrigin().x;
+		if (re.getX() < sc2.getOrigin().x) x = (int)Math.round(re.getX() - 10);
+		pv.setOrigin(x, (int)Math.round(re.getY() - sc2.getBounds().height / 4.));
 		//System.out.println("Page: "+page);
 		try {
 			this.getSite().getPage().openEditor(this.getEditorInput(), CDCEditor.ID);
@@ -366,7 +424,7 @@ public class CDCEditor extends EditorPart implements IResourceChangeListener, IN
 
 	@Override
 	public void setFocus() {
-		sc.setFocus();
+		sc2.setFocus();
 		updateStatusLine();
 		position.setPageChangeListener(this);
 	}
@@ -388,9 +446,9 @@ public class CDCEditor extends EditorPart implements IResourceChangeListener, IN
 
 		Rectangle2D re = pv.convertPDF2ImageCoord(new Rectangle((int)Math.round(dest.getLeft()), (int)Math.round(dest.getTop()), 
 				1, 1));
-		int x = sc.getOrigin().x;
-		if (re.getX() < sc.getOrigin().x) x = (int)Math.round(re.getX() - 10);
-		pv.setOrigin(x, (int)Math.round(re.getY() - sc.getBounds().height / 4.));
+		int x = sc2.getOrigin().x;
+		if (re.getX() < sc2.getOrigin().x) x = (int)Math.round(re.getX() - 10);
+		pv.setOrigin(x, (int)Math.round(re.getY() - sc2.getBounds().height / 4.));
 
 		wpage.getNavigationHistory().markLocation(this);
 	}
@@ -456,14 +514,14 @@ public class CDCEditor extends EditorPart implements IResourceChangeListener, IN
 	}
 
 	public Point getOrigin() {
-		if (!sc.isDisposed()) return sc.getOrigin();
+		if (!sc2.isDisposed()) return sc2.getOrigin();
 		else return null;
 	}
 
 	public void setOrigin(Point p) {
-		sc.setRedraw(false);
-		if (p != null) sc.setOrigin(p);
-		sc.setRedraw(true);
+		sc2.setRedraw(false);
+		if (p != null) sc2.setOrigin(p);
+		sc2.setRedraw(true);
 	}
 
 }

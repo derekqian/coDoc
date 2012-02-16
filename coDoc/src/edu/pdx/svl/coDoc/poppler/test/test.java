@@ -1,5 +1,6 @@
 package edu.pdx.svl.coDoc.poppler.test;
 
+
 import java.io.IOException;
 
 import org.eclipse.swt.SWT;
@@ -16,6 +17,27 @@ import com.sun.pdfview.PDFPage;
 import edu.pdx.svl.coDoc.editors.PDFPageViewer;
 import edu.pdx.svl.coDoc.poppler.PopplerJNI;
 
+class A
+{
+	public A()
+	{
+		System.out.println("Constructor for A");
+	}
+}
+class B extends A
+{
+	public B()
+	{
+		System.out.println("Constructor for B");
+	}
+}
+class C extends B
+{
+	public C()
+	{
+		System.out.println("Constructor for C");
+	}
+}
 public class test
 {
 	private static ScrolledComposite sc;
@@ -23,6 +45,10 @@ public class test
 	
     public static void main(String[] args) 
     {
+		A a = new C();
+		String name = a.getClass().getName();
+		System.out.println(name);
+		
         Display display = new Display();
         Shell shell = new Shell(display);
         shell.setText("Hello World");

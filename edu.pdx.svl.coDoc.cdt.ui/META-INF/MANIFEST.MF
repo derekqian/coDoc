@@ -17,5 +17,8 @@ Require-Bundle: org.eclipse.core.resources,
  org.eclipse.ui.ide,
  org.eclipse.ui.views,
  edu.pdx.svl.coDoc.cdt.core
+Export-Package: edu.pdx.svl.coDoc.cdt.internal.ui.editor,
+ edu.pdx.svl.coDoc.cdt.internal.ui.text,
+ edu.pdx.svl.coDoc.cdt.ui
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy

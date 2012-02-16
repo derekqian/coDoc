@@ -57,7 +57,7 @@ public class Perspective implements IPerspectiveFactory {
 		IFolderLayout bottom = factory.createFolder("bottomRight", IPageLayout.BOTTOM, 0.75f, factory.getEditorArea());
 		bottom.addView("edu.pdx.svl.coDoc.views.PropertyView");
 		//bottom.addView(IPageLayout.ID_PROBLEM_VIEW);
-		bottom.addView("org.eclipse.team.ui.GenericHistoryView");
+		bottom.addView("edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView");
 		//reserve the place for console view.
 		bottom.addPlaceholder(IConsoleConstants.ID_CONSOLE_VIEW);
 		

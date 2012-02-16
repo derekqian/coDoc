@@ -30,7 +30,7 @@ public class CSourceViewerConfiguration extends TextSourceViewerConfiguration {
 
 	private CTextTools fTextTools;
 
-	private CEditor fEditor;
+	private ITextEditor fEditor;
 
 	/**
 	 * Creates a new C source viewer configuration for viewers in the given
@@ -41,7 +41,7 @@ public class CSourceViewerConfiguration extends TextSourceViewerConfiguration {
 	 * @param editor
 	 *            the editor in which the configured viewer will reside
 	 */
-	public CSourceViewerConfiguration(CTextTools tools, CEditor editor) {
+	public CSourceViewerConfiguration(CTextTools tools, ITextEditor editor) {
 		super();
 		fTextTools = tools;
 		fEditor = editor;

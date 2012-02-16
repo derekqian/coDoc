@@ -11,6 +11,9 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.text.source.ISharedTextColors;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.IVerticalRuler;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.editors.text.TextEditor;
 
@@ -30,6 +33,13 @@ public class CEditor extends TextEditor
 		setSourceViewerConfiguration(new CSourceViewerConfiguration(textTools,
 				this));
     setDocumentProvider(CUIPlugin.getDefault().getDocumentProvider());
+  }
+  
+  public void createPartControl(final Composite parent) {
+	  System.out.println(parent.getClass().getName());
+		//parent.setLayout(new FillLayout());
+	  super.createPartControl(parent);
+		//ScrolledComposite sc = new ScrolledComposite(parent, SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
   }
 
 	/*
