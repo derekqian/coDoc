@@ -9,7 +9,7 @@
             class="edu.pdx.svl.coDoc.editors.CDCEditor"
             contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
             extensions="cdc"
-            icon="icons/coDoc.gif"
+            icon="icons/coDoc.png"
             id="edu.pdx.svl.coDoc.editors.CDCEditor"
             name="CDC Editor">
       </editor>
@@ -247,7 +247,7 @@
          point="org.eclipse.ui.perspectives">
       <perspective
             name="coDoc"
-            icon="icons/coDoc.gif"
+            icon="icons/coDoc.png"
             class="edu.pdx.svl.coDoc.perspectives.Perspective"
             id="edu.pdx.svl.coDoc.perspectives.Perspective">
       </perspective>

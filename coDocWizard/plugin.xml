@@ -14,7 +14,7 @@
        <!--the class is invoked when the "next" button is pressed.-->
        <wizard
            name="coDoc Project"
-           icon="icons/coDoc.gif"
+           icon="icons/coDoc.png"
            category="edu.pdx.svl.coDocWizard.category"
            class="edu.pdx.svl.coDocWizard.WizardMain"
            id="edu.pdx.svl.coDocWizard.wizard"
