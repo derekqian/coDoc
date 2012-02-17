@@ -112,6 +112,47 @@ public class CDCEditor extends TextEditor/*EditorPart*/ implements IResourceChan
 		super();
 	}
 
+	  /**
+	   * @see org.eclipse.ui.texteditor.AbstractDecoratedTextEditor#initializeEditor()
+	   */
+	  protected void initializeEditor() 
+	  {
+			CTextTools textTools = CUIPlugin.getDefault().getTextTools();
+			setSourceViewerConfiguration(new CSourceViewerConfiguration(textTools, this));
+	    setDocumentProvider(CUIPlugin.getDefault().getDocumentProvider());
+	  }
+
+		/*
+		 * @see AbstractTextEditor#createSourceViewer(Composite, IVerticalRuler,
+		 *      int)
+		 */
+		protected ISourceViewer createSourceViewer(Composite parent,
+				IVerticalRuler ruler, int styles) {
+			// Figure out if this is a C or C++ source file
+			IWorkingCopyManager mgr = CUIPlugin.getDefault()
+					.getWorkingCopyManager();
+			ITranslationUnit unit = mgr.getWorkingCopy(getEditorInput());
+			String fileType = LANGUAGE_CPP;
+			if (unit != null) {
+				// default is C++ unless the project as C Nature Only
+				// we can then be smarter.
+				IProject p = unit.getCProject().getProject();
+				if (!CoreModel.hasCCNature(p)) {
+					fileType = unit.isCXXLanguage() ? LANGUAGE_CPP : LANGUAGE_C;
+				}
+			}
+
+			fAnnotationAccess = createAnnotationAccess();
+
+			ISharedTextColors sharedColors = CUIPlugin.getDefault()
+					.getSharedTextColors();
+			fOverviewRuler = createOverviewRuler(sharedColors);
+
+			ISourceViewer sourceViewer = new CSourceViewer(this, parent, ruler,
+					styles, fOverviewRuler, isOverviewRulerVisible(), fileType);
+			return sourceViewer;
+		}
+
 	@Override
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException 
 	{
@@ -198,7 +239,7 @@ public class CDCEditor extends TextEditor/*EditorPart*/ implements IResourceChan
 	@Override
 	public void createPartControl(final Composite parent) {
 		
-		  //super.createPartControl(parent);
+		  super.createPartControl(parent);
 		//parent.setLayout(new FillLayout());
 		//sc1 = new ScrolledComposite(parent, SWT.H_SCROLL | SWT.V_SCROLL);
 		
