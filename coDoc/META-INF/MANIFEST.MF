@@ -14,13 +14,12 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.jdt.ui
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
-Bundle-ClassPath: .,
- lib/jbig2.jar,
- lib/PDFrenderer.jar
 Import-Package: edu.pdx.svl.coDoc.cdt.core.model,
  edu.pdx.svl.coDoc.cdt.internal.ui.editor,
  edu.pdx.svl.coDoc.cdt.internal.ui.text,
  edu.pdx.svl.coDoc.cdt.ui,
+ edu.pdx.svl.coDoc.poppler.editor,
+ edu.pdx.svl.coDoc.poppler.lib,
  org.eclipse.core.filesystem,
  org.eclipse.ui,
  org.eclipse.ui.actions,

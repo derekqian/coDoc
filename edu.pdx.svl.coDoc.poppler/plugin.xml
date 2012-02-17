@@ -4,14 +4,14 @@
 
    <extension
          point="org.eclipse.ui.editors">
-      <!--id is used in CDCEditor.java: "this.getSite().getPage().openEditor(this.getEditorInput(), CDCEditor.ID);"-->
+      <!--id is used in PDFEditor.java: "this.getSite().getPage().openEditor(this.getEditorInput(), PDFEditor.ID);"-->
       <editor
-            class="edu.pdx.svl.coDoc.editors.CDCEditor"
+            class="edu.pdx.svl.coDoc.poppler.editor.PDFEditor"
             contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
-            extensions="cdc"
-            icon="icons/coDoc.png"
-            id="edu.pdx.svl.coDoc.editors.CDCEditor"
-            name="CDC Editor">
+            extensions="pdf"
+            icon="icons/document-pdf.png"
+            id="edu.pdx.svl.coDoc.poppler.editor.PDFEditor"
+            name="PDF Editor">
       </editor>
    </extension>
    <extension
@@ -208,62 +208,6 @@
             </command>
          </toolbar>
       </menuContribution>
-      <menuContribution
-            locationURI="menu:org.eclipse.ui.main.menu?after=additions">
-         <menu
-               label="Sample Menu"
-               mnemonic="M"
-               id="edu.pdx.svl.coDoc.menus.sampleMenu">
-            <command
-                  commandId="edu.pdx.svl.coDoc.commands.sampleCommand"
-                  mnemonic="S"
-                  id="edu.pdx.svl.coDoc.menus.sampleCommand">
-            </command>
-         </menu>
-      </menuContribution>
-      <menuContribution
-            locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
-         <toolbar
-               id="edu.pdx.svl.coDoc.toolbars.sampleToolbar">
-            <command
-                  commandId="edu.pdx.svl.coDoc.commands.sampleCommand"
-                  icon="icons/sample.gif"
-                  tooltip="Say hello world"
-                  id="edu.pdx.svl.coDoc.toolbars.sampleCommand">
-            </command>
-         </toolbar>
-      </menuContribution>
-   </extension>
-   <extension
-         point="org.eclipse.ui.perspectives">
-      <perspective
-            name="coDoc"
-            icon="icons/coDoc.png"
-            class="edu.pdx.svl.coDoc.perspectives.Perspective"
-            id="edu.pdx.svl.coDoc.perspectives.Perspective">
-      </perspective>
-   </extension>
-   <extension
-         point="org.eclipse.ui.popupMenus">
-      <objectContribution
-            objectClass="org.eclipse.core.resources.IFile"
-            id="edu.pdx.svl.coDoc.contribution1">
-         <menu
-               label="New Submenu"
-               path="additions"
-               id="edu.pdx.svl.coDoc.menu1">
-            <separator
-                  name="group1">
-            </separator>
-         </menu>
-         <action
-               label="New Action"
-               class="edu.pdx.svl.coDoc.popup.actions.NewAction"
-               menubarPath="edu.pdx.svl.coDoc.menu1/group1"
-               enablesFor="1"
-               id="edu.pdx.svl.coDoc.newAction">
-         </action>
-      </objectContribution>
    </extension>
    <extension
          point="org.eclipse.ui.views">
