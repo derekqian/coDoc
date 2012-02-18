@@ -61,7 +61,6 @@ import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
 import edu.pdx.svl.coDoc.poppler.lib.OutlineNode;
 import edu.pdx.svl.coDoc.poppler.lib.PDFDestination;
-import com.sun.pdfview.PDFObject;
 
 import edu.pdx.svl.coDoc.cdt.core.model.CoreModel;
 import edu.pdx.svl.coDoc.cdt.core.model.ITranslationUnit;
@@ -372,21 +371,6 @@ public class CDCEditor extends TextEditor/*EditorPart*/ implements IResourceChan
 
 	public PopplerJNI getPoppler() {
 		return poppler;
-	}
-	
-	private void showPage (PDFObject page) {
-		//derek try {	
-			//derek int pageNr = p.getPageNumber(page)+1;
-			int pageNr = 1;
-			if (pageNr < 1) pageNr = 1;
-			if (pageNr > pageNumbers) pageNr = pageNumbers;
-			poppler.document_get_page(pageNr);
-			currentPage = pageNr;
-			pv.showPage(pageNr);
-			updateStatusLine();
-		//derek } catch (IOException e) {
-			//derek System.err.println("Messages.PDFEditor_ErrorMsg5");
-		//derek }
 	}
 
 	public void showPage(int pageNr) {

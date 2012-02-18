@@ -48,6 +48,23 @@ public class CDocumentProvider extends TextFileDocumentProvider
 	protected FileInfo createFileInfo(Object element) throws CoreException {
 		ITranslationUnit original = null;
 		if (element instanceof IFileEditorInput) {
+			/*
+			IPath path = new Path("/test/code/sample.c");
+			
+			IWorkspace workspace = ResourcesPlugin.getWorkspace();
+			//System.out.println(workspace.getClass().getName());
+			//org.eclipse.core.internal.resources.Workspace
+
+			IWorkspaceRoot workspaceroot = workspace.getRoot();
+			IFile file = (IFile) workspaceroot.getFile(path);
+			//IProject project = workspaceroot.getProject();
+			//IFile file = (IFile) project.findMember(path);
+			//System.out.println(file.getClass().getName());
+
+			//System.out.println(input.getClass().getName());
+			//org.eclipse.ui.part.FileEditorInput
+			FileEditorInput input = new FileEditorInput(file);
+			 */
 			IFileEditorInput input = (IFileEditorInput)element;
 			original = createTranslationUnit(input.getFile());
       System.out.println("Creating a TranslationUnit");
