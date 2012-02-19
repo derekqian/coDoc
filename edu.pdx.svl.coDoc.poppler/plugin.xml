@@ -9,11 +9,21 @@
             class="edu.pdx.svl.coDoc.poppler.editor.PDFEditor"
             contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
             extensions="pdf"
+            default="true"
             icon="icons/document-pdf.png"
             id="edu.pdx.svl.coDoc.poppler.editor.PDFEditor"
             name="PDF Editor">
       </editor>
    </extension>
+   <extension point="org.eclipse.core.runtime.contentTypes"> 
+      <file-association 
+            base-type="org.eclipse.core.runtime.text"
+            id="edu.pdx.svl.coDoc.poppler.pdfFile"
+            name="PDF File"
+            file-extensions="pdf"
+            priority="high"/>
+   </extension> 
+   
    <extension
          point="org.eclipse.ui.commands">
       <category

@@ -35,10 +35,15 @@
       <!--id is used in CDCEditor.java: "this.getSite().getPage().openEditor(this.getEditorInput(), CDCEditor.ID);"-->
       <editor
             launcher="edu.pdx.svl.coDoc.cdc.editor.CDCEditor"
-            extensions="cdc"
+            extensions="cdc,pdf"
+            default="false"
             icon="icons/coDoc.png"
             id="edu.pdx.svl.coDoc.cdc.editor.CDCEditor"
             name="CDC Editor">
+	            <contentTypeBinding contentTypeId="edu.pdx.svl.coDoc.cdt.core.cSource"/>
+	            <contentTypeBinding contentTypeId="edu.pdx.svl.coDoc.cdt.core.cxxSource"/>
+	            <contentTypeBinding contentTypeId="edu.pdx.svl.coDoc.cdt.core.cxxHeader"/>
+	            <contentTypeBinding contentTypeId="edu.pdx.svl.coDoc.cdt.core.cHeader"/>
       </editor>
       <editor
             class="edu.pdx.svl.coDoc.cdc.editor.EntryEditor"
