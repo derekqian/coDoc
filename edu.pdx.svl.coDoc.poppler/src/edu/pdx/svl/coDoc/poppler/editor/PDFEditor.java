@@ -322,8 +322,8 @@ public class PDFEditor extends EditorPart implements IResourceChangeListener, IN
 		System.out.println("PDFEditor::showPage()\n");
 		if (pageNr < 1) pageNr = 1;
 		if (pageNr > pageNumbers) pageNr = pageNumbers;
-		if(currentPage != pageNr)
-		{
+		//if(currentPage != pageNr)
+		//{
 			if(currentPage != -1)
 			{
 				poppler.document_release_page();
@@ -332,7 +332,7 @@ public class PDFEditor extends EditorPart implements IResourceChangeListener, IN
 			currentPage = pageNr;
 			pv.showPage(pageNr);
 			updateStatusLine();
-		}
+		//}
 	}
 	
 	public void showFirstPage()
