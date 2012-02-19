@@ -37,6 +37,7 @@ public class CEditor extends TextEditor
   
   public void createPartControl(final Composite parent) {
 	  System.out.println(parent.getClass().getName());
+	  System.out.println(getEditorInput().getClass().getName());
 		//parent.setLayout(new FillLayout());
 	  super.createPartControl(parent);
 		//ScrolledComposite sc = new ScrolledComposite(parent, SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);

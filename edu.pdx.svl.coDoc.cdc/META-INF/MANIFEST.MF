@@ -25,6 +25,7 @@ Import-Package: edu.pdx.svl.coDoc.cdt.core.model,
  org.eclipse.ui.actions,
  org.eclipse.ui.dialogs,
  org.eclipse.ui.ide,
+ org.eclipse.ui.part,
  org.eclipse.ui.views.contentoutline,
  org.eclipse.ui.views.properties,
  org.eclipse.ui.wizards.newresource

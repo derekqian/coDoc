@@ -91,7 +91,8 @@ public class PDFEditor extends EditorPart implements IResourceChangeListener, IN
 	@Override
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException 
 	{
-		System.out.println("PDFEditor::init()\n");
+		System.out.println("\n PDFEditor::init()");
+		System.out.println(input.getClass().getName());
 		setSite(site);
 		setInput(input);
 		setPartName(input.getName());
