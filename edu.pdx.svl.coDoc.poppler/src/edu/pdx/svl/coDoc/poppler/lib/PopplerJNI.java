@@ -1,9 +1,10 @@
 package edu.pdx.svl.coDoc.poppler.lib;
 
+import java.awt.Dimension;
 import java.io.File;
 import java.util.Properties;
 
-import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 
 
 public class PopplerJNI {
@@ -64,8 +65,12 @@ public class PopplerJNI {
 	public native int document_get_page(int index);
 	public native int document_release_page();
 	
-	public native Point page_get_size();
+	public native Dimension page_get_size();
 	public native int page_get_index();
 
 	public native int page_render(byte[] data);
+	public native int page_render_selection(byte[] data, Rectangle oldselection, Rectangle selection);
+	
+	public native Rectangle[] page_get_selected_region(double scale, Rectangle selection);
+	public native String page_get_selected_text(double scale, Rectangle selection);
 }

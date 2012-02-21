@@ -15,7 +15,7 @@ static int g_width = -1;
 static int g_height = -1;
 
 /*
- * Class:     edu_pdx_svl_coDoc_poppler_PopplerJNI
+ * Class:     edu_pdx_svl_coDoc_poppler_lib_PopplerJNI
  * Method:    document_new_from_file
  * Signature: (Ljava/lang/String;Ljava/lang/String;)I
  */
@@ -60,7 +60,7 @@ JNIEXPORT jint JNICALL Java_edu_pdx_svl_coDoc_poppler_lib_PopplerJNI_document_1n
 
 
 /*
- * Class:     edu_pdx_svl_coDoc_poppler_PopplerJNI
+ * Class:     edu_pdx_svl_coDoc_poppler_lib_PopplerJNI
  * Method:    document_close
  * Signature: ()I
  */
@@ -77,7 +77,7 @@ JNIEXPORT jint JNICALL Java_edu_pdx_svl_coDoc_poppler_lib_PopplerJNI_document_1c
 
 
 /*
- * Class:     edu_pdx_svl_coDoc_poppler_PopplerJNI
+ * Class:     edu_pdx_svl_coDoc_poppler_lib_PopplerJNI
  * Method:    document_get_n_pages
  * Signature: ()I
  */
@@ -93,7 +93,7 @@ JNIEXPORT jint JNICALL Java_edu_pdx_svl_coDoc_poppler_lib_PopplerJNI_document_1g
 
 
 /*
- * Class:     edu_pdx_svl_coDoc_poppler_PopplerJNI
+ * Class:     edu_pdx_svl_coDoc_poppler_lib_PopplerJNI
  * Method:    document_get_page
  * Signature: (I)I
  */
@@ -115,7 +115,7 @@ JNIEXPORT jint JNICALL Java_edu_pdx_svl_coDoc_poppler_lib_PopplerJNI_document_1g
 
 
 /*
- * Class:     edu_pdx_svl_coDoc_poppler_PopplerJNI
+ * Class:     edu_pdx_svl_coDoc_poppler_lib_PopplerJNI
  * Method:    document_release_page
  * Signature: ()I
  */
@@ -137,9 +137,9 @@ JNIEXPORT jint JNICALL Java_edu_pdx_svl_coDoc_poppler_lib_PopplerJNI_document_1r
 
 
 /*
- * Class:     edu_pdx_svl_coDoc_poppler_PopplerJNI
+ * Class:     edu_pdx_svl_coDoc_poppler_lib_PopplerJNI
  * Method:    page_get_size
- * Signature: ()Lorg/eclipse/swt/graphics/Point;
+ * Signature: ()Ljava/awt/Dimension;
  * javap -classpath /opt/eclipse/plugins/org.eclipse.swt.gtk.linux.x86_3.6.2.v3659b.jar -s -private org.eclipse.swt.graphics.Point
  */
 JNIEXPORT jobject JNICALL Java_edu_pdx_svl_coDoc_poppler_lib_PopplerJNI_page_1get_1size
@@ -158,29 +158,29 @@ JNIEXPORT jobject JNICALL Java_edu_pdx_svl_coDoc_poppler_lib_PopplerJNI_page_1ge
 	g_height = height;
 
     // get class
-    jclass class_Point = env->FindClass("org/eclipse/swt/graphics/Point");
-    assert(class_Point != 0);
+    jclass class_Dimension = env->FindClass("java/awt/Dimension");
+    assert(class_Dimension != 0);
 
     // get constructor
     //jmethodID construct_Point = env->GetMethodID(class_Point, "<init></init>","()V");
 
     // create java object
-    jobject obj_Point = env->AllocObject(class_Point);
+    jobject obj_Dimension = env->AllocObject(class_Dimension);
     //jobject obj_Point = env->NewObject(class_Point, construct_Point, "");
 
-    jfieldID x = env->GetFieldID(class_Point, "x", "I");   
-    jfieldID y = env->GetFieldID(class_Point, "y", "I");   
+    jfieldID id_width = env->GetFieldID(class_Dimension, "width", "I");   
+    jfieldID id_height = env->GetFieldID(class_Dimension, "height", "I");   
   
-    env->SetIntField(obj_Point, x, g_width);   
-    env->SetIntField(obj_Point, y, g_height); 
+    env->SetIntField(obj_Dimension, id_width, g_width);   
+    env->SetIntField(obj_Dimension, id_height, g_height); 
     //env->SetObjectField(obj_Point, y, env->NewStringUTF((char*)"test"));   
     
-    return obj_Point;   
+    return obj_Dimension;   
 }
 
 
 /*
- * Class:     edu_pdx_svl_coDoc_poppler_PopplerJNI
+ * Class:     edu_pdx_svl_coDoc_poppler_lib_PopplerJNI
  * Method:    page_get_index
  * Signature: ()I
  */
@@ -199,7 +199,7 @@ JNIEXPORT jint JNICALL Java_edu_pdx_svl_coDoc_poppler_lib_PopplerJNI_page_1get_1
 
 
 /*
- * Class:     edu_pdx_svl_coDoc_poppler_PopplerJNI
+ * Class:     edu_pdx_svl_coDoc_poppler_lib_PopplerJNI
  * Method:    page_render
  * Signature: ([B)I
  */
@@ -258,4 +258,182 @@ JNIEXPORT jint JNICALL Java_edu_pdx_svl_coDoc_poppler_lib_PopplerJNI_page_1rende
     return 0;   
 }
 
+/*
+ * Class:     edu_pdx_svl_coDoc_poppler_lib_PopplerJNI
+ * Method:    page_render_selection
+ * Signature: ([BLorg/eclipse/swt/graphics/Rectangle;Lorg/eclipse/swt/graphics/Rectangle;)I
+ */
+JNIEXPORT jint JNICALL Java_edu_pdx_svl_coDoc_poppler_lib_PopplerJNI_page_1render_1selection
+  (JNIEnv *, jobject, jbyteArray, jobject, jobject)
+{
+	assert(g_document != NULL);
+	assert(g_page != NULL);
+	assert(g_pagenum != -1);
+	assert(g_width != -1);
+	assert(g_height != -1);
+
+	printf("%s (%d): %s\n", __FILE__, __LINE__, __FUNCTION__);
+
+    return 0;   
+}
+
+/*
+ * Class:     edu_pdx_svl_coDoc_poppler_lib_PopplerJNI
+ * Method:    page_get_selected_region
+ * Signature: (DLorg/eclipse/swt/graphics/Rectangle;)[Lorg/eclipse/swt/graphics/Rectangle;
+ * javap -classpath /opt/sun/jdk1.6.0_24/jre/lib/rt.jar -s -private java.awt.Rectangle
+ */
+JNIEXPORT jobjectArray JNICALL Java_edu_pdx_svl_coDoc_poppler_lib_PopplerJNI_page_1get_1selected_1region
+  (JNIEnv *env, jobject, jdouble scale_j, jobject rect_j)
+{
+    int i = 0;
+    jobjectArray rectArray = 0;
+    jsize        len = 0;
+
+	assert(g_document != NULL);
+	assert(g_page != NULL);
+	assert(g_pagenum != -1);
+	assert(g_width != -1);
+	assert(g_height != -1);
+
+	printf("%s (%d): %s\n", __FILE__, __LINE__, __FUNCTION__);
+
+    // get class
+    jclass class_rect_j = env->GetObjectClass(rect_j);
+    assert(class_rect_j != 0);
+
+#if 0 // for java.awt.Rectangle
+    jmethodID method_getX = env->GetMethodID(class_rect_j, "getX", "()D");
+    jdouble x = static_cast<jdouble>(env->CallDoubleMethod(rect_j, method_getX));
+    jmethodID method_getY = env->GetMethodID(class_rect_j, "getY", "()D");
+    jdouble y = static_cast<jdouble>(env->CallDoubleMethod(rect_j, method_getY));
+    jmethodID method_getWidth = env->GetMethodID(class_rect_j, "getWidth", "()D");
+    jdouble width = static_cast<jdouble>(env->CallDoubleMethod(rect_j, method_getWidth));
+    jmethodID method_getHeight = env->GetMethodID(class_rect_j, "getHeight", "()D");
+    jdouble height = static_cast<jdouble>(env->CallDoubleMethod(rect_j, method_getHeight));
+#else
+    jfieldID fid_x = env-> GetFieldID(class_rect_j, "x", "I");
+    jint x = env->GetIntField(rect_j, fid_x);
+    jfieldID fid_y = env-> GetFieldID(class_rect_j, "y", "I");
+    jint y = env->GetIntField(rect_j, fid_y);
+    jfieldID fid_width = env-> GetFieldID(class_rect_j, "width", "I");
+    jint width = env->GetIntField(rect_j, fid_width);
+    jfieldID fid_height = env-> GetFieldID(class_rect_j, "height", "I");
+    jint height = env->GetIntField(rect_j, fid_height);
+#endif
+
+    //
+    PopplerRectangle rect;
+    rect.x1 = x;
+    rect.y1 = y;
+    rect.x2 = x + width;
+    rect.y2 = y + height;
+    printf("%s (%d): %s -> (%f, %f, %f, %f)\n", __FILE__, __LINE__, __FUNCTION__, rect.x1, rect.y1, rect.x2, rect.y2);
+    GList *selections = poppler_page_get_selection_region(g_page, scale_j, POPPLER_SELECTION_GLYPH, &rect);
+    for (GList *selection = g_list_first (selections) ; NULL != selection ; selection = g_list_next (selection)) 
+    {
+        len++;
+    }
+
+    //
+    jclass class_Object = env->FindClass("java/lang/Object");
+    rectArray = env->NewObjectArray(len, class_Object, 0);
+    jclass class_Rectangle = env->FindClass("org/eclipse/swt/graphics/Rectangle");
+    jfieldID id_x = env->GetFieldID(class_Rectangle,"x","I");
+    jfieldID id_y = env->GetFieldID(class_Rectangle,"y","I");
+    jfieldID id_width = env->GetFieldID(class_Rectangle,"width","I");
+    jfieldID id_height = env->GetFieldID(class_Rectangle,"height","I");
+    for (GList *selection = g_list_first (selections) ; NULL != selection ; selection = g_list_next (selection)) 
+    {
+        PopplerRectangle *rectangle = (PopplerRectangle *)selection->data;
+
+        jobject obj_Rectangle = env->AllocObject(class_Rectangle);
+        env->SetIntField(obj_Rectangle, id_x, (gint)rectangle->x1);
+        env->SetIntField(obj_Rectangle, id_y, (gint)rectangle->y1);
+        env->SetIntField(obj_Rectangle, id_width, (gint) (rectangle->x2 - rectangle->x1));
+        env->SetIntField(obj_Rectangle, id_height, (gint) (rectangle->y2 - rectangle->y1));
+
+        // add to array
+        env->SetObjectArrayElement(rectArray, i++, obj_Rectangle);
+    }
+    poppler_page_selection_region_free (selections);
+
+    return rectArray;   
+}
+
+/*
+ * Class:     edu_pdx_svl_coDoc_poppler_lib_PopplerJNI
+ * Method:    page_get_selected_text
+ * Signature: (DLorg/eclipse/swt/graphics/Rectangle;)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_edu_pdx_svl_coDoc_poppler_lib_PopplerJNI_page_1get_1selected_1text
+  (JNIEnv *env, jobject, jdouble, jobject rect_j)
+{
+    jstring str = 0;
+
+	assert(g_document != NULL);
+	assert(g_page != NULL);
+	assert(g_pagenum != -1);
+	assert(g_width != -1);
+	assert(g_height != -1);
+
+	printf("%s (%d): %s\n", __FILE__, __LINE__, __FUNCTION__);
+
+    // get class
+    jclass class_rect_j = env->GetObjectClass(rect_j);
+    assert(class_rect_j != 0);
+
+#if 0 // for java.awt.Rectangle
+    jmethodID method_getX = env->GetMethodID(class_rect_j, "getX", "()D");
+    jdouble x = static_cast<jdouble>(env->CallDoubleMethod(rect_j, method_getX));
+    jmethodID method_getY = env->GetMethodID(class_rect_j, "getY", "()D");
+    jdouble y = static_cast<jdouble>(env->CallDoubleMethod(rect_j, method_getY));
+    jmethodID method_getWidth = env->GetMethodID(class_rect_j, "getWidth", "()D");
+    jdouble width = static_cast<jdouble>(env->CallDoubleMethod(rect_j, method_getWidth));
+    jmethodID method_getHeight = env->GetMethodID(class_rect_j, "getHeight", "()D");
+    jdouble height = static_cast<jdouble>(env->CallDoubleMethod(rect_j, method_getHeight));
+#else
+    jfieldID fid_x = env-> GetFieldID(class_rect_j, "x", "I");
+    jint x = env->GetIntField(rect_j, fid_x);
+    jfieldID fid_y = env-> GetFieldID(class_rect_j, "y", "I");
+    jint y = env->GetIntField(rect_j, fid_y);
+    jfieldID fid_width = env-> GetFieldID(class_rect_j, "width", "I");
+    jint width = env->GetIntField(rect_j, fid_width);
+    jfieldID fid_height = env-> GetFieldID(class_rect_j, "height", "I");
+    jint height = env->GetIntField(rect_j, fid_height);
+#endif
+
+#if defined (HAVE_POPPLER_0_17_0)
+#error HAVE_POPPLER_0_17_0
+#elif defined (HAVE_POPPLER_0_15_0)
+#error HAVE_POPPLER_0_15_0
+#elif defined (HAVE_POPPLER_0_8_0)
+#error HAVE_POPPLER_0_8_0
+#elif defined (HAVE_POPPLER_0_6_0)
+#error HAVE_POPPLER_0_6_0
+#else
+#endif
+
+    //
+    PopplerRectangle rect;
+#if 0
+    rect.x1 = x;
+    rect.y1 = y;
+    rect.x2 = x + width;
+    rect.y2 = y + height;
+    //gchar *text = poppler_page_get_selected_text(g_page, POPPLER_SELECTION_GLYPH, &rect);
+    //gchar *text = poppler_page_get_text(g_page, &rect);
+#else
+    rect.x1 = x + width;
+    rect.y1 = g_height - y;
+    rect.x2 = x;
+    rect.y2 = g_height - (y + height);
+    gchar *text = poppler_page_get_text(g_page, POPPLER_SELECTION_GLYPH, &rect);
+#endif
+
+    int slen = strlen(text);
+    str = (env)->NewStringUTF(text);
+
+    return str;   
+}
 

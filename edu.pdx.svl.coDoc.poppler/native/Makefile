@@ -12,6 +12,9 @@ class :
 sig :
 	javap -s -private PopplerJNI
 
+micro :
+	g++ -I./ -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/poppler/glib -I/usr/include/poppler -I/usr/include/cairo -I/usr/include/gtk-2.0 -I/usr/lib/gtk-2.0/include -I/usr/include/gdk-pixbuf-2.0 -I/usr/include/pixman-1 -I/usr/include/freetype2 -I/usr/include/libpng12 -I/usr/include/gio-unix-2.0/ -I/usr/include/pango-1.0 -I/opt/sun/jdk1.6.0_24/include -I/opt/sun/jdk1.6.0_24/include/linux -dM -E PopplerJNI.cpp
+
 test :
 	java -Djava.library.path=./ com.derek.test
 	

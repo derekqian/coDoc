@@ -50,7 +50,7 @@ JNIEXPORT jint JNICALL Java_edu_pdx_svl_coDoc_poppler_lib_PopplerJNI_document_1r
 /*
  * Class:     edu_pdx_svl_coDoc_poppler_lib_PopplerJNI
  * Method:    page_get_size
- * Signature: ()Lorg/eclipse/swt/graphics/Point;
+ * Signature: ()Ljava/awt/Dimension;
  */
 JNIEXPORT jobject JNICALL Java_edu_pdx_svl_coDoc_poppler_lib_PopplerJNI_page_1get_1size
   (JNIEnv *, jobject);
@@ -70,6 +70,30 @@ JNIEXPORT jint JNICALL Java_edu_pdx_svl_coDoc_poppler_lib_PopplerJNI_page_1get_1
  */
 JNIEXPORT jint JNICALL Java_edu_pdx_svl_coDoc_poppler_lib_PopplerJNI_page_1render
   (JNIEnv *, jobject, jbyteArray);
+
+/*
+ * Class:     edu_pdx_svl_coDoc_poppler_lib_PopplerJNI
+ * Method:    page_render_selection
+ * Signature: ([BLorg/eclipse/swt/graphics/Rectangle;Lorg/eclipse/swt/graphics/Rectangle;)I
+ */
+JNIEXPORT jint JNICALL Java_edu_pdx_svl_coDoc_poppler_lib_PopplerJNI_page_1render_1selection
+  (JNIEnv *, jobject, jbyteArray, jobject, jobject);
+
+/*
+ * Class:     edu_pdx_svl_coDoc_poppler_lib_PopplerJNI
+ * Method:    page_get_selected_region
+ * Signature: (DLorg/eclipse/swt/graphics/Rectangle;)[Lorg/eclipse/swt/graphics/Rectangle;
+ */
+JNIEXPORT jobjectArray JNICALL Java_edu_pdx_svl_coDoc_poppler_lib_PopplerJNI_page_1get_1selected_1region
+  (JNIEnv *, jobject, jdouble, jobject);
+
+/*
+ * Class:     edu_pdx_svl_coDoc_poppler_lib_PopplerJNI
+ * Method:    page_get_selected_text
+ * Signature: (DLorg/eclipse/swt/graphics/Rectangle;)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_edu_pdx_svl_coDoc_poppler_lib_PopplerJNI_page_1get_1selected_1text
+  (JNIEnv *, jobject, jdouble, jobject);
 
 #ifdef __cplusplus
 }
