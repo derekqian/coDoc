@@ -13,9 +13,12 @@ package edu.pdx.svl.coDoc.cdt.internal.ui.text;
 
 import edu.pdx.svl.coDoc.cdt.internal.ui.editor.CEditor;
 import edu.pdx.svl.coDoc.cdt.internal.ui.editor.CSourceViewer;
+import edu.pdx.svl.coDoc.cdt.internal.ui.text.CReconcilingStrategy;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.presentation.PresentationReconciler;
+import org.eclipse.jface.text.reconciler.IReconciler;
+import org.eclipse.jface.text.reconciler.MonoReconciler;
 import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
 import org.eclipse.jface.text.rules.RuleBasedScanner;
 import org.eclipse.jface.text.source.ISourceViewer;
@@ -30,7 +33,7 @@ public class CSourceViewerConfiguration extends TextSourceViewerConfiguration {
 
 	private CTextTools fTextTools;
 
-	private ITextEditor fEditor;
+	private CEditor fEditor;
 
 	/**
 	 * Creates a new C source viewer configuration for viewers in the given
@@ -41,7 +44,7 @@ public class CSourceViewerConfiguration extends TextSourceViewerConfiguration {
 	 * @param editor
 	 *            the editor in which the configured viewer will reside
 	 */
-	public CSourceViewerConfiguration(CTextTools tools, ITextEditor editor) {
+	public CSourceViewerConfiguration(CTextTools tools, CEditor editor) {
 		super();
 		fTextTools = tools;
 		fEditor = editor;
@@ -141,6 +144,21 @@ public class CSourceViewerConfiguration extends TextSourceViewerConfiguration {
 		reconciler.setRepairer(dr, ICPartitions.C_CHARACTER);
 
 		return reconciler;
+	}
+
+	/**
+	 * @see SourceViewerConfiguration#getReconciler(ISourceViewer)
+	 */
+	public IReconciler getReconciler(ISourceViewer sourceViewer) {
+		if (fEditor != null && fEditor.isEditable()) {
+			// Delay changed and non-incremental reconciler used due to
+			// PR 130089
+			MonoReconciler reconciler = new MonoReconciler(
+					new CReconcilingStrategy(fEditor), false);
+			reconciler.setDelay(500);
+			return reconciler;
+		}
+		return null;
 	}
 
 	/**

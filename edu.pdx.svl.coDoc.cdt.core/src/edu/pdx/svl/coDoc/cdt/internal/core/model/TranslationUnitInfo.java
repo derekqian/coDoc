@@ -18,19 +18,19 @@ import org.eclipse.core.runtime.IPath;
  */
 class TranslationUnitInfo extends OpenableInfo {
 
-	/** 
-	 * Timestamp of original resource at the time this element
-	 * was opened or last updated.
+	/**
+	 * Timestamp of original resource at the time this element was opened or
+	 * last updated.
 	 */
 	protected long fTimestamp;
 
-	protected TranslationUnitInfo (CElement element) {
+	protected TranslationUnitInfo(CElement element) {
 		super(element);
 	}
 
-	/* Overide the SourceManipulation for the range.  */
+	/* Overide the SourceManipulation for the range. */
 	protected ISourceRange getSourceRange() {
-		IPath location = ((TranslationUnit)getElement()).getLocation(); 		
-		return new SourceRange(0, (int)location.toFile().length());
+		IPath location = ((TranslationUnit) getElement()).getLocation();
+		return new SourceRange(0, (int) location.toFile().length());
 	}
 }

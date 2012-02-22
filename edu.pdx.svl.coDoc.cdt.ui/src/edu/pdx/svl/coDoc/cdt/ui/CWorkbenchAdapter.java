@@ -50,9 +50,10 @@ public class CWorkbenchAdapter implements IWorkbenchAdapter, IActionFilter {
 	 */
 	public ImageDescriptor getImageDescriptor(Object element) {
 		if (element instanceof ICElement) {
-//			return fImageProvider.getCImageDescriptor(
-//				(ICElement) element,
-//				CElementImageProvider.OVERLAY_ICONS | CElementImageProvider.SMALL_ICONS);
+			// return fImageProvider.getCImageDescriptor(
+			// (ICElement) element,
+			// CElementImageProvider.OVERLAY_ICONS |
+			// CElementImageProvider.SMALL_ICONS);
 		}
 		return null;
 	}
@@ -61,9 +62,9 @@ public class CWorkbenchAdapter implements IWorkbenchAdapter, IActionFilter {
 	 * @see IWorkbenchAdapter#getLabel
 	 */
 	public String getLabel(Object o) {
-//		if (o instanceof ICElement) {
-//			return fLabelProvider.getText(o);
-//		}
+		// if (o instanceof ICElement) {
+		// return fLabelProvider.getText(o);
+		// }
 		return null;
 	}
 
@@ -78,10 +79,11 @@ public class CWorkbenchAdapter implements IWorkbenchAdapter, IActionFilter {
 	}
 
 	public boolean testAttribute(Object target, String name, String value) {
-		ICElement element = (ICElement)target;
+		ICElement element = (ICElement) target;
 		IResource resource = element.getResource();
 		if (resource != null) {
-			IActionFilter filter = (IActionFilter)resource.getAdapter(IActionFilter.class);
+			IActionFilter filter = (IActionFilter) resource
+					.getAdapter(IActionFilter.class);
 			if (filter != null) {
 				return filter.testAttribute(resource, name, value);
 			}

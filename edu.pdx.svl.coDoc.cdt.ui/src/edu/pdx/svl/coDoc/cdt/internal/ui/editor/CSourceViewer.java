@@ -5,17 +5,16 @@ import org.eclipse.jface.text.source.IOverviewRuler;
 import org.eclipse.jface.text.source.IVerticalRuler;
 import org.eclipse.jface.text.source.projection.ProjectionViewer;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.ui.texteditor.ITextEditor;
 
 public class CSourceViewer extends ProjectionViewer implements
 		ITextViewerExtension {
 
 	/** Editor. */
-	private final ITextEditor editor;
+	private final CEditor editor;
 
 	private String fDisplayLanguage;
 
-	public CSourceViewer(ITextEditor editor, Composite parent,
+	public CSourceViewer(CEditor editor, Composite parent,
 			IVerticalRuler ruler, int styles, IOverviewRuler fOverviewRuler,
 			boolean isOverviewRulerShowing, String language) {
 		super(parent, ruler, fOverviewRuler, isOverviewRulerShowing, styles);

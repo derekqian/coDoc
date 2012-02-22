@@ -19,9 +19,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import edu.pdx.svl.coDoc.cdt.core.CCorePlugin;
+import edu.pdx.svl.coDoc.cdt.core.model.CoreModel;
 import edu.pdx.svl.coDoc.cdt.core.model.IBuffer;
 import edu.pdx.svl.coDoc.cdt.core.model.ICElement;
 import edu.pdx.svl.coDoc.cdt.core.model.IInclude;
+import edu.pdx.svl.coDoc.cdt.core.model.ILanguage;
 import edu.pdx.svl.coDoc.cdt.core.model.INamespace;
 import edu.pdx.svl.coDoc.cdt.core.model.IParent;
 import edu.pdx.svl.coDoc.cdt.core.model.ISourceRange;
@@ -30,12 +32,26 @@ import edu.pdx.svl.coDoc.cdt.core.model.ITranslationUnit;
 import edu.pdx.svl.coDoc.cdt.core.model.IUsing;
 import edu.pdx.svl.coDoc.cdt.core.model.IWorkingCopy;
 import edu.pdx.svl.coDoc.cdt.core.model.CModelException;
+import edu.pdx.svl.coDoc.cdt.core.model.LanguageManager;
+import edu.pdx.svl.coDoc.cdt.core.model.IContributedModelBuilder;
+import edu.pdx.svl.coDoc.cdt.core.model.IProblemRequestor;
+import edu.pdx.svl.coDoc.cdt.core.parser.ast.IASTCompilationUnit;
+import edu.pdx.svl.coDoc.cdt.internal.core.model.CModelBuilder;
+import edu.pdx.svl.coDoc.cdt.internal.core.model.IDebugLogConstants;
+import edu.pdx.svl.coDoc.cdt.internal.core.model.Util;
+import edu.pdx.svl.coDoc.cdt.internal.core.model.BufferManager;
+import edu.pdx.svl.coDoc.cdt.internal.core.model.CModelManager;
+import edu.pdx.svl.coDoc.cdt.internal.core.model.CreateWorkingCopyOperation;
+import edu.pdx.svl.coDoc.cdt.internal.core.model.IBufferFactory;
+import edu.pdx.svl.coDoc.cdt.internal.core.model.WorkingCopy;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.content.IContentType;
+import org.eclipse.core.runtime.content.IContentTypeManager;
 
 /**
  * @see ITranslationUnit
@@ -43,7 +59,16 @@ import org.eclipse.core.runtime.content.IContentType;
 public class TranslationUnit extends Openable implements ITranslationUnit {
 
 	IPath location = null;
+
+	ILanguage language;
+
 	String contentTypeId;
+
+	/**
+	 * If set, this is the problem requestor which will be used to notify
+	 * problems detected during reconciling.
+	 */
+	protected IProblemRequestor problemRequestor;
 
 	SourceManipulationInfo sourceManipulationInfo = null;
 
@@ -57,33 +82,36 @@ public class TranslationUnit extends Openable implements ITranslationUnit {
 		setContentTypeID(idType);
 	}
 
-	public TranslationUnit(ICElement parent, IResource res, String name, String idType) {
+	public TranslationUnit(ICElement parent, IResource res, String name,
+			String idType) {
 		super(parent, res, name, ICElement.C_UNIT);
 		setContentTypeID(idType);
 	}
 
-	public ITranslationUnit getTranslationUnit () {
+	public ITranslationUnit getTranslationUnit() {
 		return this;
 	}
 
-	public IInclude createInclude(String includeName, boolean isStd, ICElement sibling, IProgressMonitor monitor) 
-	throws CModelException {
+	public IInclude createInclude(String includeName, boolean isStd,
+			ICElement sibling, IProgressMonitor monitor) throws CModelException {
 		return null;
 	}
 
-	public IUsing createUsing(String usingName, boolean isDirective, ICElement sibling, IProgressMonitor monitor)  
-	throws CModelException {
+	public IUsing createUsing(String usingName, boolean isDirective,
+			ICElement sibling, IProgressMonitor monitor) throws CModelException {
 		return null;
 	}
 
-	public INamespace createNamespace(String namespace, ICElement sibling, IProgressMonitor monitor) throws CModelException {
+	public INamespace createNamespace(String namespace, ICElement sibling,
+			IProgressMonitor monitor) throws CModelException {
 		return null;
 	}
 
 	public ICElement getElementAtLine(int line) throws CModelException {
 		ICElement[] celements = getChildren();
 		for (int i = 0; i < celements.length; i++) {
-			ISourceRange range = ((ISourceReference)celements[i]).getSourceRange();
+			ISourceRange range = ((ISourceReference) celements[i])
+					.getSourceRange();
 			int startLine = range.getStartLine();
 			int endLine = range.getEndLine();
 			if (line >= startLine && line <= endLine) {
@@ -94,7 +122,7 @@ public class TranslationUnit extends Openable implements ITranslationUnit {
 	}
 
 	public ICElement getElementAtOffset(int pos) throws CModelException {
-		ICElement e= getSourceElementAtOffset(pos);
+		ICElement e = getSourceElementAtOffset(pos);
 		if (e == this) {
 			return null;
 		}
@@ -102,14 +130,14 @@ public class TranslationUnit extends Openable implements ITranslationUnit {
 	}
 
 	public ICElement[] getElementsAtOffset(int pos) throws CModelException {
-		ICElement[] e= getSourceElementsAtOffset(pos);
+		ICElement[] e = getSourceElementsAtOffset(pos);
 		if (e.length == 1 && e[0] == this) {
 			return CElement.NO_ELEMENTS;
 		}
-		return e;		
+		return e;
 	}
 
-	public ICElement getElement(String name ) {
+	public ICElement getElement(String name) {
 		if (name == null || name.length() == 0) {
 			return null;
 		}
@@ -129,7 +157,7 @@ public class TranslationUnit extends Openable implements ITranslationUnit {
 		for (int j = 0; j < names.length; ++j) {
 			if (current instanceof IParent) {
 				try {
-					ICElement[] celements = ((IParent)current).getChildren();
+					ICElement[] celements = ((IParent) current).getChildren();
 					current = null;
 					for (int i = 0; i < celements.length; i++) {
 						if (names[j].equals(celements[i].getElementName())) {
@@ -137,7 +165,7 @@ public class TranslationUnit extends Openable implements ITranslationUnit {
 							break;
 						}
 					}
-				} catch (CModelException e) {		
+				} catch (CModelException e) {
 					current = null;
 				}
 			} else {
@@ -146,18 +174,18 @@ public class TranslationUnit extends Openable implements ITranslationUnit {
 		}
 		return current;
 	}
-	
+
 	public IInclude getInclude(String name) {
 		try {
 			ICElement[] celements = getChildren();
 			for (int i = 0; i < celements.length; i++) {
 				if (celements[i].getElementType() == ICElement.C_INCLUDE) {
 					if (name.equals(celements[i].getElementName())) {
-						return (IInclude)celements[i];
+						return (IInclude) celements[i];
 					}
 				}
 			}
-		} catch (CModelException e) {		
+		} catch (CModelException e) {
 		}
 		return null;
 	}
@@ -170,7 +198,7 @@ public class TranslationUnit extends Openable implements ITranslationUnit {
 				aList.add(celements[i]);
 			}
 		}
-		return (IInclude[])aList.toArray(new IInclude[0]);
+		return (IInclude[]) aList.toArray(new IInclude[0]);
 	}
 
 	public IUsing getUsing(String name) {
@@ -179,12 +207,12 @@ public class TranslationUnit extends Openable implements ITranslationUnit {
 			for (int i = 0; i < celements.length; i++) {
 				if (celements[i].getElementType() == ICElement.C_USING) {
 					if (name.equals(celements[i].getElementName())) {
-						return (IUsing)celements[i];
+						return (IUsing) celements[i];
 					}
 				}
 			}
-		} catch (CModelException e) {		
-		}		
+		} catch (CModelException e) {
+		}
 		return null;
 	}
 
@@ -196,7 +224,7 @@ public class TranslationUnit extends Openable implements ITranslationUnit {
 				aList.add(celements[i]);
 			}
 		}
-		return (IUsing[])aList.toArray(new IUsing[0]);
+		return (IUsing[]) aList.toArray(new IUsing[0]);
 	}
 
 	public INamespace getNamespace(String name) {
@@ -205,7 +233,7 @@ public class TranslationUnit extends Openable implements ITranslationUnit {
 			ICElement current = this;
 			for (int j = 0; j < names.length; ++j) {
 				if (current instanceof IParent) {
-					ICElement[] celements = ((IParent)current).getChildren();
+					ICElement[] celements = ((IParent) current).getChildren();
 					current = null;
 					for (int i = 0; i < celements.length; i++) {
 						if (celements[i].getElementType() == ICElement.C_NAMESPACE) {
@@ -220,10 +248,10 @@ public class TranslationUnit extends Openable implements ITranslationUnit {
 				}
 			}
 			if (current instanceof INamespace) {
-				return (INamespace)current;
+				return (INamespace) current;
 			}
-		} catch (CModelException e) {		
-		}		
+		} catch (CModelException e) {
+		}
 		return null;
 	}
 
@@ -235,7 +263,7 @@ public class TranslationUnit extends Openable implements ITranslationUnit {
 				aList.add(celements[i]);
 			}
 		}
-		return (INamespace[])aList.toArray(new INamespace[0]);
+		return (INamespace[]) aList.toArray(new INamespace[0]);
 	}
 
 	public void setLocation(IPath loc) {
@@ -257,58 +285,84 @@ public class TranslationUnit extends Openable implements ITranslationUnit {
 	public IFile getFile() {
 		IResource res = getResource();
 		if (res instanceof IFile) {
-			return (IFile)res;
+			return (IFile) res;
 		}
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.cdt.core.model.ISourceManipulation#copy(org.eclipse.cdt.core.model.ICElement, org.eclipse.cdt.core.model.ICElement, java.lang.String, boolean, org.eclipse.core.runtime.IProgressMonitor)
-	 */
-	public void copy(ICElement container, ICElement sibling, String rename, boolean force,
-		IProgressMonitor monitor) throws CModelException {
-		getSourceManipulationInfo().copy(container, sibling, rename, force, monitor);
+	public IProblemRequestor getProblemRequestor() {
+		return problemRequestor;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.cdt.core.model.ISourceManipulation#delete(boolean, org.eclipse.core.runtime.IProgressMonitor)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.model.ISourceManipulation#copy(edu.pdx.svl.coDoc.cdt.core.model.ICElement,
+	 *      edu.pdx.svl.coDoc.cdt.core.model.ICElement, java.lang.String, boolean,
+	 *      org.eclipse.core.runtime.IProgressMonitor)
 	 */
-	public void delete(boolean force, IProgressMonitor monitor) throws CModelException {
+	public void copy(ICElement container, ICElement sibling, String rename,
+			boolean force, IProgressMonitor monitor) throws CModelException {
+		getSourceManipulationInfo().copy(container, sibling, rename, force,
+				monitor);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.model.ISourceManipulation#delete(boolean,
+	 *      org.eclipse.core.runtime.IProgressMonitor)
+	 */
+	public void delete(boolean force, IProgressMonitor monitor)
+			throws CModelException {
 		getSourceManipulationInfo().delete(force, monitor);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.cdt.core.model.ISourceManipulation#move(org.eclipse.cdt.core.model.ICElement, org.eclipse.cdt.core.model.ICElement, java.lang.String, boolean, org.eclipse.core.runtime.IProgressMonitor)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.model.ISourceManipulation#move(edu.pdx.svl.coDoc.cdt.core.model.ICElement,
+	 *      edu.pdx.svl.coDoc.cdt.core.model.ICElement, java.lang.String, boolean,
+	 *      org.eclipse.core.runtime.IProgressMonitor)
 	 */
-	public void move(ICElement container, ICElement sibling, String rename, boolean force,
-		IProgressMonitor monitor) throws CModelException {
-		getSourceManipulationInfo().move(container, sibling, rename, force, monitor);
+	public void move(ICElement container, ICElement sibling, String rename,
+			boolean force, IProgressMonitor monitor) throws CModelException {
+		getSourceManipulationInfo().move(container, sibling, rename, force,
+				monitor);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.cdt.core.model.ISourceManipulation#rename(java.lang.String, boolean, org.eclipse.core.runtime.IProgressMonitor)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.model.ISourceManipulation#rename(java.lang.String,
+	 *      boolean, org.eclipse.core.runtime.IProgressMonitor)
 	 */
 	public void rename(String name, boolean force, IProgressMonitor monitor)
-	throws CModelException {
+			throws CModelException {
 		getSourceManipulationInfo().rename(name, force, monitor);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.cdt.core.model.ISourceReference#getSource()
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.model.ISourceReference#getSource()
 	 */
 	public String getSource() throws CModelException {
 		return getSourceManipulationInfo().getSource();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.cdt.core.model.ISourceReference#getSourceRange()
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.model.ISourceReference#getSourceRange()
 	 */
 	public ISourceRange getSourceRange() throws CModelException {
 		return getSourceManipulationInfo().getSourceRange();
 	}
 
-	protected TranslationUnitInfo getTranslationUnitInfo() throws CModelException {
-		return (TranslationUnitInfo)getElementInfo();
+	protected TranslationUnitInfo getTranslationUnitInfo()
+			throws CModelException {
+		return (TranslationUnitInfo) getElementInfo();
 	}
 
 	protected SourceManipulationInfo getSourceManipulationInfo() {
@@ -318,95 +372,114 @@ public class TranslationUnit extends Openable implements ITranslationUnit {
 		return sourceManipulationInfo;
 	}
 
-	protected CElementInfo createElementInfo () {
+	protected CElementInfo createElementInfo() {
 		return new TranslationUnitInfo(this);
 	}
 
 	/**
-	 * Returns true if this handle represents the same Java element
-	 * as the given handle.
-	 *
-	 * <p>Compilation units must also check working copy state;
-	 *
+	 * Returns true if this handle represents the same Java element as the given
+	 * handle.
+	 * 
+	 * <p>
+	 * Compilation units must also check working copy state;
+	 * 
 	 * @see Object#equals(java.lang.Object)
 	 */
 	public boolean equals(Object o) {
-		if (!(o instanceof ITranslationUnit)) return false;
-		return super.equals(o) && !((ITranslationUnit)o).isWorkingCopy();
+		if (!(o instanceof ITranslationUnit))
+			return false;
+		return super.equals(o) && !((ITranslationUnit) o).isWorkingCopy();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.cdt.core.model.ITranslationUnit#findSharedWorkingCopy(org.eclipse.cdt.internal.core.model.IBufferFactory)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.model.ITranslationUnit#findSharedWorkingCopy(edu.pdx.svl.coDoc.cdt.internal.core.model.IBufferFactory)
 	 */
 	public IWorkingCopy findSharedWorkingCopy(IBufferFactory factory) {
 
 		// if factory is null, default factory must be used
-		if (factory == null) factory = BufferManager.getDefaultBufferManager();
+		if (factory == null)
+			factory = BufferManager.getDefaultBufferManager();
 
-		// In order to be shared, working copies have to denote the same translation unit 
+		// In order to be shared, working copies have to denote the same
+		// translation unit
 		// AND use the same buffer factory.
-		// Assuming there is a little set of buffer factories, then use a 2 level Map cache.
+		// Assuming there is a little set of buffer factories, then use a 2
+		// level Map cache.
 		Map sharedWorkingCopies = CModelManager.getDefault().sharedWorkingCopies;
-	
+
 		Map perFactoryWorkingCopies = (Map) sharedWorkingCopies.get(factory);
-		if (perFactoryWorkingCopies == null) return null;
-		return (WorkingCopy)perFactoryWorkingCopies.get(this);
+		if (perFactoryWorkingCopies == null)
+			return null;
+		return (WorkingCopy) perFactoryWorkingCopies.get(this);
 	}
 
 	/**
 	 * To be removed with the new model builder in place
+	 * 
 	 * @param newElements
 	 * @param element
 	 */
-	private void getNewElements(Map mapping, CElement element){
+	private void getNewElements(Map mapping, CElement element) {
 		Object info = null;
 		try {
 			info = element.getElementInfo();
 		} catch (CModelException e) {
 		}
-		if(info != null){
-			if(element instanceof IParent){
-				ICElement[] children = ((CElementInfo)info).getChildren();
+		if (info != null) {
+			if (element instanceof IParent) {
+				ICElement[] children = ((CElementInfo) info).getChildren();
 				int size = children.length;
 				for (int i = 0; i < size; ++i) {
 					CElement child = (CElement) children[i];
-					getNewElements(mapping, child);		
-				}		
+					getNewElements(mapping, child);
+				}
 			}
 		}
-		mapping.put(element, info);		
+		mapping.put(element, info);
 	}
-	
-	/* (non-Javadoc)
-	 * @see org.eclipse.cdt.internal.core.model.Openable#buildStructure(org.eclipse.cdt.internal.core.model.OpenableInfo, org.eclipse.core.runtime.IProgressMonitor, java.util.Map, org.eclipse.core.resources.IResource)
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.Openable#buildStructure(edu.pdx.svl.coDoc.cdt.internal.core.model.OpenableInfo,
+	 *      org.eclipse.core.runtime.IProgressMonitor, java.util.Map,
+	 *      org.eclipse.core.resources.IResource)
 	 */
-	protected boolean buildStructure(OpenableInfo info, IProgressMonitor pm, Map newElements, IResource underlyingResource) throws CModelException {
+	protected boolean buildStructure(OpenableInfo info, IProgressMonitor pm,
+			Map newElements, IResource underlyingResource)
+			throws CModelException {
 		TranslationUnitInfo unitInfo = (TranslationUnitInfo) info;
 
-		// We reuse the general info cache in the CModelBuilder, We should not do this
+		// We reuse the general info cache in the CModelBuilder, We should not
+		// do this
 		// and instead create the info explicitely(see JDT).
 		// So to get by we need to remove in the LRU all the info of this handle
 		CModelManager.getDefault().removeChildrenInfo(this);
 
 		// generate structure
-		this.parse(newElements); 
-		
-		///////////////////////////////////////////////////////////////
-		
+		this.parse(newElements);
+
+		// /////////////////////////////////////////////////////////////
+
 		if (isWorkingCopy()) {
-			ITranslationUnit original =  ((IWorkingCopy)this).getOriginalElement();
+			ITranslationUnit original = ((IWorkingCopy) this)
+					.getOriginalElement();
 			// might be IResource.NULL_STAMP if original does not exist
 			IResource r = original.getResource();
-			if (r != null && r instanceof  IFile) {
+			if (r != null && r instanceof IFile) {
 				unitInfo.fTimestamp = ((IFile) r).getModificationStamp();
 			}
 		}
-		
+
 		return unitInfo.isStructureKnown();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.cdt.core.model.ITranslationUnit#getContents()
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.model.ITranslationUnit#getContents()
 	 */
 	public char[] getContents() {
 		try {
@@ -416,49 +489,108 @@ public class TranslationUnit extends Openable implements ITranslationUnit {
 			return new char[0];
 		}
 	}
-	
-	/* (non-Javadoc)
-	 * @see org.eclipse.cdt.core.model.ITranslationUnit#getSharedWorkingCopy(org.eclipse.core.runtime.IProgressMonitor, org.eclipse.cdt.internal.core.model.IBufferFactory, org.eclipse.cdt.core.model.IProblemRequestor)
-	 */
-	public IWorkingCopy getSharedWorkingCopy(IProgressMonitor monitor,IBufferFactory factory) throws CModelException {
-    // if factory is null, default factory must be used
-    if (factory == null) factory = BufferManager.getDefaultBufferManager();
 
-    CModelManager manager = CModelManager.getDefault();
-  
-    // In order to be shared, working copies have to denote the same translation unit 
-    // AND use the same buffer factory.
-    // Assuming there is a little set of buffer factories, then use a 2 level Map cache.
-    Map sharedWorkingCopies = manager.sharedWorkingCopies;
-  
-    Map perFactoryWorkingCopies = (Map) sharedWorkingCopies.get(factory);
-    if (perFactoryWorkingCopies == null){
-      perFactoryWorkingCopies = new HashMap();
-      sharedWorkingCopies.put(factory, perFactoryWorkingCopies);
-    }
-    WorkingCopy workingCopy = (WorkingCopy)perFactoryWorkingCopies.get(this);
-    if (workingCopy != null) {
-      workingCopy.useCount++;
-      return workingCopy;
-    }
-    CreateWorkingCopyOperation op = new CreateWorkingCopyOperation(this, perFactoryWorkingCopies, factory);
-    op.runOperation(monitor);
-    return (IWorkingCopy)op.getResultElements()[0];
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.model.ITranslationUnit#getSharedWorkingCopy(org.eclipse.core.runtime.IProgressMonitor,
+	 *      edu.pdx.svl.coDoc.cdt.internal.core.model.IBufferFactory,
+	 *      edu.pdx.svl.coDoc.cdt.core.model.IProblemRequestor)
+	 */
+	public IWorkingCopy getSharedWorkingCopy(IProgressMonitor monitor,
+			IBufferFactory factory) throws CModelException {
+		// if factory is null, default factory must be used
+		if (factory == null)
+			factory = BufferManager.getDefaultBufferManager();
+
+		CModelManager manager = CModelManager.getDefault();
+
+		// In order to be shared, working copies have to denote the same
+		// translation unit
+		// AND use the same buffer factory.
+		// Assuming there is a little set of buffer factories, then use a 2
+		// level Map cache.
+		Map sharedWorkingCopies = manager.sharedWorkingCopies;
+
+		Map perFactoryWorkingCopies = (Map) sharedWorkingCopies.get(factory);
+		if (perFactoryWorkingCopies == null) {
+			perFactoryWorkingCopies = new HashMap();
+			sharedWorkingCopies.put(factory, perFactoryWorkingCopies);
+		}
+		WorkingCopy workingCopy = (WorkingCopy) perFactoryWorkingCopies
+				.get(this);
+		if (workingCopy != null) {
+			workingCopy.useCount++;
+			return workingCopy;
+		}
+		CreateWorkingCopyOperation op = new CreateWorkingCopyOperation(this,
+				perFactoryWorkingCopies, factory, problemRequestor);
+		op.runOperation(monitor);
+		return (IWorkingCopy) op.getResultElements()[0];
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.cdt.core.model.ITranslationUnit#getWorkingCopy()
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.model.ITranslationUnit#getSharedWorkingCopy(org.eclipse.core.runtime.IProgressMonitor,
+	 *      edu.pdx.svl.coDoc.cdt.internal.core.model.IBufferFactory,
+	 *      edu.pdx.svl.coDoc.cdt.core.model.IProblemRequestor)
+	 */
+	public IWorkingCopy getSharedWorkingCopy(IProgressMonitor monitor,
+			IBufferFactory factory, IProblemRequestor requestor)
+			throws CModelException {
+
+		// if factory is null, default factory must be used
+		if (factory == null)
+			factory = BufferManager.getDefaultBufferManager();
+
+		CModelManager manager = CModelManager.getDefault();
+
+		// In order to be shared, working copies have to denote the same
+		// translation unit
+		// AND use the same buffer factory.
+		// Assuming there is a little set of buffer factories, then use a 2
+		// level Map cache.
+		Map sharedWorkingCopies = manager.sharedWorkingCopies;
+
+		Map perFactoryWorkingCopies = (Map) sharedWorkingCopies.get(factory);
+		if (perFactoryWorkingCopies == null) {
+			perFactoryWorkingCopies = new HashMap();
+			sharedWorkingCopies.put(factory, perFactoryWorkingCopies);
+		}
+		WorkingCopy workingCopy = (WorkingCopy) perFactoryWorkingCopies
+				.get(this);
+		if (workingCopy != null) {
+			workingCopy.useCount++;
+			return workingCopy;
+		}
+		CreateWorkingCopyOperation op = new CreateWorkingCopyOperation(this,
+				perFactoryWorkingCopies, factory, requestor);
+		op.runOperation(monitor);
+		return (IWorkingCopy) op.getResultElements()[0];
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.model.ITranslationUnit#getWorkingCopy()
 	 */
 	public IWorkingCopy getWorkingCopy() throws CModelException {
 		return this.getWorkingCopy(null, null);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.cdt.core.model.ITranslationUnit#getWorkingCopy(org.eclipse.core.runtime.IProgressMonitor, org.eclipse.cdt.internal.core.model.IBufferFactory)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.model.ITranslationUnit#getWorkingCopy(org.eclipse.core.runtime.IProgressMonitor,
+	 *      edu.pdx.svl.coDoc.cdt.internal.core.model.IBufferFactory)
 	 */
-	public IWorkingCopy getWorkingCopy(IProgressMonitor monitor, IBufferFactory factory) throws CModelException {
-		WorkingCopy workingCopy = new WorkingCopy(getParent(), getFile(), getContentTypeId(), factory);
-		// open the working copy now to ensure contents are that of the current state of this element
+	public IWorkingCopy getWorkingCopy(IProgressMonitor monitor,
+			IBufferFactory factory) throws CModelException {
+		WorkingCopy workingCopy = new WorkingCopy(getParent(), getFile(),
+				getContentTypeId(), factory);
+		// open the working copy now to ensure contents are that of the current
+		// state of this element
 		workingCopy.open(monitor);
 		return workingCopy;
 	}
@@ -473,60 +605,72 @@ public class TranslationUnit extends Openable implements ITranslationUnit {
 	/*
 	 * @see Openable#openParent
 	 */
-	protected void openParent(Object childInfo, Map newElements, IProgressMonitor pm) throws CModelException {
+	protected void openParent(Object childInfo, Map newElements,
+			IProgressMonitor pm) throws CModelException {
 		super.openParent(childInfo, newElements, pm);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.cdt.core.model.IOpenable#isConsistent()
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.model.IOpenable#isConsistent()
 	 */
 	public boolean isConsistent() throws CModelException {
-		return CModelManager.getDefault().getElementsOutOfSynchWithBuffers().get(this) == null;
+		return CModelManager.getDefault().getElementsOutOfSynchWithBuffers()
+				.get(this) == null;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.cdt.internal.core.model.Openable#isSourceElement()
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.Openable#isSourceElement()
 	 */
 	protected boolean isSourceElement() {
 		return true;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.cdt.core.model.ITranslationUnit#isWorkingCopy()
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.model.ITranslationUnit#isWorkingCopy()
 	 */
 	public boolean isWorkingCopy() {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.cdt.internal.core.model.Openable#openBuffer(org.eclipse.core.runtime.IProgressMonitor)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.Openable#openBuffer(org.eclipse.core.runtime.IProgressMonitor)
 	 */
 	protected IBuffer openBuffer(IProgressMonitor pm) throws CModelException {
 
-		// create buffer -  translation units only use default buffer factory
-		BufferManager bufManager = getBufferManager();		
+		// create buffer - translation units only use default buffer factory
+		BufferManager bufManager = getBufferManager();
 		IBuffer buffer = getBufferFactory().createBuffer(this);
-		if (buffer == null) 
+		if (buffer == null)
 			return null;
-	
+
 		// set the buffer source
-		if (buffer.getCharacters() == null){
+		if (buffer.getCharacters() == null) {
 			IResource file = this.getResource();
 			if (file != null && file.getType() == IResource.FILE) {
-				buffer.setContents(getResourceContentsAsCharArray((IFile)file, null));
+				buffer.setContents(getResourceContentsAsCharArray((IFile) file,
+						null));
 			}
 		}
 
 		// add buffer to buffer cache
 		bufManager.addBuffer(buffer);
-			
+
 		// listen to buffer changes
 		buffer.addBufferChangedListener(this);
-	
+
 		return buffer;
 	}
 
-	public static char[] getResourceContentsAsCharArray(IFile file, String encoding) {
+	public static char[] getResourceContentsAsCharArray(IFile file,
+			String encoding) {
 		InputStream stream = null;
 		try {
 			stream = new BufferedInputStream(file.getContents(true));
@@ -545,7 +689,7 @@ public class TranslationUnit extends Openable implements ITranslationUnit {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Returns the given input stream's contents as a character array. If a
 	 * length is specified (ie. if length != -1), only length chars are
@@ -558,8 +702,7 @@ public class TranslationUnit extends Openable implements ITranslationUnit {
 	public static char[] getInputStreamAsCharArray(InputStream stream,
 			int length, String encoding) throws IOException {
 		InputStreamReader reader = null;
-		reader = encoding == null
-				? new InputStreamReader(stream)
+		reader = encoding == null ? new InputStreamReader(stream)
 				: new InputStreamReader(stream, encoding);
 		char[] contents;
 		if (length == -1) {
@@ -607,7 +750,6 @@ public class TranslationUnit extends Openable implements ITranslationUnit {
 		}
 		return contents;
 	}
-	
 
 	public Map parse() {
 		return null;
@@ -617,54 +759,90 @@ public class TranslationUnit extends Openable implements ITranslationUnit {
 	 * Parse the buffer contents of this element.
 	 */
 	private void parse(Map newElements) {
+		boolean quickParseMode = !(CCorePlugin.getDefault()
+				.useStructuralParseMode());
+		IContributedModelBuilder mb = LanguageManager.getInstance()
+				.getContributedModelBuilderFor(this);
+		if (mb == null) {
+			parseUsingCModelBuilder(newElements, quickParseMode);
+		} else {
+			parseUsingContributedModelBuilder(mb, quickParseMode);
+		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.cdt.core.model.ITranslationUnit#isHeaderUnit()
+	/**
+	 * Parse the buffer contents of this element.
+	 */
+	private void parseUsingCModelBuilder(Map newElements, boolean quickParseMode) {
+		try {
+			CModelBuilder modelBuilder = new CModelBuilder(this, newElements);
+			modelBuilder.parse(quickParseMode);
+		} catch (Exception e) {
+			// use the debug log for this exception.
+			Util.debugLog(
+					"Exception in CModelBuilder", IDebugLogConstants.MODEL); //$NON-NLS-1$
+		}
+	}
+
+	private void parseUsingContributedModelBuilder(IContributedModelBuilder mb,
+			boolean quickParseMode) {
+		try {
+			mb.parse(quickParseMode);
+		} catch (Exception e) {
+			// use the debug log for this exception.
+			Util
+					.debugLog(
+							"Exception in contributed model builder", IDebugLogConstants.MODEL); //$NON-NLS-1$
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.model.ITranslationUnit#isHeaderUnit()
 	 */
 	public boolean isHeaderUnit() {
-		return (
-				CCorePlugin.CONTENT_TYPE_CHEADER.equals(contentTypeId)
-				|| CCorePlugin.CONTENT_TYPE_CXXHEADER.equals(contentTypeId)
-				);
+		return (CCorePlugin.CONTENT_TYPE_CHEADER.equals(contentTypeId) || CCorePlugin.CONTENT_TYPE_CXXHEADER
+				.equals(contentTypeId));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.cdt.core.model.ITranslationUnit#isSourceUnit()
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.model.ITranslationUnit#isSourceUnit()
 	 */
 	public boolean isSourceUnit() {
 		if (isHeaderUnit())
 			return false;
-			
-		return (
-				CCorePlugin.CONTENT_TYPE_CSOURCE.equals(contentTypeId)
-				|| CCorePlugin.CONTENT_TYPE_CXXSOURCE.equals(contentTypeId)
-				);
+
+		return (CCorePlugin.CONTENT_TYPE_CSOURCE.equals(contentTypeId) || CCorePlugin.CONTENT_TYPE_CXXSOURCE
+				.equals(contentTypeId));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.cdt.core.model.ITranslationUnit#isCLanguage()
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.model.ITranslationUnit#isCLanguage()
 	 */
 	public boolean isCLanguage() {
-		return (
-				CCorePlugin.CONTENT_TYPE_CSOURCE.equals(contentTypeId)
-				|| CCorePlugin.CONTENT_TYPE_CHEADER.equals(contentTypeId)
-				);
+		return (CCorePlugin.CONTENT_TYPE_CSOURCE.equals(contentTypeId) || CCorePlugin.CONTENT_TYPE_CHEADER
+				.equals(contentTypeId));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.cdt.core.model.ITranslationUnit#isCXXLanguage()
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.model.ITranslationUnit#isCXXLanguage()
 	 */
 	public boolean isCXXLanguage() {
-		return (
-				CCorePlugin.CONTENT_TYPE_CXXSOURCE.equals(contentTypeId)
-				|| CCorePlugin.CONTENT_TYPE_CXXHEADER.equals(contentTypeId)
-				);
+		return (CCorePlugin.CONTENT_TYPE_CXXSOURCE.equals(contentTypeId) || CCorePlugin.CONTENT_TYPE_CXXHEADER
+				.equals(contentTypeId));
 	}
-	
-	
-	/* (non-Javadoc)
-	 * @see org.eclipse.cdt.core.model.ICElement#exists()
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.model.ICElement#exists()
 	 */
 	public boolean exists() {
 		IResource res = getResource();
@@ -672,9 +850,11 @@ public class TranslationUnit extends Openable implements ITranslationUnit {
 			return res.exists();
 		return super.exists();
 	}
-	
-	/* (non-Javadoc)
-	 * @see org.eclipse.cdt.core.model.ITranslationUnit#getContentTypeId()
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.model.ITranslationUnit#getContentTypeId()
 	 */
 	public String getContentTypeId() {
 		return contentTypeId;
@@ -684,11 +864,14 @@ public class TranslationUnit extends Openable implements ITranslationUnit {
 		contentTypeId = id;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.cdt.internal.core.model.Openable#closing(java.lang.Object)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.Openable#closing(java.lang.Object)
 	 */
 	protected void closing(Object info) throws CModelException {
-		IContentType cType = CCorePlugin.getContentType(getCProject().getProject(), getElementName());
+		IContentType cType = CCorePlugin.getContentType(getCProject()
+				.getProject(), getElementName());
 		if (cType != null) {
 			setContentTypeID(cType.getId());
 		}
@@ -696,9 +879,10 @@ public class TranslationUnit extends Openable implements ITranslationUnit {
 	}
 
 	/**
-	 * Contributed languages' model builders need to be able to indicate whether or
-	 * not the parse of a translation unit was successful without having access to
-	 * the <code>CElementInfo</code> object associated with the translation unit
+	 * Contributed languages' model builders need to be able to indicate whether
+	 * or not the parse of a translation unit was successful without having
+	 * access to the <code>CElementInfo</code> object associated with the
+	 * translation unit
 	 * 
 	 * @param wasSuccessful
 	 */
@@ -709,5 +893,28 @@ public class TranslationUnit extends Openable implements ITranslationUnit {
 			;
 		}
 	}
-}
 
+	public ILanguage getLanguage() throws CoreException {
+		if (language == null) {
+			// Look for the language extension registered against the
+			// content type string
+			IContentTypeManager manager = Platform.getContentTypeManager();
+			IContentType contentType = manager.getContentType(contentTypeId);
+			language = LanguageManager.getInstance().getLanguage(contentType);
+
+			// Special magic for C/C++ header files
+			if (language == null && isHeaderUnit()) {
+				IResource resource = getResource();
+				contentType = resource != null
+						&& CoreModel.hasCCNature(resource.getProject()) ? manager
+						.getContentType(CCorePlugin.CONTENT_TYPE_CXXSOURCE)
+						: manager
+								.getContentType(CCorePlugin.CONTENT_TYPE_CSOURCE);
+				language = LanguageManager.getInstance().getLanguage(
+						contentType);
+			}
+		}
+
+		return language;
+	}
+}

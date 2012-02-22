@@ -14,6 +14,8 @@ import org.eclipse.jface.text.rules.IRule;
 import org.eclipse.jface.text.rules.SingleLineRule;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.rules.WordRule;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.RGB;
 
 /**
  * A C++ code scanner.
@@ -50,13 +52,15 @@ public final class CppCodeScanner extends BufferedRuleBasedScanner {
 		WordRule wordRule = new WordRule(new CWordDetector(), token);
 
 		token = new Token(new TextAttribute(fColorManager
-				.getColor(ICColorConstants.C_KEYWORD)));
+				.getColor(ICColorConstants.C_KEYWORD), fColorManager
+				.getColor(new RGB(255, 255, 255)), SWT.BOLD));
 		Iterator iter = ParserFactory.getKeywordSet(KeywordSetKey.KEYWORDS,
 				ParserLanguage.CPP).iterator();
 		while (iter.hasNext())
 			wordRule.addWord((String) iter.next(), token);
 		token = new Token(new TextAttribute(fColorManager
-				.getColor(ICColorConstants.C_TYPE)));
+				.getColor(ICColorConstants.C_TYPE), fColorManager
+				.getColor(new RGB(255, 255, 255)), SWT.BOLD));
 		iter = ParserFactory.getKeywordSet(KeywordSetKey.TYPES,
 				ParserLanguage.CPP).iterator();
 		while (iter.hasNext())
@@ -66,7 +70,8 @@ public final class CppCodeScanner extends BufferedRuleBasedScanner {
 		rules.add(wordRule);
 
 		token = new Token(new TextAttribute(fColorManager
-				.getColor(ICColorConstants.C_TYPE)));
+				.getColor(ICColorConstants.C_TYPE), fColorManager
+				.getColor(new RGB(255, 255, 255)), SWT.BOLD));
 		PreprocessorRule preprocessorRule = new PreprocessorRule(
 				new CWordDetector(), token);
 		iter = ParserFactory.getKeywordSet(KeywordSetKey.PP_DIRECTIVE,

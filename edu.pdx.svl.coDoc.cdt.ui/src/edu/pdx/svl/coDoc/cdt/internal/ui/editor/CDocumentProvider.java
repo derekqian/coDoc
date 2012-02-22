@@ -6,21 +6,26 @@ import edu.pdx.svl.coDoc.cdt.core.model.CoreModel;
 import edu.pdx.svl.coDoc.cdt.core.model.ITranslationUnit;
 import edu.pdx.svl.coDoc.cdt.core.model.IWorkingCopy;
 import edu.pdx.svl.coDoc.cdt.internal.core.model.IBufferFactory;
+import edu.pdx.svl.coDoc.cdt.internal.core.model.TranslationUnit;
 import edu.pdx.svl.coDoc.cdt.ui.CUIPlugin;
+import edu.pdx.svl.coDoc.cdt.internal.ui.CFileElementWorkingCopy;
+import edu.pdx.svl.coDoc.cdt.internal.ui.editor.ITranslationUnitEditorInput;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.editors.text.TextFileDocumentProvider;
 
-public class CDocumentProvider extends TextFileDocumentProvider
-{
+public class CDocumentProvider extends TextFileDocumentProvider {
+
+	public ITranslationUnit unit;
+
 	/**
 	 * Bundle of all required informations to allow working copy management.
 	 */
 	static protected class TranslationUnitInfo extends FileInfo {
 		public IWorkingCopy fCopy;
 	}
-	
+
 	/**
 	 * Creates a translation unit from the given file.
 	 * 
@@ -34,14 +39,14 @@ public class CDocumentProvider extends TextFileDocumentProvider
 		}
 		return null;
 	}
-	
-  /*
-   * @see org.eclipse.ui.editors.text.TextFileDocumentProvider#createEmptyFileInfo()
-   */
-  protected FileInfo createEmptyFileInfo() {
-    return new TranslationUnitInfo();
-  }
-  
+
+	/*
+	 * @see org.eclipse.ui.editors.text.TextFileDocumentProvider#createEmptyFileInfo()
+	 */
+	protected FileInfo createEmptyFileInfo() {
+		return new TranslationUnitInfo();
+	}
+
 	/*
 	 * @see org.eclipse.ui.editors.text.TextFileDocumentProvider#createFileInfo(java.lang.Object)
 	 */
@@ -67,22 +72,30 @@ public class CDocumentProvider extends TextFileDocumentProvider
 			 */
 			IFileEditorInput input = (IFileEditorInput)element;
 			original = createTranslationUnit(input.getFile());
-      System.out.println("Creating a TranslationUnit");
+		} else if (element instanceof ITranslationUnitEditorInput) {
+			ITranslationUnitEditorInput input = (ITranslationUnitEditorInput) element;
+			original = input.getTranslationUnit();
 		}
-		else return null;
-    
+
+		if (original == null) {
+			return null;
+		} else
+			this.unit = original;
+
 		FileInfo info = super.createFileInfo(element);
 		if (!(info instanceof TranslationUnitInfo))
 			return null;
 		TranslationUnitInfo tuInfo = (TranslationUnitInfo) info;
-		setUpSynchronization(tuInfo);    
-    
+		setUpSynchronization(tuInfo);
+
 		IWorkingCopy copy = null;
 		if (element instanceof IFileEditorInput) {
-			IBufferFactory factory = CUIPlugin.getDefault().getBufferFactory();     
+			IBufferFactory factory = CUIPlugin.getDefault().getBufferFactory();
 			copy = original.getSharedWorkingCopy(getProgressMonitor(), factory);
+		} else if (element instanceof ITranslationUnitEditorInput) {
+			copy = new CFileElementWorkingCopy(original);
 		}
-    System.out.println("Creating a WorkingCopy");
+		char[] chars = copy.getContents();
 		tuInfo.fCopy = copy;
 		return tuInfo;
 	}

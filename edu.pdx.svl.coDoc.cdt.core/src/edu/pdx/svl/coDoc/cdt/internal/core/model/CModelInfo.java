@@ -23,7 +23,7 @@ public class CModelInfo extends OpenableInfo {
 	Object[] nonCResources = null;
 
 	/**
-	 * Constructs a new C Model Info 
+	 * Constructs a new C Model Info
 	 */
 	protected CModelInfo(CElement element) {
 		super(element);
@@ -33,13 +33,15 @@ public class CModelInfo extends OpenableInfo {
 	 * Compute the non-C resources contained in this C project.
 	 */
 	private Object[] computeNonCResources() {
-		IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
+		IProject[] projects = ResourcesPlugin.getWorkspace().getRoot()
+				.getProjects();
 		int length = projects.length;
 		Object[] nonCProjects = null;
 		int index = 0;
 		for (int i = 0; i < length; i++) {
 			IProject project = projects[i];
-			if (!(CoreModel.hasCNature(project) || CoreModel.hasCCNature(project))) {
+			if (!(CoreModel.hasCNature(project) || CoreModel
+					.hasCCNature(project))) {
 				if (nonCProjects == null) {
 					nonCProjects = new Object[length];
 				}
@@ -50,7 +52,8 @@ public class CModelInfo extends OpenableInfo {
 			return NO_NON_C_RESOURCES;
 		}
 		if (index < length) {
-			System.arraycopy(nonCProjects, 0, nonCProjects = new Object[index], 0, index);
+			System.arraycopy(nonCProjects, 0, nonCProjects = new Object[index],
+					0, index);
 		}
 		return nonCProjects;
 	}
@@ -73,4 +76,3 @@ public class CModelInfo extends OpenableInfo {
 	}
 
 }
-

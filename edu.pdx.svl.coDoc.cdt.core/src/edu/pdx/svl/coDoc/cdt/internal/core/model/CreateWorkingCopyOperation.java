@@ -13,7 +13,9 @@ package edu.pdx.svl.coDoc.cdt.internal.core.model;
 
 import java.util.Map;
 
+import edu.pdx.svl.coDoc.cdt.core.model.CModelException;
 import edu.pdx.svl.coDoc.cdt.core.model.ICElement;
+import edu.pdx.svl.coDoc.cdt.core.model.IProblemRequestor;
 import edu.pdx.svl.coDoc.cdt.core.model.ITranslationUnit;
 import org.eclipse.core.resources.IFile;
 
@@ -21,56 +23,68 @@ import org.eclipse.core.resources.IFile;
  * CreateWorkingCopyOperation
  */
 public class CreateWorkingCopyOperation extends CModelOperation {
-  
-  Map perFactoryWorkingCopies;
-  IBufferFactory factory;
-  
-  /*
-   * Creates a working copy from the given original tu and the given buffer factory.
-   * perFactoryWorkingCopies map is not null if the working copy is a shared working copy.
-   */
-  public CreateWorkingCopyOperation(ITranslationUnit originalElement, Map perFactoryWorkingCopies, IBufferFactory factory) {
-    super(new ICElement[] {originalElement});
-    this.perFactoryWorkingCopies = perFactoryWorkingCopies;
-    this.factory = factory;
-  }
-  protected void executeOperation() {
-    ITranslationUnit tu = getTranslationUnit();
 
-    WorkingCopy workingCopy = new WorkingCopy(tu.getParent(), (IFile)tu.getResource(), tu.getContentTypeId(), this.factory);
-    // open the working copy now to ensure contents are that of the current state of this element
-    // Alain: Actually no, delay the parsing 'till it is really needed.  Doing the parsing here
-    // really slows down the opening of the CEditor.
-    //workingCopy.open(this.fMonitor);
-    
-    if (this.perFactoryWorkingCopies != null) {
-      this.perFactoryWorkingCopies.put(tu, workingCopy);
-      //if (TranslationUnit.SHARED_WC_VERBOSE) {
-      //  System.out.println("Creating shared working copy " + workingCopy.toStringWithAncestors()); //$NON-NLS-1$
-      //}
-    }
+	Map perFactoryWorkingCopies;
 
-    // report added java delta
-    CElementDelta delta = new CElementDelta(this.getCModel());
-    delta.added(workingCopy);
-    addDelta(delta);
+	IBufferFactory factory;
 
-    fResultElements = new ICElement[] {workingCopy};
-  }
+	IProblemRequestor problemRequestor;
 
-  /**
-   * Returns the translation unit this operation is working on.
-   */
-  protected ITranslationUnit getTranslationUnit() {
-    return (ITranslationUnit)getElementToProcess();
-  }
+	/*
+	 * Creates a working copy from the given original tu and the given buffer
+	 * factory. perFactoryWorkingCopies map is not null if the working copy is a
+	 * shared working copy.
+	 */
+	public CreateWorkingCopyOperation(ITranslationUnit originalElement,
+			Map perFactoryWorkingCopies, IBufferFactory factory,
+			IProblemRequestor problemRequestor) {
+		super(new ICElement[] { originalElement });
+		this.perFactoryWorkingCopies = perFactoryWorkingCopies;
+		this.factory = factory;
+		this.problemRequestor = problemRequestor;
+	}
 
-  /**
-   * @see JavaModelOperation#isReadOnly
-   */
-  public boolean isReadOnly() {
-    return true;
-  }
+	protected void executeOperation() throws CModelException {
+		ITranslationUnit tu = getTranslationUnit();
+
+		WorkingCopy workingCopy = new WorkingCopy(tu.getParent(), (IFile) tu
+				.getResource(), tu.getContentTypeId(), this.factory,
+				this.problemRequestor);
+		// open the working copy now to ensure contents are that of the current
+		// state of this element
+		// Alain: Actually no, delay the parsing 'till it is really needed.
+		// Doing the parsing here
+		// really slows down the opening of the CEditor.
+		// workingCopy.open(this.fMonitor);
+
+		if (this.perFactoryWorkingCopies != null) {
+			this.perFactoryWorkingCopies.put(tu, workingCopy);
+			// if (TranslationUnit.SHARED_WC_VERBOSE) {
+			// System.out.println("Creating shared working copy " +
+			// workingCopy.toStringWithAncestors()); //$NON-NLS-1$
+			// }
+		}
+
+		// report added java delta
+		CElementDelta delta = new CElementDelta(this.getCModel());
+		delta.added(workingCopy);
+		addDelta(delta);
+
+		fResultElements = new ICElement[] { workingCopy };
+	}
+
+	/**
+	 * Returns the translation unit this operation is working on.
+	 */
+	protected ITranslationUnit getTranslationUnit() {
+		return (ITranslationUnit) getElementToProcess();
+	}
+
+	/**
+	 * @see JavaModelOperation#isReadOnly
+	 */
+	public boolean isReadOnly() {
+		return true;
+	}
 
 }
-

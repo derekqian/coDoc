@@ -19,13 +19,12 @@ import org.eclipse.core.runtime.IProgressMonitor;
 
 public class CModel extends Openable implements ICModel {
 
-	public CModel () {
+	public CModel() {
 		this(ResourcesPlugin.getWorkspace().getRoot());
-    System.out.println("Creating the CModel");
 	}
 
 	public CModel(IWorkspaceRoot root) {
-		super (null, root, ICElement.C_MODEL);
+		super(null, root, ICElement.C_MODEL);
 	}
 
 	public boolean equals(Object o) {
@@ -37,7 +36,7 @@ public class CModel extends Openable implements ICModel {
 
 	public ICProject[] getCProjects() throws CModelException {
 		List list = getChildrenOfType(C_PROJECT);
-		ICProject[] array= new ICProject[list.size()];
+		ICProject[] array = new ICProject[list.size()];
 		list.toArray(array);
 		return array;
 	}
@@ -46,34 +45,35 @@ public class CModel extends Openable implements ICModel {
 	 * ICModel#getCProject(String)
 	 */
 	public ICProject getCProject(String name) {
-		IProject project = ((IWorkspaceRoot)getResource()).getProject(name);			
-		return CModelManager.getDefault().create(project);			
+		IProject project = ((IWorkspaceRoot) getResource()).getProject(name);
+		return CModelManager.getDefault().create(project);
 	}
 
 	/**
-	 * Returns the active C project associated with the specified
-	 * resource, or <code>null</code> if no C project yet exists
-	 * for the resource.
-	 *
-	 * @exception IllegalArgumentException if the given resource
-	 * is not one of an IProject, IFolder, or IFile.
+	 * Returns the active C project associated with the specified resource, or
+	 * <code>null</code> if no C project yet exists for the resource.
+	 * 
+	 * @exception IllegalArgumentException
+	 *                if the given resource is not one of an IProject, IFolder,
+	 *                or IFile.
 	 */
 	public ICProject getCProject(IResource resource) {
-		switch(resource.getType()){
-			case IResource.FOLDER:
-				return new CProject(this, ((IFolder)resource).getProject());
-			case IResource.FILE:
-				return new CProject(this, ((IFile)resource).getProject());
-			case IResource.PROJECT:
-				return new CProject(this, (IProject)resource);
-			default:
-				throw new IllegalArgumentException("element.invalidResourceForProject"); //$NON-NLS-1$
+		switch (resource.getType()) {
+		case IResource.FOLDER:
+			return new CProject(this, ((IFolder) resource).getProject());
+		case IResource.FILE:
+			return new CProject(this, ((IFile) resource).getProject());
+		case IResource.PROJECT:
+			return new CProject(this, (IProject) resource);
+		default:
+			throw new IllegalArgumentException(
+					"element.invalidResourceForProject"); //$NON-NLS-1$
 		}
 	}
 
 	/**
-	 * Finds the given project in the list of the java model's children.
-	 * Returns null if not found.
+	 * Finds the given project in the list of the java model's children. Returns
+	 * null if not found.
 	 */
 	public ICProject findCProject(IProject project) {
 		try {
@@ -89,31 +89,37 @@ public class CModel extends Openable implements ICModel {
 		}
 		return null;
 	}
-	
+
 	/**
-	 * Workaround for bug 15168 circular errors not reported
-	 * Returns the list of java projects before resource delta processing
-	 * has started.
+	 * Workaround for bug 15168 circular errors not reported Returns the list of
+	 * java projects before resource delta processing has started.
 	 */
 	public ICProject[] getOldCProjectsList() throws CModelException {
 		CModelManager manager = CModelManager.getDefault();
-		return manager.cProjectsCache == null ?
-				getCProjects() :
-				manager.cProjectsCache;
+		return manager.cProjectsCache == null ? getCProjects()
+				: manager.cProjectsCache;
 	}
-	
+
 	public IWorkspace getWorkspace() {
 		return getUnderlyingResource().getWorkspace();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.cdt.internal.core.model.Openable#buildStructure(org.eclipse.cdt.internal.core.model.OpenableInfo, org.eclipse.core.runtime.IProgressMonitor, java.util.Map, org.eclipse.core.resources.IResource)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.dworks.bbcdt.internal.core.model.Openable#buildStructure(org.dworks.bbcdt.internal.core.model.OpenableInfo,
+	 *      org.eclipse.core.runtime.IProgressMonitor, java.util.Map,
+	 *      org.eclipse.core.resources.IResource)
 	 */
-	protected boolean buildStructure(OpenableInfo info, IProgressMonitor pm, Map newElements, IResource underlyingResource) throws CModelException {
+	protected boolean buildStructure(OpenableInfo info, IProgressMonitor pm,
+			Map newElements, IResource underlyingResource)
+			throws CModelException {
 		boolean validInfo = false;
 		try {
 			IResource res = getResource();
-			if (res != null && (res instanceof IWorkspaceRoot || res.getProject().isOpen())) {
+			if (res != null
+					&& (res instanceof IWorkspaceRoot || res.getProject()
+							.isOpen())) {
 				validInfo = computeChildren(info, res);
 			}
 		} finally {
@@ -123,10 +129,11 @@ public class CModel extends Openable implements ICModel {
 		}
 		return validInfo;
 	}
-	
-	protected  boolean computeChildren(OpenableInfo info, IResource res) throws CModelException {
+
+	protected boolean computeChildren(OpenableInfo info, IResource res)
+			throws CModelException {
 		// determine my children
-		IWorkspaceRoot root = (IWorkspaceRoot)getResource();
+		IWorkspaceRoot root = (IWorkspaceRoot) getResource();
 		IProject[] projects = root.getProjects();
 		for (int i = 0, max = projects.length; i < max; i++) {
 			IProject project = projects[i];
@@ -135,50 +142,63 @@ public class CModel extends Openable implements ICModel {
 				info.addChild(cproject);
 			}
 		}
-		((CModelInfo)getElementInfo()).setNonCResources(null);
+		((CModelInfo) getElementInfo()).setNonCResources(null);
 		return true;
 	}
 
-	protected CElementInfo createElementInfo () {
+	protected CElementInfo createElementInfo() {
 		return new CModelInfo(this);
 	}
 
-	public void copy(ICElement[] elements, ICElement[] containers, ICElement[] siblings,
-			String[] renamings, boolean replace, IProgressMonitor monitor) {
-//			if (elements != null && elements[0] != null && elements[0].getElementType() <= ICElement.C_UNIT ) {
-//				runOperation(new CopyResourceElementsOperation(elements, containers, replace), elements, siblings, renamings, monitor);
-//			} else {
-//				runOperation(new CopyElementsOperation(elements, containers, replace), elements, siblings, renamings, monitor);
-//			}
-		}
+	public void copy(ICElement[] elements, ICElement[] containers,
+			ICElement[] siblings, String[] renamings, boolean replace,
+			IProgressMonitor monitor) {
+		// if (elements != null && elements[0] != null &&
+		// elements[0].getElementType() <= ICElement.C_UNIT ) {
+		// runOperation(new CopyResourceElementsOperation(elements, containers,
+		// replace), elements, siblings, renamings, monitor);
+		// } else {
+		// runOperation(new CopyElementsOperation(elements, containers,
+		// replace), elements, siblings, renamings, monitor);
+		// }
+	}
 
-		public void delete(ICElement[] elements, boolean force, IProgressMonitor monitor) {
-			CModelOperation op;
-//			if (elements != null && elements[0] != null && elements[0].getElementType() <= ICElement.C_UNIT) {
-//				op = new DeleteResourceElementsOperation(elements, force);
-//			} else {
-//				op = new DeleteElementsOperation(elements, force);
-//			}
-//			op.runOperation(monitor);
-		}
+	public void delete(ICElement[] elements, boolean force,
+			IProgressMonitor monitor) {
+		CModelOperation op;
+		// if (elements != null && elements[0] != null &&
+		// elements[0].getElementType() <= ICElement.C_UNIT) {
+		// op = new DeleteResourceElementsOperation(elements, force);
+		// } else {
+		// op = new DeleteElementsOperation(elements, force);
+		// }
+		// op.runOperation(monitor);
+	}
 
-		public void move(ICElement[] elements, ICElement[] containers, ICElement[] siblings,
-			String[] renamings, boolean replace, IProgressMonitor monitor) {
-//			if (elements != null && elements[0] != null && elements[0].getElementType() <= ICElement.C_UNIT) {
-//				runOperation(new MoveResourceElementsOperation(elements, containers, replace), elements, siblings, renamings, monitor);
-//			} else {
-//				runOperation(new MoveElementsOperation(elements, containers, replace), elements, siblings, renamings, monitor);
-//			}
-		}
+	public void move(ICElement[] elements, ICElement[] containers,
+			ICElement[] siblings, String[] renamings, boolean replace,
+			IProgressMonitor monitor) {
+		// if (elements != null && elements[0] != null &&
+		// elements[0].getElementType() <= ICElement.C_UNIT) {
+		// runOperation(new MoveResourceElementsOperation(elements, containers,
+		// replace), elements, siblings, renamings, monitor);
+		// } else {
+		// runOperation(new MoveElementsOperation(elements, containers,
+		// replace), elements, siblings, renamings, monitor);
+		// }
+	}
 
-		public void rename(ICElement[] elements, ICElement[] destinations, String[] renamings,
-			boolean force, IProgressMonitor monitor) {
-			CModelOperation op;
-//			if (elements != null && elements[0] != null && elements[0].getElementType() <= ICElement.C_UNIT) {
-//				op = new RenameResourceElementsOperation(elements, destinations, renamings, force);
-//			} else {
-//				op = new RenameElementsOperation(elements, destinations, renamings, force);
-//			}
-//			op.runOperation(monitor);
-		}
+	public void rename(ICElement[] elements, ICElement[] destinations,
+			String[] renamings, boolean force, IProgressMonitor monitor) {
+		CModelOperation op;
+		// if (elements != null && elements[0] != null &&
+		// elements[0].getElementType() <= ICElement.C_UNIT) {
+		// op = new RenameResourceElementsOperation(elements, destinations,
+		// renamings, force);
+		// } else {
+		// op = new RenameElementsOperation(elements, destinations, renamings,
+		// force);
+		// }
+		// op.runOperation(monitor);
+	}
 }

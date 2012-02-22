@@ -29,19 +29,14 @@ import org.eclipse.ui.views.properties.ResourcePropertySource;
  * Implements basic UI support for C elements.
  */
 public class CElementAdapterFactory implements IAdapterFactory {
-	
-	private static Class[] PROPERTIES= new Class[] {
-		IPropertySource.class,
-		IResource.class,
-		IWorkbenchAdapter.class,
-		IDeferredWorkbenchAdapter.class,
-		IProject.class,
-		IWorkspaceRoot.class,
-		IActionFilter.class 
-	};
-	
+
+	private static Class[] PROPERTIES = new Class[] { IPropertySource.class,
+			IResource.class, IWorkbenchAdapter.class,
+			IDeferredWorkbenchAdapter.class, IProject.class,
+			IWorkspaceRoot.class, IActionFilter.class };
+
 	private static CWorkbenchAdapter fgCWorkbenchAdapter;
-	
+
 	/**
 	 * @see CElementAdapterFactory#getAdapterList
 	 */
@@ -51,10 +46,10 @@ public class CElementAdapterFactory implements IAdapterFactory {
 
 	/**
 	 * @see CElementAdapterFactory#getAdapter
-	 */	
+	 */
 	public Object getAdapter(Object element, Class key) {
 		ICElement celem = (ICElement) element;
-		
+
 		if (IPropertySource.class.equals(key)) {
 			return getPropertySource(celem);
 		} else if (IWorkspaceRoot.class.equals(key)) {
@@ -70,18 +65,18 @@ public class CElementAdapterFactory implements IAdapterFactory {
 		} else if (IActionFilter.class.equals(key)) {
 			return getWorkbenchAdapter(celem);
 		}
-		return null; 
+		return null;
 	}
 
 	private IPropertySource getPropertySource(ICElement celement) {
 		IResource res = celement.getResource();
 		if (res != null) {
 			if (res instanceof IFile) {
-				return new FilePropertySource((IFile)res);
+				return new FilePropertySource((IFile) res);
 			}
 			return new ResourcePropertySource(res);
 		}
-		return new CElementPropertySource(celement);		
+		return new CElementPropertySource(celement);
 	}
 
 	private IWorkspaceRoot getWorkspaceRoot(ICElement celement) {
@@ -104,7 +99,8 @@ public class CElementAdapterFactory implements IAdapterFactory {
 		return celement.getResource();
 	}
 
-	private IDeferredWorkbenchAdapter getDeferredWorkbenchAdapter(ICElement celement) {
+	private IDeferredWorkbenchAdapter getDeferredWorkbenchAdapter(
+			ICElement celement) {
 		return new DeferredCWorkbenchAdapter(celement);
 	}
 

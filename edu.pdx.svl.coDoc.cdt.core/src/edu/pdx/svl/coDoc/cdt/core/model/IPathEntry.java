@@ -12,83 +12,87 @@ package edu.pdx.svl.coDoc.cdt.core.model;
 
 import org.eclipse.core.runtime.IPath;
 
-
 public interface IPathEntry {
 
 	/**
-	 * Entry kind constant describing a path entry identifying a
-	 * library. A library is an archive containing 
-	 * consisting of pre-compiled binaries.
+	 * Entry kind constant describing a path entry identifying a library. A
+	 * library is an archive containing consisting of pre-compiled binaries.
 	 */
 	int CDT_LIBRARY = 1;
 
 	/**
-	 * Entry kind constant describing a path entry identifying a
-	 * required project.
+	 * Entry kind constant describing a path entry identifying a required
+	 * project.
 	 */
 	int CDT_PROJECT = 1 << 2;
 
 	/**
-	 * Entry kind constant describing a path entry identifying a
-	 * folder containing source code to be compiled.
+	 * Entry kind constant describing a path entry identifying a folder
+	 * containing source code to be compiled.
 	 */
 	int CDT_SOURCE = 1 << 3;
 
 	/**
-	 * Entry kind constant describing a path entry identifying a
-	 * include path.
+	 * Entry kind constant describing a path entry identifying a include path.
 	 */
 	int CDT_INCLUDE = 1 << 4;
-	
+
 	/**
-	 * Entry kind constant describing a path entry representing
-	 * a container id.
-	 *
+	 * Entry kind constant describing a path entry representing a container id.
+	 * 
 	 */
 	int CDT_CONTAINER = 1 << 5;
 
 	/**
-	 * Entry kind constant describing a path entry representing
-	 * a macro definition.
-	 *
+	 * Entry kind constant describing a path entry representing a macro
+	 * definition.
+	 * 
 	 */
 	int CDT_MACRO = 1 << 6;
 
 	/**
 	 * Entry kind constant describing output location
-	 *
+	 * 
 	 */
 	int CDT_OUTPUT = 1 << 7;
 
 	/**
-	 * Entry kind constant describing a path entry representing
-	 * a file that will be process file as if "#include "file"" appeared as
-	 * the first line of the source file.
+	 * Entry kind constant describing a path entry representing a file that will
+	 * be process file as if "#include "file"" appeared as the first line of the
+	 * source file.
 	 */
 	int CDT_INCLUDE_FILE = 1 << 8;
 
 	/**
-	 * Entry kind constant describing a path entry representing
-	 * a file that will be process file as if "#include "file"" appeared as
-	 * the first line of the source file but only the macro definitions are kept.
+	 * Entry kind constant describing a path entry representing a file that will
+	 * be process file as if "#include "file"" appeared as the first line of the
+	 * source file but only the macro definitions are kept.
 	 * 
 	 */
 	int CDT_MACRO_FILE = 1 << 9;
 
 	/**
 	 * Returns the kind of this path entry.
-	 *
+	 * 
 	 * @return one of:
-	 * <ul>
-	 * <li><code>CDT_SOURCE</code> - this entry describes a source root in its project
-	 * <li><code>CDT_LIBRARY</code> - this entry describes a library
-	 * <li><code>CDT_PROJECT</code> - this entry describes another project
-	 * <li><code>CDT_INCLUDE</code> - this entry describes a include path
-	 * <li><code>CDT_MACRO</code> - this entry describes a macro definition
-	 * <li><code>CDT_CONTAINER</code> - this entry describes a container id
-	 * <li><code>CDT_OUTPUT</code> - this entry describes output location
-	 * <li><code>CDT_INCLUDE_FILE</code> - this entry describes a file to be process as an include
-	 * <li><code>CDT_MACRO_FILE</code> - this entry describes a file containing macro definitions
+	 *         <ul>
+	 *         <li><code>CDT_SOURCE</code> - this entry describes a source
+	 *         root in its project
+	 *         <li><code>CDT_LIBRARY</code> - this entry describes a library
+	 *         <li><code>CDT_PROJECT</code> - this entry describes another
+	 *         project
+	 *         <li><code>CDT_INCLUDE</code> - this entry describes a include
+	 *         path
+	 *         <li><code>CDT_MACRO</code> - this entry describes a macro
+	 *         definition
+	 *         <li><code>CDT_CONTAINER</code> - this entry describes a
+	 *         container id
+	 *         <li><code>CDT_OUTPUT</code> - this entry describes output
+	 *         location
+	 *         <li><code>CDT_INCLUDE_FILE</code> - this entry describes a
+	 *         file to be process as an include
+	 *         <li><code>CDT_MACRO_FILE</code> - this entry describes a file
+	 *         containing macro definitions
 	 */
 	int getEntryKind();
 
@@ -106,4 +110,3 @@ public interface IPathEntry {
 	IPath getPath();
 
 }
-

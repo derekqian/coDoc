@@ -39,12 +39,11 @@ import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.util.Assert;
 import org.eclipse.swt.widgets.Display;
 
-
 /**
- * Adapts <code>IDocument</code> to <code>IBuffer</code>. Uses the
- * same algorithm as the text widget to determine the buffer's line delimiter. 
- * All text inserted into the buffer is converted to this line delimiter.
- * This class is <code>public</code> for test purposes only.
+ * Adapts <code>IDocument</code> to <code>IBuffer</code>. Uses the same
+ * algorithm as the text widget to determine the buffer's line delimiter. All
+ * text inserted into the buffer is converted to this line delimiter. This class
+ * is <code>public</code> for test purposes only.
  * 
  * This class is similar to the JDT DocumentAdapter class.
  */
@@ -54,85 +53,94 @@ public class DocumentAdapter implements IBuffer, IDocumentListener {
 	 * Internal implementation of a NULL instanceof IBuffer.
 	 */
 	static private class NullBuffer implements IBuffer {
-			
-		public void addBufferChangedListener(IBufferChangedListener listener) {}
-		
-		public void append(char[] text) {}
-		
-		public void append(String text) {}
-		
-		public void close() {}
-		
+
+		public void addBufferChangedListener(IBufferChangedListener listener) {
+		}
+
+		public void append(char[] text) {
+		}
+
+		public void append(String text) {
+		}
+
+		public void close() {
+		}
+
 		public char getChar(int position) {
 			return 0;
 		}
-		
+
 		public char[] getCharacters() {
 			return null;
 		}
-		
+
 		public String getContents() {
 			return null;
 		}
-		
+
 		public int getLength() {
 			return 0;
 		}
-		
+
 		public IOpenable getOwner() {
 			return null;
 		}
-		
+
 		public String getText(int offset, int length) {
 			return null;
 		}
-		
+
 		public IResource getUnderlyingResource() {
 			return null;
 		}
-		
+
 		public boolean hasUnsavedChanges() {
 			return false;
 		}
-		
+
 		public boolean isClosed() {
 			return false;
 		}
-		
+
 		public boolean isReadOnly() {
 			return true;
 		}
-		
-		public void removeBufferChangedListener(IBufferChangedListener listener) {}
-		
-		public void replace(int position, int length, char[] text) {}
-		
-		public void replace(int position, int length, String text) {}
-		
-		public void save(IProgressMonitor progress, boolean force) {}
-		
-		public void setContents(char[] contents) {}
-		
-		public void setContents(String contents) {}
+
+		public void removeBufferChangedListener(IBufferChangedListener listener) {
+		}
+
+		public void replace(int position, int length, char[] text) {
+		}
+
+		public void replace(int position, int length, String text) {
+		}
+
+		public void save(IProgressMonitor progress, boolean force) {
+		}
+
+		public void setContents(char[] contents) {
+		}
+
+		public void setContents(String contents) {
+		}
 	}
-		
-	
+
 	/** NULL implementing <code>IBuffer</code> */
-	public final static IBuffer NULL= new NullBuffer();
+	public final static IBuffer NULL = new NullBuffer();
 
 	/**
-	 *  Executes a document set content call in the ui thread.
+	 * Executes a document set content call in the ui thread.
 	 */
 	protected class DocumentSetCommand implements Runnable {
-		
+
 		private String fContents;
-		
+
 		public void run() {
 			fDocument.set(fContents);
 		}
-	
+
 		public void set(String contents) {
-			fContents= contents;
+			fContents = contents;
 			Display.getDefault().syncExec(this);
 		}
 	}
@@ -141,11 +149,13 @@ public class DocumentAdapter implements IBuffer, IDocumentListener {
 	 * Executes a document replace call in the ui thread.
 	 */
 	protected class DocumentReplaceCommand implements Runnable {
-		
+
 		private int fOffset;
+
 		private int fLength;
+
 		private String fText;
-		
+
 		public void run() {
 			try {
 				fDocument.replace(fOffset, fLength, fText);
@@ -153,48 +163,52 @@ public class DocumentAdapter implements IBuffer, IDocumentListener {
 				// ignore
 			}
 		}
-		
+
 		public void replace(int offset, int length, String text) {
-			fOffset= offset;
-			fLength= length;
-			fText= text;
+			fOffset = offset;
+			fLength = length;
+			fText = text;
 			Display.getDefault().syncExec(this);
 		}
 	}
 
-	private static final boolean DEBUG_LINE_DELIMITERS= true;
+	private static final boolean DEBUG_LINE_DELIMITERS = true;
 
 	private IOpenable fOwner;
+
 	private IFile fFile;
+
 	private ITextFileBuffer fTextFileBuffer;
+
 	IDocument fDocument;
 
-	private DocumentSetCommand fSetCmd= new DocumentSetCommand();
-	private DocumentReplaceCommand fReplaceCmd= new DocumentReplaceCommand();
+	private DocumentSetCommand fSetCmd = new DocumentSetCommand();
+
+	private DocumentReplaceCommand fReplaceCmd = new DocumentReplaceCommand();
 
 	private Set fLegalLineDelimiters;
 
-	private List fBufferListeners= new ArrayList(3);
+	private List fBufferListeners = new ArrayList(3);
+
 	private IStatus fStatus;
 
-	
 	public DocumentAdapter(IOpenable owner, IFile file) {
-		fOwner= owner;
-		fFile= file;
-		
-		initialize();			
+		fOwner = owner;
+		fFile = file;
+
+		initialize();
 	}
 
 	private void initialize() {
-		ITextFileBufferManager manager= FileBuffers.getTextFileBufferManager();
-		IPath location= fFile.getFullPath();
+		ITextFileBufferManager manager = FileBuffers.getTextFileBufferManager();
+		IPath location = fFile.getFullPath();
 		try {
 			manager.connect(location, new NullProgressMonitor());
-			fTextFileBuffer= manager.getTextFileBuffer(location);
-			fDocument= fTextFileBuffer.getDocument();
+			fTextFileBuffer = manager.getTextFileBuffer(location);
+			fDocument = fTextFileBuffer.getDocument();
 		} catch (CoreException x) {
-			fStatus= x.getStatus();
-			fDocument= manager.createEmptyDocument(location);
+			fStatus = x.getStatus();
+			fDocument = manager.createEmptyDocument(location);
 		}
 		fDocument.addPrenotifiedDocumentListener(this);
 	}
@@ -209,7 +223,7 @@ public class DocumentAdapter implements IBuffer, IDocumentListener {
 			return fTextFileBuffer.getStatus();
 		return null;
 	}
-	
+
 	/**
 	 * Returns the adapted document.
 	 * 
@@ -227,7 +241,7 @@ public class DocumentAdapter implements IBuffer, IDocumentListener {
 		if (!fBufferListeners.contains(listener))
 			fBufferListeners.add(listener);
 	}
-	
+
 	/*
 	 * @see IBuffer#removeBufferChangedListener(IBufferChangedListener)
 	 */
@@ -235,54 +249,54 @@ public class DocumentAdapter implements IBuffer, IDocumentListener {
 		Assert.isNotNull(listener);
 		fBufferListeners.remove(listener);
 	}
-	
 
 	/**
-	 * @see org.eclipse.cdt.internal.core.model.IBuffer#append(char)
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#append(char)
 	 */
 	public void append(char[] text) {
-		append(new String(text));		
+		append(new String(text));
 	}
 
 	/**
-	 * @see org.eclipse.cdt.internal.core.model.IBuffer#append(java.lang.String)
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#append(java.lang.String)
 	 */
 	public void append(String text) {
 		if (DEBUG_LINE_DELIMITERS) {
 			validateLineDelimiters(text);
 		}
-		fReplaceCmd.replace(fDocument.getLength(), 0, text);		
+		fReplaceCmd.replace(fDocument.getLength(), 0, text);
 	}
 
-
 	/**
-	 * @see org.eclipse.cdt.internal.core.model.IBuffer#close()
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#close()
 	 */
 	public void close() {
-		
+
 		if (isClosed())
 			return;
-			
-		IDocument d= fDocument;
-		fDocument= null;
+
+		IDocument d = fDocument;
+		fDocument = null;
 		d.removePrenotifiedDocumentListener(this);
-		
+
 		if (fTextFileBuffer != null) {
-			ITextFileBufferManager manager= FileBuffers.getTextFileBufferManager();
+			ITextFileBufferManager manager = FileBuffers
+					.getTextFileBufferManager();
 			try {
-				manager.disconnect(fTextFileBuffer.getLocation(), new NullProgressMonitor());
+				manager.disconnect(fTextFileBuffer.getLocation(),
+						new NullProgressMonitor());
 			} catch (CoreException x) {
 				// ignore
 			}
-			fTextFileBuffer= null;
+			fTextFileBuffer = null;
 		}
-		
+
 		fireBufferChanged(new BufferChangedEvent(this, 0, 0, null));
 		fBufferListeners.clear();
 	}
 
 	/**
-	 * @see org.eclipse.cdt.internal.core.model.IBuffer#getChar(int)
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#getChar(int)
 	 */
 	public char getChar(int position) {
 		try {
@@ -293,36 +307,36 @@ public class DocumentAdapter implements IBuffer, IDocumentListener {
 	}
 
 	/**
-	 * @see org.eclipse.cdt.internal.core.model.IBuffer#getCharacters()
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#getCharacters()
 	 */
 	public char[] getCharacters() {
-		String content= getContents();
+		String content = getContents();
 		return content == null ? null : content.toCharArray();
 	}
 
 	/**
-	 * @see org.eclipse.cdt.internal.core.model.IBuffer#getContents()
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#getContents()
 	 */
 	public String getContents() {
 		return fDocument.get();
 	}
 
 	/**
-	 * @see org.eclipse.cdt.internal.core.model.IBuffer#getLength()
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#getLength()
 	 */
 	public int getLength() {
 		return fDocument.getLength();
 	}
 
 	/**
-	 * @see org.eclipse.cdt.internal.core.model.IBuffer#getOwner()
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#getOwner()
 	 */
 	public IOpenable getOwner() {
 		return fOwner;
 	}
 
 	/**
-	 * @see org.eclipse.cdt.internal.core.model.IBuffer#getText(int, int)
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#getText(int, int)
 	 */
 	public String getText(int offset, int length) {
 		try {
@@ -333,49 +347,50 @@ public class DocumentAdapter implements IBuffer, IDocumentListener {
 	}
 
 	/**
-	 * @see org.eclipse.cdt.internal.core.model.IBuffer#getUnderlyingResource()
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#getUnderlyingResource()
 	 */
 	public IResource getUnderlyingResource() {
 		return fFile;
 	}
 
 	/**
-	 * @see org.eclipse.cdt.internal.core.model.IBuffer#hasUnsavedChanges()
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#hasUnsavedChanges()
 	 */
 	public boolean hasUnsavedChanges() {
 		return fTextFileBuffer != null ? fTextFileBuffer.isDirty() : false;
 	}
 
 	/**
-	 * @see org.eclipse.cdt.internal.core.model.IBuffer#isClosed()
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#isClosed()
 	 */
 	public boolean isClosed() {
 		return fDocument == null;
 	}
 
 	/**
-	 * @see org.eclipse.cdt.internal.core.model.IBuffer#isReadOnly()
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#isReadOnly()
 	 */
 	public boolean isReadOnly() {
-		IResource resource= getUnderlyingResource();
+		IResource resource = getUnderlyingResource();
 		if (resource != null) {
 			ResourceAttributes attributes = resource.getResourceAttributes();
 			if (attributes != null) {
 				return attributes.isReadOnly();
 			}
 		}
-		return false;		
+		return false;
 	}
 
 	/**
-	 * @see org.eclipse.cdt.internal.core.model.IBuffer#replace(int, int, char)
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#replace(int, int, char)
 	 */
 	public void replace(int position, int length, char[] text) {
-		replace(position, length, new String(text));		
+		replace(position, length, new String(text));
 	}
 
 	/**
-	 * @see org.eclipse.cdt.internal.core.model.IBuffer#replace(int, int, java.lang.String)
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#replace(int, int,
+	 *      java.lang.String)
 	 */
 	public void replace(int position, int length, String text) {
 		if (DEBUG_LINE_DELIMITERS) {
@@ -385,7 +400,8 @@ public class DocumentAdapter implements IBuffer, IDocumentListener {
 	}
 
 	/**
-	 * @see org.eclipse.cdt.internal.core.model.IBuffer#save(org.eclipse.core.runtime.IProgressMonitor, boolean)
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#save(org.eclipse.core.runtime.IProgressMonitor,
+	 *      boolean)
 	 */
 	public void save(IProgressMonitor progress, boolean force) {
 		try {
@@ -397,33 +413,33 @@ public class DocumentAdapter implements IBuffer, IDocumentListener {
 	}
 
 	/**
-	 * @see org.eclipse.cdt.internal.core.model.IBuffer#setContents(char)
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#setContents(char)
 	 */
 	public void setContents(char[] contents) {
-		setContents(new String(contents));		
+		setContents(new String(contents));
 	}
 
 	/**
-	 * @see org.eclipse.cdt.internal.core.model.IBuffer#setContents(java.lang.String)
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#setContents(java.lang.String)
 	 */
 	public void setContents(String contents) {
-		int oldLength= fDocument.getLength();
-		
+		int oldLength = fDocument.getLength();
+
 		if (contents == null) {
-			
+
 			if (oldLength != 0)
 				fSetCmd.set(""); //$NON-NLS-1$
-		
+
 		} else {
 			// set only if different
 			if (DEBUG_LINE_DELIMITERS) {
 				validateLineDelimiters(contents);
 			}
-			
-			int newLength= contents.length();
+
+			int newLength = contents.length();
 			if (oldLength != newLength || !contents.equals(fDocument.get()))
 				fSetCmd.set(contents);
-			
+
 		}
 	}
 
@@ -431,11 +447,11 @@ public class DocumentAdapter implements IBuffer, IDocumentListener {
 
 		if (fLegalLineDelimiters == null) {
 			// collect all line delimiters in the document
-			HashSet existingDelimiters= new HashSet();
+			HashSet existingDelimiters = new HashSet();
 
-			for (int i= fDocument.getNumberOfLines() - 1; i >= 0; i-- ) {
+			for (int i = fDocument.getNumberOfLines() - 1; i >= 0; i--) {
 				try {
-					String curr= fDocument.getLineDelimiter(i);
+					String curr = fDocument.getLineDelimiter(i);
 					if (curr != null) {
 						existingDelimiters.add(curr);
 					}
@@ -446,23 +462,24 @@ public class DocumentAdapter implements IBuffer, IDocumentListener {
 			if (existingDelimiters.isEmpty()) {
 				return; // first insertion of a line delimiter: no test
 			}
-			fLegalLineDelimiters= existingDelimiters;
-			
+			fLegalLineDelimiters = existingDelimiters;
+
 		}
-		
-		DefaultLineTracker tracker= new DefaultLineTracker();
+
+		DefaultLineTracker tracker = new DefaultLineTracker();
 		tracker.set(contents);
-		
-		int lines= tracker.getNumberOfLines();
+
+		int lines = tracker.getNumberOfLines();
 		if (lines <= 1)
 			return;
-		
-		for (int i= 0; i < lines; i++) {
+
+		for (int i = 0; i < lines; i++) {
 			try {
-				String curr= tracker.getLineDelimiter(i);
+				String curr = tracker.getLineDelimiter(i);
 				if (curr != null && !fLegalLineDelimiters.contains(curr)) {
-					StringBuffer buf= new StringBuffer("New line delimiter added to new code: "); //$NON-NLS-1$
-					for (int k= 0; k < curr.length(); k++) {
+					StringBuffer buf = new StringBuffer(
+							"New line delimiter added to new code: "); //$NON-NLS-1$
+					for (int k = 0; k < curr.length(); k++) {
 						buf.append(String.valueOf((int) curr.charAt(k)));
 					}
 				}
@@ -483,16 +500,16 @@ public class DocumentAdapter implements IBuffer, IDocumentListener {
 	 * @see IDocumentListener#documentChanged(DocumentEvent)
 	 */
 	public void documentChanged(DocumentEvent event) {
-		fireBufferChanged(new BufferChangedEvent(this, event.getOffset(), event.getLength(), event.getText()));
+		fireBufferChanged(new BufferChangedEvent(this, event.getOffset(), event
+				.getLength(), event.getText()));
 	}
-	
+
 	private void fireBufferChanged(BufferChangedEvent event) {
 		if (fBufferListeners != null && fBufferListeners.size() > 0) {
-			Iterator e= new ArrayList(fBufferListeners).iterator();
+			Iterator e = new ArrayList(fBufferListeners).iterator();
 			while (e.hasNext())
 				((IBufferChangedListener) e.next()).bufferChanged(event);
 		}
 	}
 
 }
-

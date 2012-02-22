@@ -10,26 +10,27 @@
  *******************************************************************************/
 package edu.pdx.svl.coDoc.cdt.internal.core.model;
 
-
 import edu.pdx.svl.coDoc.cdt.core.model.*;
 import edu.pdx.svl.coDoc.cdt.core.model.IOpenable;
+
 /**
  * A factory that creates <code>IBuffer</code>s for CFiles.
  * <p>
  * This interface may be implemented by clients.
  * </p>
  * 
- * This    interface is similar to the JDT IBufferFactory interface.
+ * This interface is similar to the JDT IBufferFactory interface.
  */
 public interface IBufferFactory {
 
 	/**
-	 * Creates a buffer for the given owner.
-	 * The new buffer will be initialized with the contents of the owner 
-	 * if and only if it was not already initialized by the factory (a buffer is uninitialized if 
-	 * its content is <code>null</code>).
+	 * Creates a buffer for the given owner. The new buffer will be initialized
+	 * with the contents of the owner if and only if it was not already
+	 * initialized by the factory (a buffer is uninitialized if its content is
+	 * <code>null</code>).
 	 * 
-	 * @param owner the owner of the buffer
+	 * @param owner
+	 *            the owner of the buffer
 	 * @see IBuffer
 	 */
 	IBuffer createBuffer(IOpenable owner);

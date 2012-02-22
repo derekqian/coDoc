@@ -13,11 +13,12 @@ package edu.pdx.svl.coDoc.cdt.core.model;
 /**
  * Represents a package declaration in a C translation unit.
  */
-public interface INamespace extends ICElement, IParent, ISourceManipulation, ISourceReference {
+public interface INamespace extends ICElement, IParent, ISourceManipulation,
+		ISourceReference {
 	/**
 	 * Returns the typename of a namespace.
+	 * 
 	 * @return String
 	 */
 	String getTypeName();
 }
-

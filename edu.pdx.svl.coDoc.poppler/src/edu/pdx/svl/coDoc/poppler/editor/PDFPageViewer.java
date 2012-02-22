@@ -94,7 +94,10 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
     
     private org.eclipse.swt.graphics.Image swtImage;
     
+    IPDFEditor editor;
+    
     private Rectangle Selection;
+    private String text;
     private Point startPoint;
     private Point stopPoint;
     
@@ -118,7 +121,7 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
 				Selection = new Rectangle(startPoint.x,startPoint.y,stopPoint.x-startPoint.x,stopPoint.y-startPoint.y);
 				highlight(Selection);
 				redraw();
-				String text = poppler.page_get_selected_text(1.0, Selection);
+				text = poppler.page_get_selected_text(1.0, Selection);
 				System.out.println("\n=======================");
 				System.out.println(text);
 				System.out.println("=======================\n");
@@ -286,8 +289,11 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
 
 			}
 		});
+		
+		this.editor = editor;
 
 		Selection = null;
+		text = null;
 		startPoint = new Point(-1,-1);
 		stopPoint = new Point(-1,-1);
 
@@ -315,6 +321,29 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
      */
     public void highlight(Rectangle rect) {
     	highlight = poppler.page_get_selected_region(1.0, rect);
+    }
+    
+    public Rectangle getSelection()
+    {
+    	return Selection;
+    }
+    
+    public int getPage()
+    {
+    	return currentPageNum;
+    }
+    
+    public String getSelectedText()
+    {
+    	return text;
+    }
+    
+    public void selectText(int page, int top, int bottom, int left, int right)
+    {
+    	editor.showPage(page);
+		highlight(new Rectangle(left,top,right-left,bottom-top));
+		redraw();
+    	return;
     }
 
     /**
@@ -537,6 +566,7 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
 
 	public interface IPDFEditor {
 		public PopplerJNI getPoppler();
+		public void showPage(int pageNr);
 		public void showFirstPage();
 		public void showPreviousPage();
 		public void showNextPage();

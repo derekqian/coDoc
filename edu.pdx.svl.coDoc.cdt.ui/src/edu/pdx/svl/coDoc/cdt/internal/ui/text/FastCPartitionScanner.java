@@ -48,8 +48,9 @@ public class FastCPartitionScanner implements IPartitionTokenScanner,
 	private static final int STAR = 4; // postfix for MULTI_LINE_COMMENT
 
 	private static final int CARRIAGE_RETURN = 5; // postfix for STRING,
-													// CHARACTER and
-													// SINGLE_LINE_COMMENT
+
+	// CHARACTER and
+	// SINGLE_LINE_COMMENT
 
 	/** The scanner. */
 	// private final BufferedRuleBasedScanner fScanner= new

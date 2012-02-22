@@ -42,16 +42,20 @@ public class SourceRoot extends CContainer implements ISourceRoot {
 		return sourceEntry;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.cdt.core.model.ISourceRoot#isOnclasspath(org.eclipse.cdt.core.model.ICElement)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.dworks.bbcdt.core.model.ISourceRoot#isOnclasspath(org.dworks.bbcdt.core.model.ICElement)
 	 */
 	public boolean isOnSourceEntry(ICElement element) {
 		IPath path = element.getPath();
 		return this.isOnSourceEntry(path);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.cdt.core.model.ISourceRoot#isOnSourceEntry(org.eclipse.core.resources.IResource)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.dworks.bbcdt.core.model.ISourceRoot#isOnSourceEntry(org.eclipse.core.resources.IResource)
 	 */
 	public boolean isOnSourceEntry(IResource res) {
 		IPath path = res.getFullPath();
@@ -66,4 +70,3 @@ public class SourceRoot extends CContainer implements ISourceRoot {
 	}
 
 }
-

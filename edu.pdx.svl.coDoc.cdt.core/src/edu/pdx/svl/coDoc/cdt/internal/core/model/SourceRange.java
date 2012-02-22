@@ -19,7 +19,9 @@ import edu.pdx.svl.coDoc.cdt.core.model.ISourceRange;
 class SourceRange implements ISourceRange {
 
 	protected int startPos, length;
+
 	protected int idStartPos, idLength;
+
 	protected int startLine, endLine;
 
 	protected SourceRange(int startPos, int length) {
@@ -38,8 +40,8 @@ class SourceRange implements ISourceRange {
 		this.idLength = idLength;
 	}
 
-	protected SourceRange(int startPos, int length, int idStartPos, int idLength,
-		int startLine, int endLine) {
+	protected SourceRange(int startPos, int length, int idStartPos,
+			int idLength, int startLine, int endLine) {
 		this.startPos = startPos;
 		this.length = length;
 		this.idStartPos = idStartPos;
@@ -47,6 +49,7 @@ class SourceRange implements ISourceRange {
 		this.startLine = startLine;
 		this.endLine = endLine;
 	}
+
 	/**
 	 * @see ISourceRange
 	 */
@@ -95,4 +98,3 @@ class SourceRange implements ISourceRange {
 		return buffer.toString();
 	}
 }
-

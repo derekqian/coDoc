@@ -11,7 +11,8 @@
 package edu.pdx.svl.coDoc.cdt.internal.core.model;
 
 import edu.pdx.svl.coDoc.cdt.core.model.ISourceRoot;
-/** 
+
+/**
  * Info for ICProject.
  */
 

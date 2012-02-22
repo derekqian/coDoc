@@ -25,6 +25,8 @@ import org.eclipse.jface.text.rules.IRule;
 import org.eclipse.jface.text.rules.SingleLineRule;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.rules.WordRule;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.RGB;
 
 /**
  * A C code scanner.
@@ -71,13 +73,15 @@ public final class CCodeScanner extends BufferedRuleBasedScanner {
 		WordRule wordRule = new WordRule(new CWordDetector(), token);
 
 		token = new Token(new TextAttribute(fColorManager
-				.getColor(ICColorConstants.C_KEYWORD)));
+				.getColor(ICColorConstants.C_KEYWORD), fColorManager
+				.getColor(new RGB(255, 255, 255)), SWT.BOLD));
 		Iterator i = ParserFactory.getKeywordSet(KeywordSetKey.KEYWORDS,
 				ParserLanguage.C).iterator();
 		while (i.hasNext())
 			wordRule.addWord((String) i.next(), token);
 		token = new Token(new TextAttribute(fColorManager
-				.getColor(ICColorConstants.C_TYPE)));
+				.getColor(ICColorConstants.C_TYPE), fColorManager
+				.getColor(new RGB(255, 255, 255)), SWT.BOLD));
 		i = ParserFactory.getKeywordSet(KeywordSetKey.TYPES, ParserLanguage.C)
 				.iterator();
 		while (i.hasNext())
@@ -104,7 +108,8 @@ public final class CCodeScanner extends BufferedRuleBasedScanner {
 		rules.add(braceRule);
 
 		token = new Token(new TextAttribute(fColorManager
-				.getColor(ICColorConstants.C_TYPE)));
+				.getColor(ICColorConstants.C_TYPE), fColorManager
+				.getColor(new RGB(255, 255, 255)), SWT.BOLD));
 		PreprocessorRule preprocessorRule = new PreprocessorRule(
 				new CWordDetector(), token);
 

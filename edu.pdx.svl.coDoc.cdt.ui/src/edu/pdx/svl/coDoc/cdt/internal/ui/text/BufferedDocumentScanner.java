@@ -145,7 +145,7 @@ public final class BufferedDocumentScanner implements ICharacterScanner {
 			} else {
 				updateBuffer(fBufferOffset - fBuffer.length);
 				fOffset = fBuffer.length - 1; // should always be a valid
-												// place
+				// place
 			}
 		} else {
 			--fOffset;

@@ -17,13 +17,13 @@ import edu.pdx.svl.coDoc.cdt.core.model.ICElement;
 import edu.pdx.svl.coDoc.cdt.core.model.ICElementDelta;
 import org.eclipse.core.resources.IResourceDelta;
 
-
 /**
  * @see ICElementDelta
  */
 public class CElementDelta implements ICElementDelta {
 	/**
 	 * The element that this delta describes the change to.
+	 * 
 	 * @see #getElement()
 	 */
 	protected ICElement fChangedElement;
@@ -61,7 +61,7 @@ public class CElementDelta implements ICElementDelta {
 	/**
 	 * Empty array of ICElementDelta
 	 */
-	protected static  ICElementDelta[] fgEmptyDelta= new ICElementDelta[] {};
+	protected static ICElementDelta[] fgEmptyDelta = new ICElementDelta[] {};
 
 	/**
 	 * @see #getAffectedChildren()
@@ -69,9 +69,9 @@ public class CElementDelta implements ICElementDelta {
 	protected ICElementDelta[] fAffectedChildren = fgEmptyDelta;
 
 	/**
-	 * Creates the root delta. To create the nested delta
-	 * hierarchies use the following convenience methods. The root
-	 * delta can be created at any level (i.e. project, folder).
+	 * Creates the root delta. To create the nested delta hierarchies use the
+	 * following convenience methods. The root delta can be created at any level
+	 * (i.e. project, folder).
 	 * <ul>
 	 * <li><code>added(ICElement)</code>
 	 * <li><code>changed(ICElement)</code>
@@ -86,31 +86,31 @@ public class CElementDelta implements ICElementDelta {
 	}
 
 	/**
-	 * Adds the child delta to the collection of affected children.  If the
-	 * child is already in the collection, walk down the hierarchy.
+	 * Adds the child delta to the collection of affected children. If the child
+	 * is already in the collection, walk down the hierarchy.
 	 */
 	protected void addAffectedChild(CElementDelta child) {
 		switch (fKind) {
-			case ADDED:
-			case REMOVED:
-				// no need to add a child if this parent is added or removed
-				return;
-			case CHANGED:
-				fChangeFlags |= F_CHILDREN;
-				break;
-			default:
-				fKind = CHANGED;
-				fChangeFlags |= F_CHILDREN;
+		case ADDED:
+		case REMOVED:
+			// no need to add a child if this parent is added or removed
+			return;
+		case CHANGED:
+			fChangeFlags |= F_CHILDREN;
+			break;
+		default:
+			fKind = CHANGED;
+			fChangeFlags |= F_CHILDREN;
 		}
 
-		// if a child delta is added to a translation unit delta or below, 
+		// if a child delta is added to a translation unit delta or below,
 		// it's a fine grained delta
 		if (!(fChangedElement.getElementType() >= ICElement.C_UNIT)) {
 			fineGrained();
 		}
-	
+
 		if (fAffectedChildren.length == 0) {
-			fAffectedChildren = new ICElementDelta[] {child};
+			fAffectedChildren = new ICElementDelta[] { child };
 			return;
 		}
 
@@ -118,90 +118,94 @@ public class CElementDelta implements ICElementDelta {
 		ICElementDelta existingChild = null;
 		int existingChildIndex = -1;
 		for (int i = 0; i < fAffectedChildren.length; i++) {
-			// handle case of two jars that can be equals but not in the same project
-			if (equalsAndSameParent(fAffectedChildren[i].getElement(), child.getElement())) {
+			// handle case of two jars that can be equals but not in the same
+			// project
+			if (equalsAndSameParent(fAffectedChildren[i].getElement(), child
+					.getElement())) {
 				existingChild = fAffectedChildren[i];
 				existingChildIndex = i;
 				break;
 			}
 		}
 
-		if (existingChild == null) { //new affected child
-			fAffectedChildren= growAndAddToArray(fAffectedChildren, child);
+		if (existingChild == null) { // new affected child
+			fAffectedChildren = growAndAddToArray(fAffectedChildren, child);
 		} else {
 			switch (existingChild.getKind()) {
+			case ADDED:
+				switch (child.getKind()) {
+				// child was added then added -> it is added
 				case ADDED:
-					switch (child.getKind()) {
-						// child was added then added -> it is added
-						case ADDED:
-						// child was added then changed -> it is added
-						case CHANGED:
-							return;
-
-						// child was added then removed -> noop
-						case REMOVED:
-							fAffectedChildren = removeAndShrinkArray(fAffectedChildren, existingChildIndex);
-							return;
-					}
-					break;
-				case REMOVED:
-					switch (child.getKind()) {
-						// child was removed then added -> it is changed
-						case ADDED:
-							child.fKind = CHANGED;
-							fAffectedChildren[existingChildIndex] = child;
-							return;
-
-						// child was removed then changed -> it is removed
-						case CHANGED:
-						// child was removed then removed -> it is removed
-						case REMOVED:
-							return;
-					}
-					break;
+					// child was added then changed -> it is added
 				case CHANGED:
-					switch (child.getKind()) {
-						// child was changed then added -> it is added
-						case ADDED:
-						// child was changed then removed -> it is removed
-						case REMOVED:
-							fAffectedChildren[existingChildIndex] = child;
-							return;
+					return;
 
-						// child was changed then changed -> it is changed
-						case CHANGED:
-							ICElementDelta[] children = child.getAffectedChildren();
-							for (int i = 0; i < children.length; i++) {
-								CElementDelta childsChild = (CElementDelta) children[i];
-								((CElementDelta) existingChild).addAffectedChild(childsChild);
-							}
-							// add the non-c resource deltas if needed
-							// note that the child delta always takes
-							// precedence over this existing child delta
-							// as non-c resource deltas are always
-							// created last (by the DeltaProcessor)
-							IResourceDelta[] resDeltas = child.getResourceDeltas();
-							if (resDeltas != null) {
-								((CElementDelta)existingChild).resourceDeltas = resDeltas;
-								((CElementDelta)existingChild).resourceDeltasCounter = child.resourceDeltasCounter;
-							}
-							return;
-					}
-					break;
-				default: 
-					// unknown -> existing child becomes the child with the existing child's flags
-					int flags = existingChild.getFlags();
+					// child was added then removed -> noop
+				case REMOVED:
+					fAffectedChildren = removeAndShrinkArray(fAffectedChildren,
+							existingChildIndex);
+					return;
+				}
+				break;
+			case REMOVED:
+				switch (child.getKind()) {
+				// child was removed then added -> it is changed
+				case ADDED:
+					child.fKind = CHANGED;
 					fAffectedChildren[existingChildIndex] = child;
-					child.fChangeFlags |= flags;
+					return;
+
+					// child was removed then changed -> it is removed
+				case CHANGED:
+					// child was removed then removed -> it is removed
+				case REMOVED:
+					return;
+				}
+				break;
+			case CHANGED:
+				switch (child.getKind()) {
+				// child was changed then added -> it is added
+				case ADDED:
+					// child was changed then removed -> it is removed
+				case REMOVED:
+					fAffectedChildren[existingChildIndex] = child;
+					return;
+
+					// child was changed then changed -> it is changed
+				case CHANGED:
+					ICElementDelta[] children = child.getAffectedChildren();
+					for (int i = 0; i < children.length; i++) {
+						CElementDelta childsChild = (CElementDelta) children[i];
+						((CElementDelta) existingChild)
+								.addAffectedChild(childsChild);
+					}
+					// add the non-c resource deltas if needed
+					// note that the child delta always takes
+					// precedence over this existing child delta
+					// as non-c resource deltas are always
+					// created last (by the DeltaProcessor)
+					IResourceDelta[] resDeltas = child.getResourceDeltas();
+					if (resDeltas != null) {
+						((CElementDelta) existingChild).resourceDeltas = resDeltas;
+						((CElementDelta) existingChild).resourceDeltasCounter = child.resourceDeltasCounter;
+					}
+					return;
+				}
+				break;
+			default:
+				// unknown -> existing child becomes the child with the existing
+				// child's flags
+				int flags = existingChild.getFlags();
+				fAffectedChildren[existingChildIndex] = child;
+				child.fChangeFlags |= flags;
 			}
 		}
 	}
 
 	/**
-	 * Creates the nested deltas resulting from an add operation.
-	 * Convenience method for creating add deltas.
-	 * The constructor should be used to create the root delta 
-	 * and then an add operation should call this method.
+	 * Creates the nested deltas resulting from an add operation. Convenience
+	 * method for creating add deltas. The constructor should be used to create
+	 * the root delta and then an add operation should call this method.
 	 */
 	public void added(ICElement element) {
 		CElementDelta addedDelta = new CElementDelta(element);
@@ -210,21 +214,21 @@ public class CElementDelta implements ICElementDelta {
 	}
 
 	/**
-	 * Adds the child delta to the collection of affected children.  If the
-	 * child is already in the collection, walk down the hierarchy.
+	 * Adds the child delta to the collection of affected children. If the child
+	 * is already in the collection, walk down the hierarchy.
 	 */
 	protected void addResourceDelta(IResourceDelta child) {
 		switch (fKind) {
-			case ADDED:
-			case REMOVED:
-				// no need to add a child if this parent is added or removed
-				return;
-			case CHANGED:
-				fChangeFlags |= F_CONTENT;
-				break;
-			default:
-				fKind = CHANGED;
-				fChangeFlags |= F_CONTENT;
+		case ADDED:
+		case REMOVED:
+			// no need to add a child if this parent is added or removed
+			return;
+		case CHANGED:
+			fChangeFlags |= F_CONTENT;
+			break;
+		default:
+			fKind = CHANGED;
+			fChangeFlags |= F_CONTENT;
 		}
 		if (resourceDeltas == null) {
 			resourceDeltas = new IResourceDelta[5];
@@ -233,16 +237,21 @@ public class CElementDelta implements ICElementDelta {
 		}
 		if (resourceDeltas.length == resourceDeltasCounter) {
 			// need a resize
-			System.arraycopy(resourceDeltas, 0, (resourceDeltas = new IResourceDelta[resourceDeltasCounter * 2]), 0, resourceDeltasCounter);
+			System
+					.arraycopy(
+							resourceDeltas,
+							0,
+							(resourceDeltas = new IResourceDelta[resourceDeltasCounter * 2]),
+							0, resourceDeltasCounter);
 		}
 		resourceDeltas[resourceDeltasCounter++] = child;
 	}
 
 	/**
-	 * Creates the nested deltas resulting from a change operation.
-	 * Convenience method for creating change deltas.
-	 * The constructor should be used to create the root delta 
-	 * and then a change operation should call this method.
+	 * Creates the nested deltas resulting from a change operation. Convenience
+	 * method for creating change deltas. The constructor should be used to
+	 * create the root delta and then a change operation should call this
+	 * method.
 	 */
 	public void changed(ICElement element, int changeFlag) {
 		CElementDelta changedDelta = new CElementDelta(element);
@@ -266,29 +275,31 @@ public class CElementDelta implements ICElementDelta {
 	 */
 	protected boolean equalsAndSameParent(ICElement e1, ICElement e2) {
 		ICElement parent1;
-		return e1.equals(e2) && ((parent1 = e1.getParent()) != null) && parent1.equals(e2.getParent());
+		return e1.equals(e2) && ((parent1 = e1.getParent()) != null)
+				&& parent1.equals(e2.getParent());
 	}
 
 	/**
-	 * Creates the nested delta deltas based on the affected element
-	 * its delta, and the root of this delta tree. Returns the root
-	 * of the created delta tree.
+	 * Creates the nested delta deltas based on the affected element its delta,
+	 * and the root of this delta tree. Returns the root of the created delta
+	 * tree.
 	 */
-	protected CElementDelta createDeltaTree(ICElement element, CElementDelta delta) {
+	protected CElementDelta createDeltaTree(ICElement element,
+			CElementDelta delta) {
 		CElementDelta childDelta = delta;
-		ArrayList ancestors= getAncestors(element);
+		ArrayList ancestors = getAncestors(element);
 		if (ancestors == null) {
 			if (equalsAndSameParent(delta.getElement(), getElement())) {
 				// handle case of two jars that can be equals but not in the
 				// same project
 				// the element being changed is the root element
-				fKind= delta.fKind;
+				fKind = delta.fKind;
 				fChangeFlags = delta.fChangeFlags;
 				fMovedToHandle = delta.fMovedToHandle;
 				fMovedFromHandle = delta.fMovedFromHandle;
 			} else {
 				// the given delta is not the root or a child - illegal
-				//Assert.isTrue(false);
+				// Assert.isTrue(false);
 			}
 		} else {
 			for (int i = 0, size = ancestors.size(); i < size; i++) {
@@ -302,15 +313,19 @@ public class CElementDelta implements ICElementDelta {
 	}
 
 	/**
-	 * Returns the <code>CElementDelta</code> for the given element
-	 * in the delta tree, or null, if no delta for the given element is found.
+	 * Returns the <code>CElementDelta</code> for the given element in the
+	 * delta tree, or null, if no delta for the given element is found.
 	 */
 	protected CElementDelta find(ICElement e) {
-		if (equalsAndSameParent(fChangedElement, e)) { // handle case of two jars that can be equals but not in the same project
+		if (equalsAndSameParent(fChangedElement, e)) { // handle case of two
+			// jars that can be
+			// equals but not in the
+			// same project
 			return this;
 		}
 		for (int i = 0; i < fAffectedChildren.length; i++) {
-			CElementDelta delta = ((CElementDelta)fAffectedChildren[i]).find(e);
+			CElementDelta delta = ((CElementDelta) fAffectedChildren[i])
+					.find(e);
 			if (delta != null) {
 				return delta;
 			}
@@ -340,10 +355,10 @@ public class CElementDelta implements ICElementDelta {
 	}
 
 	/**
-	 * Returns a collection of all the parents of this element up to (but
-	 * not including) the root of this tree in bottom-up order. If the given
-	 * element is not a descendant of the root of this tree, <code>null</code>
-	 * is returned.
+	 * Returns a collection of all the parents of this element up to (but not
+	 * including) the root of this tree in bottom-up order. If the given element
+	 * is not a descendant of the root of this tree, <code>null</code> is
+	 * returned.
 	 */
 	private ArrayList getAncestors(ICElement element) {
 		ICElement parent = element.getParent();
@@ -377,7 +392,7 @@ public class CElementDelta implements ICElementDelta {
 		if (length == 0) {
 			return new ICElementDelta[] {};
 		}
-		ArrayList children= new ArrayList(length);
+		ArrayList children = new ArrayList(length);
 		for (int i = 0; i < length; i++) {
 			if (fAffectedChildren[i].getKind() == type) {
 				children.add(fAffectedChildren[i]);
@@ -390,18 +405,28 @@ public class CElementDelta implements ICElementDelta {
 	}
 
 	/**
-	 * Returns the delta for a given element.  Only looks below this
-	 * delta.
+	 * Returns the delta for a given element. Only looks below this delta.
 	 */
 	protected CElementDelta getDeltaFor(ICElement element) {
-		if (equalsAndSameParent(getElement(), element)) // handle case of two jars that can be equals but not in the same project
+		if (equalsAndSameParent(getElement(), element)) // handle case of two
+			// jars that can be
+			// equals but not in the
+			// same project
 			return this;
 		if (fAffectedChildren.length == 0)
 			return null;
 		int childrenCount = fAffectedChildren.length;
 		for (int i = 0; i < childrenCount; i++) {
-			CElementDelta delta = (CElementDelta)fAffectedChildren[i];
-			if (equalsAndSameParent(delta.getElement(), element)) { // handle case of two jars that can be equals but not in the same project
+			CElementDelta delta = (CElementDelta) fAffectedChildren[i];
+			if (equalsAndSameParent(delta.getElement(), element)) { // handle
+				// case of
+				// two jars
+				// that can
+				// be equals
+				// but not
+				// in the
+				// same
+				// project
 				return delta;
 			}
 			delta = delta.getDeltaFor(element);
@@ -427,7 +452,7 @@ public class CElementDelta implements ICElementDelta {
 
 	/**
 	 * @see ICElementDelta
-	*/
+	 */
 	public int getKind() {
 		return fKind;
 	}
@@ -460,16 +485,19 @@ public class CElementDelta implements ICElementDelta {
 		if (resourceDeltas == null)
 			return null;
 		if (resourceDeltas.length != resourceDeltasCounter) {
-			System.arraycopy(resourceDeltas, 0, resourceDeltas = new IResourceDelta[resourceDeltasCounter], 0, resourceDeltasCounter);
+			System.arraycopy(resourceDeltas, 0,
+					resourceDeltas = new IResourceDelta[resourceDeltasCounter],
+					0, resourceDeltasCounter);
 		}
 		return resourceDeltas;
 	}
 
 	/**
-	 * Adds the new element to a new array that contains all of the elements of the old array.
-	 * Returns the new array.
+	 * Adds the new element to a new array that contains all of the elements of
+	 * the old array. Returns the new array.
 	 */
-	protected ICElementDelta[] growAndAddToArray(ICElementDelta[] array, ICElementDelta addition) {
+	protected ICElementDelta[] growAndAddToArray(ICElementDelta[] array,
+			ICElementDelta addition) {
 		ICElementDelta[] old = array;
 		array = new ICElementDelta[old.length + 1];
 		System.arraycopy(old, 0, array, 0, old.length);
@@ -478,22 +506,21 @@ public class CElementDelta implements ICElementDelta {
 	}
 
 	/**
-	 * Creates the delta tree for the given element and delta, and then
-	 * inserts the tree as an affected child of this node.
+	 * Creates the delta tree for the given element and delta, and then inserts
+	 * the tree as an affected child of this node.
 	 */
 	protected void insertDeltaTree(ICElement element, CElementDelta delta) {
-		CElementDelta childDelta= createDeltaTree(element, delta);
+		CElementDelta childDelta = createDeltaTree(element, delta);
 		if (!equalsAndSameParent(element, getElement())) {
 			addAffectedChild(childDelta);
 		}
 	}
 
-
 	/**
-	 * Creates the nested deltas resulting from an move operation.
-	 * Convenience method for creating the "move from" delta.
-	 * The constructor should be used to create the root delta 
-	 * and then the move operation should call this method.
+	 * Creates the nested deltas resulting from an move operation. Convenience
+	 * method for creating the "move from" delta. The constructor should be used
+	 * to create the root delta and then the move operation should call this
+	 * method.
 	 */
 	public void movedFrom(ICElement movedFromElement, ICElement movedToElement) {
 		CElementDelta removedDelta = new CElementDelta(movedFromElement);
@@ -504,10 +531,10 @@ public class CElementDelta implements ICElementDelta {
 	}
 
 	/**
-	 * Creates the nested deltas resulting from an move operation.
-	 * Convenience method for creating the "move to" delta.
-	 * The constructor should be used to create the root delta 
-	 * and then the move operation should call this method.
+	 * Creates the nested deltas resulting from an move operation. Convenience
+	 * method for creating the "move to" delta. The constructor should be used
+	 * to create the root delta and then the move operation should call this
+	 * method.
 	 */
 	public void movedTo(ICElement movedToElement, ICElement movedFromElement) {
 		CElementDelta addedDelta = new CElementDelta(movedToElement);
@@ -534,22 +561,26 @@ public class CElementDelta implements ICElementDelta {
 		int index = -1;
 		if (fAffectedChildren != null) {
 			for (int i = 0; i < fAffectedChildren.length; i++) {
-				if (equalsAndSameParent(fAffectedChildren[i].getElement(), child.getElement())) { // handle case of two jars that can be equals but not in the same project
+				if (equalsAndSameParent(fAffectedChildren[i].getElement(),
+						child.getElement())) { // handle case of two jars that
+					// can be equals but not in the
+					// same project
 					index = i;
 					break;
 				}
 			}
 		}
 		if (index >= 0) {
-			fAffectedChildren= removeAndShrinkArray(fAffectedChildren, index);
+			fAffectedChildren = removeAndShrinkArray(fAffectedChildren, index);
 		}
 	}
 
 	/**
-	 * Removes the element from the array.
-	 * Returns the a new array which has shrunk.
+	 * Removes the element from the array. Returns the a new array which has
+	 * shrunk.
 	 */
-	protected ICElementDelta[] removeAndShrinkArray(ICElementDelta[] old, int index) {
+	protected ICElementDelta[] removeAndShrinkArray(ICElementDelta[] old,
+			int index) {
 		ICElementDelta[] array = new ICElementDelta[old.length - 1];
 		if (index > 0)
 			System.arraycopy(old, 0, array, 0, index);
@@ -560,13 +591,13 @@ public class CElementDelta implements ICElementDelta {
 	}
 
 	/**
-	 * Creates the nested deltas resulting from an delete operation.
-	 * Convenience method for creating removed deltas.
-	 * The constructor should be used to create the root delta 
-	 * and then the delete operation should call this method.
+	 * Creates the nested deltas resulting from an delete operation. Convenience
+	 * method for creating removed deltas. The constructor should be used to
+	 * create the root delta and then the delete operation should call this
+	 * method.
 	 */
 	public void removed(ICElement element) {
-		CElementDelta removedDelta= new CElementDelta(element);
+		CElementDelta removedDelta = new CElementDelta(element);
 		insertDeltaTree(element, removedDelta);
 		CElementDelta actualDelta = getDeltaFor(element);
 		if (actualDelta != null) {
@@ -577,10 +608,10 @@ public class CElementDelta implements ICElementDelta {
 	}
 
 	/**
-	 * Creates the nested deltas resulting from a change operation.
-	 * Convenience method for creating change deltas.
-	 * The constructor should be used to create the root delta 
-	 * and then a change operation should call this method.
+	 * Creates the nested deltas resulting from a change operation. Convenience
+	 * method for creating change deltas. The constructor should be used to
+	 * create the root delta and then a change operation should call this
+	 * method.
 	 */
 	public void binaryParserChanged(ICElement element) {
 		CElementDelta attachedDelta = new CElementDelta(element);
@@ -590,10 +621,10 @@ public class CElementDelta implements ICElementDelta {
 	}
 
 	/**
-	 * Creates the nested deltas resulting from a change operation.
-	 * Convenience method for creating change deltas.
-	 * The constructor should be used to create the root delta 
-	 * and then a change operation should call this method.
+	 * Creates the nested deltas resulting from a change operation. Convenience
+	 * method for creating change deltas. The constructor should be used to
+	 * create the root delta and then a change operation should call this
+	 * method.
 	 */
 	public void sourceAttached(ICElement element) {
 		CElementDelta attachedDelta = new CElementDelta(element);
@@ -603,10 +634,10 @@ public class CElementDelta implements ICElementDelta {
 	}
 
 	/**
-	 * Creates the nested deltas resulting from a change operation.
-	 * Convenience method for creating change deltas.
-	 * The constructor should be used to create the root delta 
-	 * and then a change operation should call this method.
+	 * Creates the nested deltas resulting from a change operation. Convenience
+	 * method for creating change deltas. The constructor should be used to
+	 * create the root delta and then a change operation should call this
+	 * method.
 	 */
 	public void sourceDetached(ICElement element) {
 		CElementDelta detachedDelta = new CElementDelta(element);
@@ -615,32 +646,32 @@ public class CElementDelta implements ICElementDelta {
 		insertDeltaTree(element, detachedDelta);
 	}
 
-	/** 
-	 * Returns a string representation of this delta's
-	 * structure suitable for debug purposes.
-	 *
+	/**
+	 * Returns a string representation of this delta's structure suitable for
+	 * debug purposes.
+	 * 
 	 * @see toString
 	 */
 	public String toDebugString(int depth) {
 		StringBuffer buffer = new StringBuffer();
-		for (int i= 0; i < depth; i++) {
+		for (int i = 0; i < depth; i++) {
 			buffer.append('\t');
 		}
-		buffer.append(((CElement)getElement()).toDebugString());
+		buffer.append(((CElement) getElement()).toDebugString());
 		buffer.append(" ["); //$NON-NLS-1$
 		switch (getKind()) {
-			case ICElementDelta.ADDED :
-				buffer.append('+');
-				break;
-			case ICElementDelta.REMOVED :
-				buffer.append('-');
-				break;
-			case ICElementDelta.CHANGED :
-				buffer.append('*');
-				break;
-			default :
-				buffer.append('?');
-				break;
+		case ICElementDelta.ADDED:
+			buffer.append('+');
+			break;
+		case ICElementDelta.REMOVED:
+			buffer.append('-');
+			break;
+		case ICElementDelta.CHANGED:
+			buffer.append('*');
+			break;
+		default:
+			buffer.append('?');
+			break;
 		}
 		buffer.append("]: {"); //$NON-NLS-1$
 		int changeFlags = getFlags();
@@ -660,13 +691,17 @@ public class CElementDelta implements ICElementDelta {
 		if ((changeFlags & ICElementDelta.F_MOVED_FROM) != 0) {
 			if (prev)
 				buffer.append(" | "); //$NON-NLS-1$
-			//buffer.append("MOVED_FROM(" + ((CElement)getMovedFromElement()).toStringWithAncestors() + ")"); //$NON-NLS-1$ //$NON-NLS-2$
+			// buffer.append("MOVED_FROM(" +
+			// ((CElement)getMovedFromElement()).toStringWithAncestors() + ")");
+			// //$NON-NLS-1$ //$NON-NLS-2$
 			prev = true;
 		}
 		if ((changeFlags & ICElementDelta.F_MOVED_TO) != 0) {
 			if (prev)
 				buffer.append(" | "); //$NON-NLS-1$
-			//buffer.append("MOVED_TO(" + ((CElement)getMovedToElement()).toStringWithAncestors() + ")"); //$NON-NLS-1$ //$NON-NLS-2$
+			// buffer.append("MOVED_TO(" +
+			// ((CElement)getMovedToElement()).toStringWithAncestors() + ")");
+			// //$NON-NLS-1$ //$NON-NLS-2$
 			prev = true;
 		}
 		if ((changeFlags & ICElementDelta.F_MODIFIERS) != 0) {
@@ -712,12 +747,12 @@ public class CElementDelta implements ICElementDelta {
 			prev = true;
 		}
 
-		//if ((changeFlags & ICElementDelta.F_SUPER_TYPES) != 0) {
-		//	if (prev)
-		//		buffer.append(" | "); //$NON-NLS-1$
-		//	buffer.append("SUPER TYPES CHANGED"); //$NON-NLS-1$
-		//	prev = true;
-		//}
+		// if ((changeFlags & ICElementDelta.F_SUPER_TYPES) != 0) {
+		// if (prev)
+		// buffer.append(" | "); //$NON-NLS-1$
+		// buffer.append("SUPER TYPES CHANGED"); //$NON-NLS-1$
+		// prev = true;
+		// }
 		if ((changeFlags & ICElementDelta.F_FINE_GRAINED) != 0) {
 			if (prev)
 				buffer.append(" | "); //$NON-NLS-1$
@@ -729,44 +764,44 @@ public class CElementDelta implements ICElementDelta {
 		if (children != null) {
 			for (int i = 0; i < children.length; ++i) {
 				buffer.append("\n"); //$NON-NLS-1$
-				buffer.append(((CElementDelta) children[i]).toDebugString(depth + 1));
+				buffer.append(((CElementDelta) children[i])
+						.toDebugString(depth + 1));
 			}
 		}
 
 		for (int i = 0; i < resourceDeltasCounter; i++) {
 			buffer.append("\n");//$NON-NLS-1$
-			for (int j = 0; j < depth+1; j++) {
+			for (int j = 0; j < depth + 1; j++) {
 				buffer.append('\t');
 			}
 			IResourceDelta resourceDelta = resourceDeltas[i];
 			buffer.append(resourceDelta.toString());
 			buffer.append("["); //$NON-NLS-1$
 			switch (resourceDelta.getKind()) {
-				case IResourceDelta.ADDED :
-					buffer.append('+');
-					break;
-				case IResourceDelta.REMOVED :
-					buffer.append('-');
-					break;
-				case IResourceDelta.CHANGED :
-					buffer.append('*');
-					break;
-				default :
-					buffer.append('?');
-					break;
+			case IResourceDelta.ADDED:
+				buffer.append('+');
+				break;
+			case IResourceDelta.REMOVED:
+				buffer.append('-');
+				break;
+			case IResourceDelta.CHANGED:
+				buffer.append('*');
+				break;
+			default:
+				buffer.append('?');
+				break;
 			}
 			buffer.append("]"); //$NON-NLS-1$
 		}
 		return buffer.toString();
 	}
 
-	/** 
-	 * Returns a string representation of this delta's
-	 * structure suitable for debug purposes.
+	/**
+	 * Returns a string representation of this delta's structure suitable for
+	 * debug purposes.
 	 */
 	public String toString() {
 		return toDebugString(0);
 	}
 
 }
-

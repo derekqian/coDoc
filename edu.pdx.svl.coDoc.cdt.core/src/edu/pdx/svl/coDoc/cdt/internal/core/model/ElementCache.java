@@ -28,18 +28,21 @@ public class ElementCache extends OverflowingLRUCache {
 	public ElementCache(int size) {
 		super(size);
 	}
+
 	/**
 	 * Constructs a new element cache of the given size.
 	 */
 	public ElementCache(int size, int overflow) {
 		super(size, overflow);
 	}
+
 	/**
-	 * Returns true if the element is successfully closed and
-	 * removed from the cache, otherwise false.
-	 *
-	 * <p>NOTE: this triggers an external removal of this element
-	 * by closing the element.
+	 * Returns true if the element is successfully closed and removed from the
+	 * cache, otherwise false.
+	 * 
+	 * <p>
+	 * NOTE: this triggers an external removal of this element by closing the
+	 * element.
 	 */
 	protected boolean close(LRUCacheEntry entry) {
 		IOpenable element = (IOpenable) entry._fKey;
@@ -53,11 +56,11 @@ public class ElementCache extends OverflowingLRUCache {
 			return false;
 		}
 	}
-	
-		/**
-		 * Returns a new instance of the reciever.
-		 */
-		protected LRUCache newInstance(int size, int overflow) {
-			return new ElementCache(size, overflow);
-		}
+
+	/**
+	 * Returns a new instance of the reciever.
+	 */
+	protected LRUCache newInstance(int size, int overflow) {
+		return new ElementCache(size, overflow);
+	}
 }

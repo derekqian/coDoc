@@ -11,6 +11,7 @@ Require-Bundle: org.eclipse.core.resources,
 Export-Package: edu.pdx.svl.coDoc.cdt.core,
  edu.pdx.svl.coDoc.cdt.core.model,
  edu.pdx.svl.coDoc.cdt.core.parser,
+ edu.pdx.svl.coDoc.cdt.core.parser.ast,
  edu.pdx.svl.coDoc.cdt.internal.core.model
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy

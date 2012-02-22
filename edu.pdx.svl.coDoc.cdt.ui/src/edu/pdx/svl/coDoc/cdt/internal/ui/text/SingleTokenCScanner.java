@@ -41,7 +41,7 @@ public final class SingleTokenCScanner extends BufferedRuleBasedScanner {
 	protected void createRules() {
 		fDefaultReturnToken = new Token(new TextAttribute(fColorManager
 				.getColor(fProperty), fColorManager.getColor(new RGB(255, 255,
-				255)), SWT.BOLD));
+				255)), SWT.NORMAL));
 		setDefaultReturnToken(fDefaultReturnToken);
 	}
 

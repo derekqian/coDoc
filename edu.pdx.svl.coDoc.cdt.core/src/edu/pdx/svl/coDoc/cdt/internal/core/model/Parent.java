@@ -1,4 +1,3 @@
-
 /*******************************************************************************
  * Copyright (c) 2000, 2004 QNX Software Systems and others.
  * All rights reserved. This program and the accompanying materials
@@ -19,37 +18,36 @@ import edu.pdx.svl.coDoc.cdt.core.model.CModelException;
 
 public abstract class Parent extends CElement {
 
-	public Parent (ICElement parent, String name, int type) {
-		super (parent, name, type);
+	public Parent(ICElement parent, String name, int type) {
+		super(parent, name, type);
 	}
 
 	// members
-	
+
 	/**
-	 * Adds a child to the current element.
-	 * Implementations override this method to support children
+	 * Adds a child to the current element. Implementations override this method
+	 * to support children
 	 */
 	public void addChild(ICElement member) throws CModelException {
 		getElementInfo().addChild(member);
 	}
 
 	/**
-	 * Removes a child to the current element.
-	 * Implementations override this method to support children
+	 * Removes a child to the current element. Implementations override this
+	 * method to support children
 	 */
 	public void removeChild(ICElement member) throws CModelException {
 		getElementInfo().removeChild(member);
 	}
 
-	public void removeChildren () throws CModelException {
+	public void removeChildren() throws CModelException {
 		getElementInfo().removeChildren();
 	}
 
 	/**
-	 * Gets the children of this element.
-	 * Returns null if the element does not support children
-	 * Implementations override this method to support children
-	 */		
+	 * Gets the children of this element. Returns null if the element does not
+	 * support children Implementations override this method to support children
+	 */
 	public ICElement[] getChildren() throws CModelException {
 		CElementInfo info = getElementInfo();
 		if (info != null)
@@ -59,6 +57,7 @@ public abstract class Parent extends CElement {
 
 	/**
 	 * Gets the children of a certain type
+	 * 
 	 * @param type
 	 * @return ArrayList
 	 */
@@ -67,7 +66,7 @@ public abstract class Parent extends CElement {
 		int size = children.length;
 		ArrayList list = new ArrayList(size);
 		for (int i = 0; i < size; ++i) {
-			CElement elt = (CElement)children[i];
+			CElement elt = (CElement) children[i];
 			if (elt.getElementType() == type) {
 				list.add(elt);
 			}
@@ -75,7 +74,7 @@ public abstract class Parent extends CElement {
 		return list;
 	}
 
-	public boolean hasChildren () {
+	public boolean hasChildren() {
 		try {
 			return getElementInfo().hasChildren();
 		} catch (CModelException e) {
@@ -83,7 +82,7 @@ public abstract class Parent extends CElement {
 		}
 	}
 
-	protected void setChanged () {
+	protected void setChanged() {
 		try {
 			getElementInfo().setChanged();
 		} catch (CModelException e) {
@@ -91,7 +90,7 @@ public abstract class Parent extends CElement {
 		}
 	}
 
-	protected boolean hasChanged () {
+	protected boolean hasChanged() {
 		try {
 			return getElementInfo().hasChanged();
 		} catch (CModelException e) {

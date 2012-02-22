@@ -38,71 +38,66 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.PlatformObject;
 
 public abstract class CElement extends PlatformObject implements ICElement {
-	
+
 	protected static final CElement[] NO_ELEMENTS = new CElement[0];
+
 	protected int fType;
-	
+
 	protected ICElement fParent;
 
 	protected String fName;
 
 	protected CElement(ICElement parent, String name, int type) {
-		fParent= parent;
-		fName= name;
-		fType= type;
+		fParent = parent;
+		fName = name;
+		fType = type;
 	}
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.eclipse.core.runtime.PlatformObject#getAdapter(java.lang.Class)
 	 */
 	public Object getAdapter(Class adapter) {
-		if(adapter == IFile.class)
-		{
+		if (adapter == IFile.class) {
 			IResource resource = getUnderlyingResource();
-			if(resource instanceof IFile)
-			{
+			if (resource instanceof IFile) {
 				return (IFile) resource;
-			}
-			else
-			{
+			} else {
 				return null;
 			}
 		}
-		if(adapter == IResource.class)
-		{
+		if (adapter == IResource.class) {
 			return getUnderlyingResource();
-		}
-		else
-		{
+		} else {
 			return super.getAdapter(adapter);
 		}
 	}
-	
-	
+
 	// setters
 
-	public void setElementType (int type) {
-		fType= type;
+	public void setElementType(int type) {
+		fType = type;
 	}
 
 	public void setElementName(String name) {
 		fName = name;
 	}
-	
-	public void setParent (ICElement parent) {
+
+	public void setParent(ICElement parent) {
 		fParent = parent;
 	}
-	
+
 	// getters
-	
+
 	public int getElementType() {
 		return fType;
-	}	
+	}
 
 	public String getElementName() {
 		return fName;
 	}
-	
+
 	public ICElement getParent() {
 		return fParent;
 	}
@@ -119,21 +114,23 @@ public abstract class CElement extends PlatformObject implements ICElement {
 			return getElementInfo() != null;
 		} catch (CModelException e) {
 			// Do not log it, it will fil the .log alarming the user.
-			//CCorePlugin.log(e);
+			// CCorePlugin.log(e);
 			return false;
 		}
 	}
 
 	/**
-	 * Returns the element that is located at the given source offset
-	 * in this element.  This is a helper method for <code>ITranslationUnit#getElementAtOffset</code>,
-	 * and only works on compilation units and types. The offset given is
-	 * known to be within this element's source range already, and if no finer
-	 * grained element is found at the offset, this element is returned.
+	 * Returns the element that is located at the given source offset in this
+	 * element. This is a helper method for
+	 * <code>ITranslationUnit#getElementAtOffset</code>, and only works on
+	 * compilation units and types. The offset given is known to be within this
+	 * element's source range already, and if no finer grained element is found
+	 * at the offset, this element is returned.
 	 */
-	protected ICElement getSourceElementAtOffset(int offset) throws CModelException {
+	protected ICElement getSourceElementAtOffset(int offset)
+			throws CModelException {
 		if (this instanceof ISourceReference && this instanceof Parent) {
-			ICElement[] children = ((Parent)this).getChildren();
+			ICElement[] children = ((Parent) this).getChildren();
 			for (int i = 0; i < children.length; i++) {
 				ICElement aChild = children[i];
 				if (aChild instanceof ISourceReference) {
@@ -143,30 +140,33 @@ public abstract class CElement extends PlatformObject implements ICElement {
 					int endPos = startPos + range.getLength();
 					if (offset < endPos && offset >= startPos) {
 						if (child instanceof Parent) {
-							return ((Parent)child).getSourceElementAtOffset(offset);
+							return ((Parent) child)
+									.getSourceElementAtOffset(offset);
 						}
-						return (ICElement)child;
+						return (ICElement) child;
 					}
 				}
 			}
 		} else {
 			// should not happen
-			//Assert.isTrue(false);
+			// Assert.isTrue(false);
 		}
 		return this;
 	}
 
 	/**
-	 * Returns the elements that are located at the given source offset
-	 * in this element.  This is a helper method for <code>ITranslationUnit#getElementAtOffset</code>,
-	 * and only works on compilation units and types. The offset given is
-	 * known to be within this element's source range already, and if no finer
-	 * grained element is found at the offset, this element is returned.
+	 * Returns the elements that are located at the given source offset in this
+	 * element. This is a helper method for
+	 * <code>ITranslationUnit#getElementAtOffset</code>, and only works on
+	 * compilation units and types. The offset given is known to be within this
+	 * element's source range already, and if no finer grained element is found
+	 * at the offset, this element is returned.
 	 */
-	protected ICElement[] getSourceElementsAtOffset(int offset) throws CModelException {
+	protected ICElement[] getSourceElementsAtOffset(int offset)
+			throws CModelException {
 		if (this instanceof ISourceReference && this instanceof Parent) {
 			ArrayList list = new ArrayList();
-			ICElement[] children = ((Parent)this).getChildren();
+			ICElement[] children = ((Parent) this).getChildren();
 			for (int i = 0; i < children.length; i++) {
 				ICElement aChild = children[i];
 				if (aChild instanceof ISourceReference) {
@@ -176,7 +176,8 @@ public abstract class CElement extends PlatformObject implements ICElement {
 					int endPos = startPos + range.getLength();
 					if (offset < endPos && offset >= startPos) {
 						if (child instanceof Parent) {
-							ICElement[] elements = ((Parent)child).getSourceElementsAtOffset(offset);
+							ICElement[] elements = ((Parent) child)
+									.getSourceElementsAtOffset(offset);
 							list.addAll(Arrays.asList(elements));
 						}
 						list.add(child);
@@ -187,17 +188,17 @@ public abstract class CElement extends PlatformObject implements ICElement {
 			list.toArray(children);
 			return children;
 		}
-		return new ICElement[]{this};
+		return new ICElement[] { this };
 	}
-	
-	public boolean isReadOnly () {
+
+	public boolean isReadOnly() {
 		IResource r = getUnderlyingResource();
 		if (r != null) {
 			ResourceAttributes attributes = r.getResourceAttributes();
 			if (attributes != null) {
 				return attributes.isReadOnly();
 			}
-		}			
+		}
 		return false;
 	}
 
@@ -205,10 +206,11 @@ public abstract class CElement extends PlatformObject implements ICElement {
 		return getElementInfo().isStructureKnown();
 	}
 
-	public ICModel getCModel () {
+	public ICModel getCModel() {
 		ICElement current = this;
 		do {
-			if (current instanceof ICModel) return (ICModel) current;
+			if (current instanceof ICModel)
+				return (ICModel) current;
 		} while ((current = current.getParent()) != null);
 		return null;
 	}
@@ -216,7 +218,8 @@ public abstract class CElement extends PlatformObject implements ICElement {
 	public ICProject getCProject() {
 		ICElement current = this;
 		do {
-			if (current instanceof ICProject) return (ICProject) current;
+			if (current instanceof ICProject)
+				return (ICProject) current;
 		} while ((current = current.getParent()) != null);
 		return null;
 	}
@@ -235,21 +238,21 @@ public abstract class CElement extends PlatformObject implements ICElement {
 		return res;
 	}
 
-	public abstract IResource getResource() ;
+	public abstract IResource getResource();
 
 	protected abstract CElementInfo createElementInfo();
 
 	/**
 	 * Tests if an element has the same name, type and an equal parent.
 	 */
-	public boolean equals (Object o) {
+	public boolean equals(Object o) {
 		if (this == o)
 			return true;
 		if (o instanceof CElement) {
 			CElement other = (CElement) o;
-			if( fName == null  || other.fName == null ) 
+			if (fName == null || other.fName == null)
 				return false;
-			if( fName.length() == 0  || other.fName.length() == 0 ) 
+			if (fName.length() == 0 || other.fName.length() == 0)
 				return false;
 			if (fType != other.fType)
 				return false;
@@ -264,13 +267,14 @@ public abstract class CElement extends PlatformObject implements ICElement {
 		return false;
 	}
 
-	public CElementInfo getElementInfo() throws CModelException  {
+	public CElementInfo getElementInfo() throws CModelException {
 		return getElementInfo(null);
 	}
 
-	public CElementInfo getElementInfo (IProgressMonitor monitor) throws CModelException {
+	public CElementInfo getElementInfo(IProgressMonitor monitor)
+			throws CModelException {
 		CModelManager manager = CModelManager.getDefault();
-		CElementInfo info = (CElementInfo)manager.getInfo(this);
+		CElementInfo info = (CElementInfo) manager.getInfo(this);
 		if (info != null) {
 			return info;
 		}
@@ -284,128 +288,129 @@ public abstract class CElement extends PlatformObject implements ICElement {
 	}
 
 	public String toDebugString() {
-			return getElementName() + " " + getTypeString(); //$NON-NLS-1$
+		return getElementName() + " " + getTypeString(); //$NON-NLS-1$
 	}
 
 	// util
 	public String getTypeString() {
 		switch (getElementType()) {
-			case C_MODEL:
-				return "CMODEL";  //$NON-NLS-1$
-			case C_PROJECT:
-				return "CPROJECT";  //$NON-NLS-1$
-			case C_CCONTAINER:
-				if (this instanceof ISourceRoot) {
-					return "SOURCE_ROOT"; //$NON-NLS-1$
-				}
-				return "CCONTAINER"; //$NON-NLS-1$
-			case C_UNIT:
-				if (this instanceof IWorkingCopy) {
-					return "WORKING_UNIT";  //$NON-NLS-1$
-				}
-				return "TRANSLATION_UNIT";  //$NON-NLS-1$
-			case C_FUNCTION:
-				return "C_FUNCTION";  //$NON-NLS-1$
-			case C_FUNCTION_DECLARATION:
-				return "C_FUNCTION_DECLARATION";  //$NON-NLS-1$
-			case C_VARIABLE:
-				return "C_VARIABLE";  //$NON-NLS-1$
-			case C_VARIABLE_DECLARATION:
-				return "C_VARIABLE_DECLARATION";  //$NON-NLS-1$
-			case C_INCLUDE:
-				return "C_INCLUDE";  //$NON-NLS-1$
-			case C_MACRO:
-				return "C_MACRO"; 			 //$NON-NLS-1$
-			case C_STRUCT:
-				return "C_STRUCT"; //$NON-NLS-1$
-			case C_CLASS:
-				return "C_CLASS"; //$NON-NLS-1$
-			case C_UNION:
-				return "C_UNION"; //$NON-NLS-1$
-			case C_FIELD:
-				return "C_FIELD";  //$NON-NLS-1$
-			case C_METHOD:
-				return "C_METHOD"; 						 //$NON-NLS-1$
-			case C_NAMESPACE:
-				return "C_NAMESPACE"; 						 //$NON-NLS-1$
-			case C_USING:
-				return "C_USING"; 						 //$NON-NLS-1$
-			case C_VCONTAINER:
-				return "C_CONTAINER"; //$NON-NLS-1$
-			case C_BINARY:
-				return "C_BINARY"; //$NON-NLS-1$
-			case C_ARCHIVE:
-				return "C_ARCHIVE"; //$NON-NLS-1$
-			default:
-				return "UNKNOWN"; //$NON-NLS-1$
+		case C_MODEL:
+			return "CMODEL"; //$NON-NLS-1$
+		case C_PROJECT:
+			return "CPROJECT"; //$NON-NLS-1$
+		case C_CCONTAINER:
+			if (this instanceof ISourceRoot) {
+				return "SOURCE_ROOT"; //$NON-NLS-1$
+			}
+			return "CCONTAINER"; //$NON-NLS-1$
+		case C_UNIT:
+			if (this instanceof IWorkingCopy) {
+				return "WORKING_UNIT"; //$NON-NLS-1$
+			}
+			return "TRANSLATION_UNIT"; //$NON-NLS-1$
+		case C_FUNCTION:
+			return "C_FUNCTION"; //$NON-NLS-1$
+		case C_FUNCTION_DECLARATION:
+			return "C_FUNCTION_DECLARATION"; //$NON-NLS-1$
+		case C_VARIABLE:
+			return "C_VARIABLE"; //$NON-NLS-1$
+		case C_VARIABLE_DECLARATION:
+			return "C_VARIABLE_DECLARATION"; //$NON-NLS-1$
+		case C_INCLUDE:
+			return "C_INCLUDE"; //$NON-NLS-1$
+		case C_MACRO:
+			return "C_MACRO"; //$NON-NLS-1$
+		case C_STRUCT:
+			return "C_STRUCT"; //$NON-NLS-1$
+		case C_CLASS:
+			return "C_CLASS"; //$NON-NLS-1$
+		case C_UNION:
+			return "C_UNION"; //$NON-NLS-1$
+		case C_FIELD:
+			return "C_FIELD"; //$NON-NLS-1$
+		case C_METHOD:
+			return "C_METHOD"; //$NON-NLS-1$
+		case C_NAMESPACE:
+			return "C_NAMESPACE"; //$NON-NLS-1$
+		case C_USING:
+			return "C_USING"; //$NON-NLS-1$
+		case C_VCONTAINER:
+			return "C_CONTAINER"; //$NON-NLS-1$
+		case C_BINARY:
+			return "C_BINARY"; //$NON-NLS-1$
+		case C_ARCHIVE:
+			return "C_ARCHIVE"; //$NON-NLS-1$
+		default:
+			return "UNKNOWN"; //$NON-NLS-1$
 		}
 	}
-	
+
 	/**
-	 * Close the C Element
-	 * @
+	 * Close the C Element @
 	 */
-	public void close() throws CModelException  {
+	public void close() throws CModelException {
 		CModelManager.getDefault().releaseCElement(this);
 	}
 
 	/**
-	 * This element is being closed.  Do any necessary cleanup.
+	 * This element is being closed. Do any necessary cleanup.
 	 */
 	protected void closing(Object info) throws CModelException {
 	}
 
 	/**
-	 * This element has just been opened.  Do any necessary setup.
+	 * This element has just been opened. Do any necessary setup.
 	 */
 	protected void opening(Object info) {
 	}
 
 	/**
-	 * Return the first instance of IOpenable in the parent
-	 * hierarchy of this element.
-	 *
-	 * <p>Subclasses that are not IOpenable's must override this method.
+	 * Return the first instance of IOpenable in the parent hierarchy of this
+	 * element.
+	 * 
+	 * <p>
+	 * Subclasses that are not IOpenable's must override this method.
 	 */
 	public IOpenable getOpenableParent() {
-		if (fParent instanceof IOpenable) {		
-			return (IOpenable)fParent;
+		if (fParent instanceof IOpenable) {
+			return (IOpenable) fParent;
 		}
 		return null;
 	}
 
 	/**
-	 * Builds this element's structure and properties in the given
-	 * info object, based on this element's current contents (i.e. buffer
-	 * contents if this element has an open buffer, or resource contents
-	 * if this element does not have an open buffer). Children
-	 * are placed in the given newElements table (note, this element
-	 * has already been placed in the newElements table). Returns true
-	 * if successful, or false if an error is encountered while determining
-	 * the structure of this element.
+	 * Builds this element's structure and properties in the given info object,
+	 * based on this element's current contents (i.e. buffer contents if this
+	 * element has an open buffer, or resource contents if this element does not
+	 * have an open buffer). Children are placed in the given newElements table
+	 * (note, this element has already been placed in the newElements table).
+	 * Returns true if successful, or false if an error is encountered while
+	 * determining the structure of this element.
 	 */
-	protected abstract void generateInfos(Object info, Map newElements, IProgressMonitor monitor) throws CModelException;
+	protected abstract void generateInfos(Object info, Map newElements,
+			IProgressMonitor monitor) throws CModelException;
 
 	/**
 	 * Open a <code>IOpenable</code> that is known to be closed (no check for
 	 * <code>isOpen()</code>).
 	 */
-	protected void openWhenClosed(CElementInfo info, IProgressMonitor pm) throws CModelException {
+	protected void openWhenClosed(CElementInfo info, IProgressMonitor pm)
+			throws CModelException {
 		CModelManager manager = CModelManager.getDefault();
 		boolean hadTemporaryCache = manager.hasTemporaryCache();
 		try {
 			HashMap newElements = manager.getTemporaryCache();
 			generateInfos(info, newElements, pm);
 			if (info == null) {
-				info = (CElementInfo)newElements.get(this);
+				info = (CElementInfo) newElements.get(this);
 			}
 			if (info == null) { // a source ref element could not be opened
 				// close any buffer that was opened for the openable parent
 				Iterator iterator = newElements.keySet().iterator();
 				while (iterator.hasNext()) {
-					ICElement element = (ICElement)iterator.next();
+					ICElement element = (ICElement) iterator.next();
 					if (element instanceof Openable) {
-						((Openable)element).closeBuffer();
+						((Openable) element).closeBuffer();
 					}
 				}
 			}
@@ -420,7 +425,6 @@ public abstract class CElement extends PlatformObject implements ICElement {
 		}
 	}
 
-
 	/**
 	 * @see ICElement
 	 */
@@ -428,9 +432,9 @@ public abstract class CElement extends PlatformObject implements ICElement {
 		ICElement element = this;
 		while (element != null) {
 			if (element.getElementType() == ancestorType) {
-				 return element;
+				return element;
 			}
-			element= element.getParent();
+			element = element.getParent();
 		}
 		return null;
 	}
@@ -440,43 +444,46 @@ public abstract class CElement extends PlatformObject implements ICElement {
 	 * otherwise false.
 	 */
 	public boolean isAncestorOf(ICElement e) {
-		ICElement parent= e.getParent();
+		ICElement parent = e.getParent();
 		while (parent != null && !parent.equals(this)) {
-			parent= parent.getParent();
+			parent = parent.getParent();
 		}
 		return parent != null;
 	}
-	
+
 	/**
 	 * Creates and returns and not present exception for this element.
 	 */
 	protected CModelException newNotPresentException() {
-		return new CModelException(new CModelStatus(ICModelStatusConstants.ELEMENT_DOES_NOT_EXIST, this));
+		return new CModelException(new CModelStatus(
+				ICModelStatusConstants.ELEMENT_DOES_NOT_EXIST, this));
 	}
-	
+
 	/*
-	 * Test to see if two objects are identical
-	 * Subclasses should override accordingly
+	 * Test to see if two objects are identical Subclasses should override
+	 * accordingly
 	 */
-	public boolean isIdentical( CElement otherElement){
+	public boolean isIdentical(CElement otherElement) {
 		return this.equals(otherElement);
 	}
-	
-	/* (non-Javadoc)
-	 * @see org.eclipse.cdt.core.model.ICElement#accept(org.eclipse.cdt.core.model.ICElementVisitor)
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.dworks.bbcdt.core.model.ICElement#accept(org.dworks.bbcdt.core.model.ICElementVisitor)
 	 */
 	public void accept(ICElementVisitor visitor) throws CoreException {
-		// Visit me, return right away if the visitor doesn't want to visit my children
+		// Visit me, return right away if the visitor doesn't want to visit my
+		// children
 		if (!visitor.visit(this))
 			return;
 
 		// If I am a Parent, visit my children
 		if (this instanceof IParent) {
-			ICElement [] children = ((IParent)this).getChildren();
+			ICElement[] children = ((IParent) this).getChildren();
 			for (int i = 0; i < children.length; ++i)
 				children[i].accept(visitor);
 		}
 	}
 
 }
-

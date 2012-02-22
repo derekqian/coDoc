@@ -61,7 +61,8 @@ public class CContainer extends Openable implements ICContainer {
 	}
 
 	public ITranslationUnit getTranslationUnit(IFile file) {
-		String id = CoreModel.getRegistedContentTypeId(file.getProject(), file.getName());
+		String id = CoreModel.getRegistedContentTypeId(file.getProject(), file
+				.getName());
 		return new TranslationUnit(this, file, id);
 	}
 
@@ -107,8 +108,8 @@ public class CContainer extends Openable implements ICContainer {
 	/**
 	 * @see Openable
 	 */
-	protected boolean buildStructure(OpenableInfo info, IProgressMonitor pm, Map newElements, IResource underlyingResource)
-			 {
+	protected boolean buildStructure(OpenableInfo info, IProgressMonitor pm,
+			Map newElements, IResource underlyingResource) {
 		boolean validInfo = false;
 		try {
 			IResource res = getResource();
@@ -125,48 +126,49 @@ public class CContainer extends Openable implements ICContainer {
 		return validInfo;
 	}
 
-	protected boolean computeChildren(OpenableInfo info, IResource res) throws CoreException  {
+	protected boolean computeChildren(OpenableInfo info, IResource res)
+			throws CoreException {
 		ArrayList vChildren = new ArrayList();
-			IResource[] resources = null;
-			if (res instanceof IContainer) {
-				//System.out.println (" Resource: " +
-				// res.getFullPath().toOSString());
-				IContainer container = (IContainer) res;
-				resources = container.members(false);
-			}
-			if (resources != null) {
-				ICProject cproject = getCProject();
-				ISourceRoot sroot = getSourceRoot();
-				for (int i = 0; i < resources.length; i++) {
-					if (sroot.isOnSourceEntry(resources[i])) {
-						// Check for Valid C Element only.
-						ICElement celement = computeChild(resources[i], cproject);
-						if (celement != null) {
-							vChildren.add(celement);
-						}
+		IResource[] resources = null;
+		if (res instanceof IContainer) {
+			// System.out.println (" Resource: " +
+			// res.getFullPath().toOSString());
+			IContainer container = (IContainer) res;
+			resources = container.members(false);
+		}
+		if (resources != null) {
+			ICProject cproject = getCProject();
+			ISourceRoot sroot = getSourceRoot();
+			for (int i = 0; i < resources.length; i++) {
+				if (sroot.isOnSourceEntry(resources[i])) {
+					// Check for Valid C Element only.
+					ICElement celement = computeChild(resources[i], cproject);
+					if (celement != null) {
+						vChildren.add(celement);
 					}
 				}
 			}
+		}
 		info.setChildren(vChildren);
 		return true;
 	}
 
-	protected ICElement computeChild(IResource res, ICProject cproject)  {
+	protected ICElement computeChild(IResource res, ICProject cproject) {
 		ICElement celement = null;
 		switch (res.getType()) {
-			case IResource.FILE : {
-				IFile file = (IFile) res;
-				String id = CoreModel.getRegistedContentTypeId(file.getProject(), file.getName());
-				if (id != null) {
-					celement = new TranslationUnit(this, file, id);
-				}
-				break;
+		case IResource.FILE: {
+			IFile file = (IFile) res;
+			String id = CoreModel.getRegistedContentTypeId(file.getProject(),
+					file.getName());
+			if (id != null) {
+				celement = new TranslationUnit(this, file, id);
 			}
-			case IResource.FOLDER :
-				celement = new CContainer(this, res);
-				break;
+			break;
+		}
+		case IResource.FOLDER:
+			celement = new CContainer(this, res);
+			break;
 		}
 		return celement;
 	}
 }
-

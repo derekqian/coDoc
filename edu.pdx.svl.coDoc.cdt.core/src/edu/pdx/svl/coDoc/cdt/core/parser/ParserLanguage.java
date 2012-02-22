@@ -1,5 +1,3 @@
-package edu.pdx.svl.coDoc.cdt.core.parser;
-
 /*******************************************************************************
  * Copyright (c) 2003, 2005 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
@@ -10,6 +8,8 @@ package edu.pdx.svl.coDoc.cdt.core.parser;
  * Contributors:
  *     IBM Corp. - Rational Software - initial implementation
  *******************************************************************************/
+
+package edu.pdx.svl.coDoc.cdt.core.parser;
 
 import edu.pdx.svl.coDoc.cdt.core.parser.Enum;
 import edu.pdx.svl.coDoc.cdt.core.parser.ParserLanguage;

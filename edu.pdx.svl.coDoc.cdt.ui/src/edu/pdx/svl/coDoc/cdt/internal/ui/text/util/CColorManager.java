@@ -35,8 +35,8 @@ public class CColorManager implements IColorManager {
 		bindColor(ICColorConstants.C_MULTI_LINE_COMMENT, new RGB(63, 127, 95));
 		bindColor(ICColorConstants.C_SINGLE_LINE_COMMENT, new RGB(63, 127, 95));
 		bindColor(ICColorConstants.C_KEYWORD, new RGB(127, 0, 85));
-		bindColor(ICColorConstants.C_TYPE, new RGB(255, 128, 64));
-		bindColor(ICColorConstants.C_STRING, new RGB(0, 128, 0));
+		bindColor(ICColorConstants.C_TYPE, new RGB(127, 0, 85));
+		bindColor(ICColorConstants.C_STRING, new RGB(42, 0, 255));
 		bindColor(ICColorConstants.C_OPERATOR, new RGB(0, 0, 0));
 		bindColor(ICColorConstants.C_BRACES, new RGB(0, 0, 0));
 		bindColor(ICColorConstants.C_NUMBER, new RGB(0, 0, 0));

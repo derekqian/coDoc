@@ -17,14 +17,13 @@ import org.eclipse.core.runtime.CoreException;
  */
 public interface ICElementVisitor {
 
-  /**
-   * Visited a member if the ICElement tree. Returns whether to visit the children
-   * of this element.
-   * 
-   * @param element
-   * @return
-   */
-  public boolean visit(ICElement element) throws CoreException;
-  
-}
+	/**
+	 * Visited a member if the ICElement tree. Returns whether to visit the
+	 * children of this element.
+	 * 
+	 * @param element
+	 * @return
+	 */
+	public boolean visit(ICElement element) throws CoreException;
 
+}

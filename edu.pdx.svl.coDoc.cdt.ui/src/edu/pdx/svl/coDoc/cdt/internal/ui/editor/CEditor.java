@@ -11,37 +11,24 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.text.source.ISharedTextColors;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.IVerticalRuler;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.editors.text.TextEditor;
 
-public class CEditor extends TextEditor
-{ 
+public class CEditor extends TextEditor {
 	/* Source code language to display */
 	public final static String LANGUAGE_CPP = "CEditor.language.cpp"; //$NON-NLS-1$
 
 	public final static String LANGUAGE_C = "CEditor.language.c"; //$NON-NLS-1$	
 
-  /**
-   * @see org.eclipse.ui.texteditor.AbstractDecoratedTextEditor#initializeEditor()
-   */
-  protected void initializeEditor() 
-  {
+	/**
+	 * @see org.eclipse.ui.texteditor.AbstractDecoratedTextEditor#initializeEditor()
+	 */
+	protected void initializeEditor() {
 		CTextTools textTools = CUIPlugin.getDefault().getTextTools();
 		setSourceViewerConfiguration(new CSourceViewerConfiguration(textTools,
 				this));
-    setDocumentProvider(CUIPlugin.getDefault().getDocumentProvider());
-  }
-  
-  public void createPartControl(final Composite parent) {
-	  System.out.println(parent.getClass().getName());
-	  System.out.println(getEditorInput().getClass().getName());
-		//parent.setLayout(new FillLayout());
-	  super.createPartControl(parent);
-		//ScrolledComposite sc = new ScrolledComposite(parent, SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
-  }
+		setDocumentProvider(CUIPlugin.getDefault().getDocumentProvider());
+	}
 
 	/*
 	 * @see AbstractTextEditor#createSourceViewer(Composite, IVerticalRuler,

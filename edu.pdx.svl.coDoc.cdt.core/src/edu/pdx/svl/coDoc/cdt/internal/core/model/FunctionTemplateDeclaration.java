@@ -1,0 +1,63 @@
+/*******************************************************************************
+ * Copyright (c) 2005 QnX Software Systems and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *     Qnx Software Systems - initial API and implementation
+ *******************************************************************************/
+
+package edu.pdx.svl.coDoc.cdt.internal.core.model;
+
+import edu.pdx.svl.coDoc.cdt.core.model.CModelException;
+import edu.pdx.svl.coDoc.cdt.core.model.ICElement;
+import edu.pdx.svl.coDoc.cdt.core.model.IFunctionTemplateDeclaration;
+
+public class FunctionTemplateDeclaration extends FunctionDeclaration implements
+		IFunctionTemplateDeclaration {
+
+	protected Template fTemplate;
+
+	public FunctionTemplateDeclaration(ICElement parent, String name) {
+		super(parent, name, ICElement.C_TEMPLATE_FUNCTION_DECLARATION);
+		fTemplate = new Template(name);
+	}
+
+	public String[] getTemplateParameterTypes() {
+		return fTemplate.getTemplateParameterTypes();
+	}
+
+	public String getTemplateSignature() throws CModelException {
+		StringBuffer sig = new StringBuffer(fTemplate.getTemplateSignature());
+		sig.append(this.getParameterClause());
+		if (isConst())
+			sig.append(" const"); //$NON-NLS-1$
+		if (isVolatile())
+			sig.append(" volatile"); //$NON-NLS-1$
+
+		if ((this.getReturnType() != null)
+				&& (this.getReturnType().length() > 0)) {
+			sig.append(" : "); //$NON-NLS-1$
+			sig.append(this.getReturnType());
+		}
+
+		return sig.toString();
+	}
+
+	public int getNumberOfTemplateParameters() {
+		return fTemplate.getNumberOfTemplateParameters();
+	}
+
+	/**
+	 * Sets the fParameterTypes.
+	 * 
+	 * @param fParameterTypes
+	 *            The fParameterTypes to set
+	 */
+	public void setTemplateParameterTypes(String[] templateParameterTypes) {
+		fTemplate.setTemplateParameterTypes(templateParameterTypes);
+	}
+
+}

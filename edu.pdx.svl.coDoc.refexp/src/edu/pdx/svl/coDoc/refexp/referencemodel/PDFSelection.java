@@ -1,6 +1,17 @@
 package edu.pdx.svl.coDoc.refexp.referencemodel;
 
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.part.MultiEditor;
 import org.simpleframework.xml.Element;
+
+import edu.pdx.svl.coDoc.poppler.editor.PDFEditor;
+import edu.pdx.svl.coDoc.poppler.editor.PDFPageViewer;
 
 
 
@@ -18,22 +29,57 @@ public class PDFSelection implements IPDF {
 	@Element
 	protected String text	= "empty";
 	
-	static AcrobatJNI acrobatInterface;
+	static PDFEditor pdfEditor;
+	static PDFPageViewer acrobatInterface;
 //	static AcrobatJNIStub acrobatInterface;
 	
 	public PDFSelection() {
 		if (acrobatInterface == null) {
-			acrobatInterface = new AcrobatJNI();
+			IWorkbench workbench = PlatformUI.getWorkbench();
+			IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
+			IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
+			IEditorReference[] editorrefs = workbenchPage.findEditors(null,"edu.pdx.svl.coDoc.cdc.editor.EntryEditor",IWorkbenchPage.MATCH_ID);
+			if(editorrefs.length != 0)
+			{
+				MultiEditor editor = (MultiEditor) editorrefs[0].getEditor(false);
+				
+				IEditorPart[] editors = editor.getInnerEditors();
+				for(int i=0; i<editors.length; i++)
+				{
+					System.out.println(editors[i].getClass().getName());
+					if(editors[i].getClass().getName().equals("edu.pdx.svl.coDoc.poppler.editor.PDFEditor"))
+					{
+						pdfEditor = (PDFEditor) editors[i];
+					}
+				}
+				acrobatInterface = pdfEditor.getPDFPageViewer();
+			}
+			else
+			{
+				pdfEditor = null;
+				acrobatInterface = null;
+			}
 //			acrobatInterface = new AcrobatJNIStub();
 		}
 	}
 	
 	public void fetchFromAcrobat(){
 		page = acrobatInterface.getPage();
-		top = acrobatInterface.getTop();
-		bottom = acrobatInterface.getBottom();
-		left = acrobatInterface.getLeft();
-		right = acrobatInterface.getRight();
+		Rectangle selection = acrobatInterface.getSelection();
+		if(selection == null)
+		{
+			top = 0;
+			bottom = 0;
+			left = 0;
+			right = 0;
+		}
+		else
+		{
+			top = selection.y;
+			bottom = selection.y + selection.height;
+			left = selection.x;
+			right = selection.x + selection.width;
+		}
 		setText(acrobatInterface.getSelectedText());
 	}
 	

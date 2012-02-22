@@ -11,11 +11,11 @@
 package edu.pdx.svl.coDoc.cdt.internal.core.model;
 
 /**
-  * The Element Info of a Working Copy.
-  */
+ * The Element Info of a Working Copy.
+ */
 public class WorkingCopyInfo extends TranslationUnitInfo {
 
-	public WorkingCopyInfo (CElement element) {
+	public WorkingCopyInfo(CElement element) {
 		super(element);
 	}
 

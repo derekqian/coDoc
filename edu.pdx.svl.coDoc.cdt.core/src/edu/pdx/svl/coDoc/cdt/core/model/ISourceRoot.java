@@ -37,4 +37,3 @@ public interface ISourceRoot extends ICContainer {
 	boolean isOnSourceEntry(ICElement element);
 
 }
-

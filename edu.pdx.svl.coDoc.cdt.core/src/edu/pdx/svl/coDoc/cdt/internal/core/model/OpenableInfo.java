@@ -16,11 +16,10 @@ package edu.pdx.svl.coDoc.cdt.internal.core.model;
 public class OpenableInfo extends CElementInfo {
 
 	/**
-	 * Constructs a new C Model Info 
+	 * Constructs a new C Model Info
 	 */
 	protected OpenableInfo(CElement element) {
 		super(element);
 	}
 
 }
-

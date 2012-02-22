@@ -316,6 +316,11 @@ public class PDFEditor extends EditorPart implements IResourceChangeListener, IN
 		System.out.println("PDFEditor::getPoppler()\n");
 		return poppler;
 	}
+	
+	public PDFPageViewer getPDFPageViewer()
+	{
+		return pv;
+	}
 
 	public void showPage(int pageNr) 
 	{

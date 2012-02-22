@@ -3,6 +3,20 @@
 <plugin>
 
 <!-- =================================================================================== -->
+<!-- Extension Point: CFileType and CFileTypeAssociation for translation unit ident      -->
+<!-- =================================================================================== -->
+   <extension-point id="CLanguage" name="CLanguage" schema="schema/CLanguage.exsd"/>
+   <extension-point id="CFileType" name="CFileType" />
+   <extension-point id="CFileTypeAssociation" name="CFileTypeAssociation" />
+<!-- =================================================================================== -->
+<!-- PathEntryContainer initialization, this is part of the IPathEntry framework         -->
+<!-- =================================================================================== -->
+   <extension-point id="PathEntryContainerInitializer" name="%PathEntryContainerInitializer" schema="schema/PathEntryContainerInitializer.exsd"/>
+   <extension-point id="CodeFormatter" name="%CodeFormatter.name" schema="schema/CodeFormatter.exsd"/>
+   <extension-point id="CIndexer" name="C/C++ Indexer" schema="schema/CIndexer.exsd"/>
+   <extension-point id="language" name="%language.name" schema="schema/language.exsd"/>
+
+<!-- =================================================================================== -->
 <!-- CDT C Nature                                                                        -->
 <!-- =================================================================================== -->
    <extension

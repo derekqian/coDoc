@@ -3,6 +3,10 @@ package edu.pdx.svl.coDoc.refexp.referenceexplorer;
 import java.io.File;
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
@@ -26,9 +30,11 @@ import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.ui.*;
 import org.eclipse.ui.part.FileEditorInput;
+import org.eclipse.ui.part.MultiEditor;
 import org.eclipse.ui.part.ViewPart;
 
 
+import edu.pdx.svl.coDoc.poppler.editor.PDFEditor;
 import edu.pdx.svl.coDoc.refexp.Global;
 import edu.pdx.svl.coDoc.refexp.XML.SimpleXML;
 import edu.pdx.svl.coDoc.refexp.preferences.PreferencesView;
@@ -464,7 +470,27 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 					    }
 					}
 					
-					ISelectionProvider selProv = workbenchPart.getSite().getSelectionProvider();
+					IEditorPart cEditor = null;
+					IWorkbench workbench = PlatformUI.getWorkbench();
+					IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
+					IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
+					IEditorReference[] editorrefs = workbenchPage.findEditors(null,"edu.pdx.svl.coDoc.cdc.editor.EntryEditor",IWorkbenchPage.MATCH_ID);
+					if(editorrefs.length != 0)
+					{
+						MultiEditor editor = (MultiEditor) editorrefs[0].getEditor(false);
+						
+						IEditorPart[] editors = editor.getInnerEditors();
+						for(int i=0; i<editors.length; i++)
+						{
+							System.out.println(editors[i].getClass().getName());
+							if(editors[i].getClass().getName().equals("edu.pdx.svl.coDoc.cdt.internal.ui.editor.CEditor"))
+							{
+								cEditor = editors[i];
+							}
+						}
+					}
+					//ISelectionProvider selProv = workbenchPart.getSite().getSelectionProvider();
+					ISelectionProvider selProv = cEditor.getEditorSite().getSelectionProvider();
 					TextSelection newSelection = new TextSelection(offset,length);
 					selProv.setSelection(newSelection);
 					
