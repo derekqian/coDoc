@@ -25,10 +25,9 @@
       </participant>
    </extension>
 
+<!-- Project wizards -->
    <extension
          point="org.eclipse.ui.newWizards">
-         
-<!-- Project wizards -->
       <category
             name="%newProjectCategory.name"
             id="edu.pdx.svl.coDoc.cdt.ui.newProjectWizards">
@@ -120,5 +119,44 @@
          <adapter type="org.eclipse.ui.IActionFilter"/>
          <adapter type="org.eclipse.core.resources.IWorkspaceRoot"/>
       </factory>
+   </extension>
+   
+      <extension
+         id="edu.pdx.svl.coDoc.cdt.ui.CDocumentFactory"
+         name="%cDocumentFactory"
+         point="org.eclipse.core.filebuffers.documentCreation">
+      <factory
+            class="edu.pdx.svl.coDoc.cdt.internal.ui.editor.CDocumentFactory"
+            contentTypeId="edu.pdx.svl.coDoc.cdt.core.cSource">
+      </factory>
+      <factory
+            class="edu.pdx.svl.coDoc.cdt.internal.ui.editor.CDocumentFactory"
+            contentTypeId="edu.pdx.svl.coDoc.cdt.core.cHeader">
+      </factory>
+      <factory
+            class="edu.pdx.svl.coDoc.cdt.internal.ui.editor.CDocumentFactory"
+            contentTypeId="edu.pdx.svl.coDoc.cdt.core.cxxSource">
+      </factory>
+      <factory
+            class="edu.pdx.svl.coDoc.cdt.internal.ui.editor.CDocumentFactory"
+            contentTypeId="edu.pdx.svl.coDoc.cdt.core.cxxHeader">
+      </factory>
+   </extension>
+   
+   <extension
+         point="org.eclipse.ui.actionSets">
+      <actionSet
+            label="edu.pdx.svl.coDoc.cdt.ASTActionSet"
+            visible="true"
+            id="edu.pdx.svl.coDoc.cdt.ASTActionSet">
+         <action 
+               label="AST Action"
+               icon="icons/grid.gif"
+               class="edu.pdx.svl.coDoc.cdt.ui.action.ASTAction"
+               tooltip="Display the AST"
+               toolbarPath="Normal/ASTGroup"
+               id="com.example.hello.actions.SampleAction">
+         </action>
+      </actionSet>
    </extension>
 </plugin>
