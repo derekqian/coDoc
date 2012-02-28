@@ -1,0 +1,128 @@
+/*******************************************************************************
+ * Copyright (c) 2004, 2005 IBM Corporation and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ * IBM - Initial API and implementation
+ *******************************************************************************/
+package edu.pdx.svl.coDoc.cdt.internal.core.dom.parser.cpp;
+
+import edu.pdx.svl.coDoc.cdt.core.dom.ast.ASTVisitor;
+import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTDeclaration;
+import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTExpression;
+import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTNode;
+import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTStatement;
+import edu.pdx.svl.coDoc.cdt.core.dom.ast.IScope;
+import edu.pdx.svl.coDoc.cdt.core.dom.ast.cpp.ICPPASTSwitchStatement;
+import edu.pdx.svl.coDoc.cdt.internal.core.dom.parser.IASTAmbiguityParent;
+
+/**
+ * @author jcamelon
+ */
+public class CPPASTSwitchStatement extends CPPASTNode implements
+		ICPPASTSwitchStatement, IASTAmbiguityParent {
+
+	private IScope scope;
+
+	private IASTExpression controller;
+
+	private IASTStatement body;
+
+	private IASTDeclaration decl;
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTSwitchStatement#getController()
+	 */
+	public IASTExpression getControllerExpression() {
+		return controller;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTSwitchStatement#setController(edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTExpression)
+	 */
+	public void setControllerExpression(IASTExpression controller) {
+		this.controller = controller;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTSwitchStatement#getBody()
+	 */
+	public IASTStatement getBody() {
+		return body;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTSwitchStatement#setBody(edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTStatement)
+	 */
+	public void setBody(IASTStatement body) {
+		this.body = body;
+	}
+
+	public boolean accept(ASTVisitor action) {
+		if (action.shouldVisitStatements) {
+			switch (action.visit(this)) {
+			case ASTVisitor.PROCESS_ABORT:
+				return false;
+			case ASTVisitor.PROCESS_SKIP:
+				return true;
+			default:
+				break;
+			}
+		}
+		if (controller != null)
+			if (!controller.accept(action))
+				return false;
+		if (decl != null)
+			if (!decl.accept(action))
+				return false;
+		if (body != null)
+			if (!body.accept(action))
+				return false;
+		return true;
+	}
+
+	public void replace(IASTNode child, IASTNode other) {
+		if (body == child) {
+			other.setPropertyInParent(child.getPropertyInParent());
+			other.setParent(child.getParent());
+			body = (IASTStatement) other;
+		}
+		if (child == controller) {
+			other.setPropertyInParent(child.getPropertyInParent());
+			other.setParent(child.getParent());
+			controller = (IASTExpression) other;
+		}
+		if (child == decl) {
+			other.setPropertyInParent(child.getPropertyInParent());
+			other.setParent(child.getParent());
+			decl = (IASTDeclaration) other;
+		}
+
+	}
+
+	public IASTDeclaration getControllerDeclaration() {
+		return decl;
+	}
+
+	public void setControllerDeclaration(IASTDeclaration d) {
+		decl = d;
+	}
+
+	public IScope getScope() {
+		if (scope == null)
+			scope = new CPPBlockScope(this);
+		return scope;
+	}
+
+}

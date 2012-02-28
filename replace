@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# find conn -iname *.c -exec sed -e 's/street\s\+star/street komme/g' --in-place '{}' \;
+find ./edu.pdx.svl.coDoc.cdt.ui/ -exec sed -e 's/org.dworks.bbcdt/edu.pdx.svl.coDoc.cdt/' --in-place '{}' \;
+
+# cat file | tr "abc" "xyz" > new_file
+# cat file | tr [a-z] [A-Z] > new_file
+# cat file | tr [A-Z] [a-z] > new_file
+# cat file | tr -d "Snail" > new_file
+# cat file | tr -d "\n\t" > new_file
+# cat file | tr -s "\n" > new_file  // only leave one '\n', used to delete blank lines
+# cat file | tr -d "\r" > new_file (or) # cat file | tr -s "\r" "\n" > new_file  // used to transform from Windows to Linux
+

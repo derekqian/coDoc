@@ -1,0 +1,107 @@
+/*******************************************************************************
+ * Copyright (c) 2004, 2005 IBM Corporation and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ * IBM - Initial API and implementation
+ *******************************************************************************/
+package edu.pdx.svl.coDoc.cdt.internal.core.dom.parser.cpp;
+
+import edu.pdx.svl.coDoc.cdt.core.dom.ast.ASTVisitor;
+import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTNode;
+import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTStatement;
+import edu.pdx.svl.coDoc.cdt.core.dom.ast.cpp.ICPPASTCatchHandler;
+import edu.pdx.svl.coDoc.cdt.core.dom.ast.cpp.ICPPASTTryBlockStatement;
+import edu.pdx.svl.coDoc.cdt.core.parser.util.ArrayUtil;
+import edu.pdx.svl.coDoc.cdt.internal.core.dom.parser.IASTAmbiguityParent;
+
+/**
+ * @author jcamelon
+ */
+public class CPPASTTryBlockStatement extends CPPASTNode implements
+		ICPPASTTryBlockStatement, IASTAmbiguityParent {
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.dom.ast.cpp.ICPPASTFunctionTryBlockDeclarator#addCatchHandler(edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTStatement)
+	 */
+	public void addCatchHandler(ICPPASTCatchHandler statement) {
+		if (statement != null) {
+			catchHandlersPos++;
+			catchHandlers = (ICPPASTCatchHandler[]) ArrayUtil.append(
+					ICPPASTCatchHandler.class, catchHandlers, statement);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.dom.ast.cpp.ICPPASTFunctionTryBlockDeclarator#getCatchHandlers()
+	 */
+	public ICPPASTCatchHandler[] getCatchHandlers() {
+		if (catchHandlers == null)
+			return ICPPASTCatchHandler.EMPTY_CATCHHANDLER_ARRAY;
+		catchHandlers = (ICPPASTCatchHandler[]) ArrayUtil.removeNullsAfter(
+				ICPPASTCatchHandler.class, catchHandlers, catchHandlersPos);
+		return catchHandlers;
+	}
+
+	private ICPPASTCatchHandler[] catchHandlers = null;
+
+	private int catchHandlersPos = -1;
+
+	private IASTStatement tryBody;
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.dom.ast.cpp.ICPPASTTryBlockStatement#setTryBody(edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTStatement)
+	 */
+	public void setTryBody(IASTStatement tryBlock) {
+		tryBody = tryBlock;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.dom.ast.cpp.ICPPASTTryBlockStatement#getTryBody()
+	 */
+	public IASTStatement getTryBody() {
+		return tryBody;
+	}
+
+	public boolean accept(ASTVisitor action) {
+		if (action.shouldVisitStatements) {
+			switch (action.visit(this)) {
+			case ASTVisitor.PROCESS_ABORT:
+				return false;
+			case ASTVisitor.PROCESS_SKIP:
+				return true;
+			default:
+				break;
+			}
+		}
+		if (tryBody != null)
+			if (!tryBody.accept(action))
+				return false;
+
+		ICPPASTCatchHandler[] handlers = getCatchHandlers();
+		for (int i = 0; i < handlers.length; i++) {
+			if (!handlers[i].accept(action))
+				return false;
+		}
+		return true;
+	}
+
+	public void replace(IASTNode child, IASTNode other) {
+		if (tryBody == child) {
+			other.setPropertyInParent(child.getPropertyInParent());
+			other.setParent(child.getParent());
+			tryBody = (IASTStatement) other;
+		}
+	}
+}

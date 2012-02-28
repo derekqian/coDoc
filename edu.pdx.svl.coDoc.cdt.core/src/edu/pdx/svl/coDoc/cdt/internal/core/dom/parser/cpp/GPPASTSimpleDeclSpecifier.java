@@ -1,0 +1,120 @@
+/*******************************************************************************
+ * Copyright (c) 2004, 2005 IBM Corporation and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ * IBM - Initial API and implementation
+ *******************************************************************************/
+package edu.pdx.svl.coDoc.cdt.internal.core.dom.parser.cpp;
+
+import edu.pdx.svl.coDoc.cdt.core.dom.ast.ASTVisitor;
+import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTExpression;
+import edu.pdx.svl.coDoc.cdt.core.dom.ast.gnu.cpp.IGPPASTSimpleDeclSpecifier;
+
+/**
+ * @author jcamelon
+ */
+public class GPPASTSimpleDeclSpecifier extends CPPASTSimpleDeclSpecifier
+		implements IGPPASTSimpleDeclSpecifier {
+
+	private boolean longLong;
+
+	private boolean restrict;
+
+	private boolean complex = false;
+
+	private boolean imaginary = false;
+
+	private IASTExpression typeOfExpression;
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.dom.ast.gnu.cpp.IGPPASTSimpleDeclSpecifier#isLongLong()
+	 */
+	public boolean isLongLong() {
+		return longLong;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.dom.ast.gnu.cpp.IGPPASTSimpleDeclSpecifier#setLongLong(boolean)
+	 */
+	public void setLongLong(boolean value) {
+		longLong = value;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.dom.ast.gnu.cpp.IGPPASTDeclSpecifier#isRestrict()
+	 */
+	public boolean isRestrict() {
+		return restrict;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.dom.ast.gnu.cpp.IGPPASTDeclSpecifier#setRestrict(boolean)
+	 */
+	public void setRestrict(boolean value) {
+		restrict = value;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.dom.ast.gnu.cpp.IGPPASTSimpleDeclSpecifier#setTypeofExpression(edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTExpression)
+	 */
+	public void setTypeofExpression(IASTExpression typeofExpression) {
+		typeOfExpression = typeofExpression;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.dom.ast.gnu.cpp.IGPPASTSimpleDeclSpecifier#getTypeofExpression()
+	 */
+	public IASTExpression getTypeofExpression() {
+		return typeOfExpression;
+	}
+
+	public boolean accept(ASTVisitor action) {
+		if (action.shouldVisitDeclSpecifiers) {
+			switch (action.visit(this)) {
+			case ASTVisitor.PROCESS_ABORT:
+				return false;
+			case ASTVisitor.PROCESS_SKIP:
+				return true;
+			default:
+				break;
+			}
+		}
+		if (typeOfExpression != null)
+			if (!typeOfExpression.accept(action))
+				return false;
+
+		return true;
+	}
+
+	public boolean isComplex() {
+		return complex;
+	}
+
+	public void setComplex(boolean value) {
+		this.complex = value;
+	}
+
+	public boolean isImaginary() {
+		return imaginary;
+	}
+
+	public void setImaginary(boolean value) {
+		this.imaginary = value;
+	}
+}

@@ -1,0 +1,242 @@
+/*******************************************************************************
+ * Copyright (c) 2004, 2005 IBM Corporation and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ * IBM - Initial API and implementation
+ *******************************************************************************/
+package edu.pdx.svl.coDoc.cdt.internal.core.dom.parser.cpp;
+
+import edu.pdx.svl.coDoc.cdt.core.dom.ast.ASTNodeProperty;
+import edu.pdx.svl.coDoc.cdt.core.dom.ast.ASTVisitor;
+import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTFunctionDefinition;
+import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTInitializer;
+import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTParameterDeclaration;
+import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTSimpleDeclaration;
+import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTTypeId;
+import edu.pdx.svl.coDoc.cdt.core.dom.ast.cpp.ICPPASTConstructorChainInitializer;
+import edu.pdx.svl.coDoc.cdt.core.dom.ast.cpp.ICPPASTFunctionDeclarator;
+import edu.pdx.svl.coDoc.cdt.core.dom.ast.cpp.ICPPFunctionScope;
+import edu.pdx.svl.coDoc.cdt.core.parser.util.ArrayUtil;
+
+/**
+ * @author jcamelon
+ */
+public class CPPASTFunctionDeclarator extends CPPASTDeclarator implements
+		ICPPASTFunctionDeclarator {
+
+	private IASTParameterDeclaration[] parameters = null;
+
+	private int parametersPos = -1;
+
+	private ICPPFunctionScope scope = null;
+
+	private boolean varArgs;
+
+	private boolean pureVirtual;
+
+	private boolean isVolatile;
+
+	private boolean isConst;
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTFunctionDeclarator#getParameters()
+	 */
+	public IASTParameterDeclaration[] getParameters() {
+		if (parameters == null)
+			return IASTParameterDeclaration.EMPTY_PARAMETERDECLARATION_ARRAY;
+		parameters = (IASTParameterDeclaration[]) ArrayUtil.removeNullsAfter(
+				IASTParameterDeclaration.class, parameters, parametersPos);
+		return parameters;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTFunctionDeclarator#addParameterDeclaration(edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTParameterDeclaration)
+	 */
+	public void addParameterDeclaration(IASTParameterDeclaration parameter) {
+		if (parameter != null) {
+			parametersPos++;
+			parameters = (IASTParameterDeclaration[]) ArrayUtil.append(
+					IASTParameterDeclaration.class, parameters, parameter);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTFunctionDeclarator#takesVarArgs()
+	 */
+	public boolean takesVarArgs() {
+		return varArgs;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTFunctionDeclarator#setVarArgs(boolean)
+	 */
+	public void setVarArgs(boolean value) {
+		varArgs = value;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.dom.ast.cpp.ICPPASTFunctionDeclarator#isConst()
+	 */
+	public boolean isConst() {
+		return isConst;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.dom.ast.cpp.ICPPASTFunctionDeclarator#setConst(boolean)
+	 */
+	public void setConst(boolean value) {
+		this.isConst = value;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.dom.ast.cpp.ICPPASTFunctionDeclarator#isVolatile()
+	 */
+	public boolean isVolatile() {
+		return isVolatile;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.dom.ast.cpp.ICPPASTFunctionDeclarator#setVolatile(boolean)
+	 */
+	public void setVolatile(boolean value) {
+		this.isVolatile = value;
+	}
+
+	private IASTTypeId[] typeIds = null;
+
+	private int typeIdsPos = -1;
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.dom.ast.cpp.ICPPASTFunctionDeclarator#getExceptionSpecification()
+	 */
+	public IASTTypeId[] getExceptionSpecification() {
+		if (typeIds == null)
+			return IASTTypeId.EMPTY_TYPEID_ARRAY;
+		typeIds = (IASTTypeId[]) ArrayUtil.removeNullsAfter(IASTTypeId.class,
+				typeIds, typeIdsPos);
+		return typeIds;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.dom.ast.cpp.ICPPASTFunctionDeclarator#addExceptionSpecificationTypeId(edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTTypeId)
+	 */
+	public void addExceptionSpecificationTypeId(IASTTypeId typeId) {
+		if (typeId != null) {
+			typeIdsPos++;
+			typeIds = (IASTTypeId[]) ArrayUtil.append(IASTTypeId.class,
+					typeIds, typeId);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.dom.ast.cpp.ICPPASTFunctionDeclarator#isPureVirtual()
+	 */
+	public boolean isPureVirtual() {
+		return pureVirtual;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.dom.ast.cpp.ICPPASTFunctionDeclarator#setPureVirtual(boolean)
+	 */
+	public void setPureVirtual(boolean isPureVirtual) {
+		this.pureVirtual = isPureVirtual;
+	}
+
+	private ICPPASTConstructorChainInitializer[] constructorChain = null;
+
+	private int constructorChainPos = -1;
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.dom.ast.cpp.ICPPASTFunctionDeclarator#getConstructorChain()
+	 */
+	public ICPPASTConstructorChainInitializer[] getConstructorChain() {
+		if (constructorChain == null)
+			return ICPPASTConstructorChainInitializer.EMPTY_CONSTRUCTORCHAININITIALIZER_ARRAY;
+		constructorChain = (ICPPASTConstructorChainInitializer[]) ArrayUtil
+				.removeNullsAfter(ICPPASTConstructorChainInitializer.class,
+						constructorChain, constructorChainPos);
+		return constructorChain;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see edu.pdx.svl.coDoc.cdt.core.dom.ast.cpp.ICPPASTFunctionDeclarator#addConstructorToChain(edu.pdx.svl.coDoc.cdt.core.dom.ast.cpp.ICPPASTConstructorChainInitializer)
+	 */
+	public void addConstructorToChain(
+			ICPPASTConstructorChainInitializer initializer) {
+		if (initializer != null) {
+			constructorChainPos++;
+			constructorChain = (ICPPASTConstructorChainInitializer[]) ArrayUtil
+					.append(ICPPASTConstructorChainInitializer.class,
+							constructorChain, initializer);
+		}
+	}
+
+	public ICPPFunctionScope getFunctionScope() {
+		if (scope != null)
+			return scope;
+
+		ASTNodeProperty prop = getPropertyInParent();
+		if (prop == IASTSimpleDeclaration.DECLARATOR
+				|| prop == IASTFunctionDefinition.DECLARATOR)
+			scope = new CPPFunctionScope(this);
+		return scope;
+	}
+
+	protected boolean postAccept(ASTVisitor action) {
+		IASTParameterDeclaration[] params = getParameters();
+		for (int i = 0; i < params.length; i++) {
+			if (!params[i].accept(action))
+				return false;
+		}
+
+		ICPPASTConstructorChainInitializer[] chain = getConstructorChain();
+		for (int i = 0; i < chain.length; i++) {
+			if (!chain[i].accept(action))
+				return false;
+		}
+
+		IASTInitializer initializer = getInitializer();
+		if (initializer != null)
+			if (!initializer.accept(action))
+				return false;
+
+		IASTTypeId[] ids = getExceptionSpecification();
+		for (int i = 0; i < ids.length; i++) {
+			if (!ids[i].accept(action))
+				return false;
+		}
+		return true;
+	}
+}
