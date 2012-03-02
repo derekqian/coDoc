@@ -24,7 +24,7 @@ import edu.pdx.svl.coDoc.cdt.core.dom.ast.IBinding;
 import edu.pdx.svl.coDoc.cdt.core.dom.ast.IProblemBinding;
 import edu.pdx.svl.coDoc.cdt.core.dom.ast.IScope;
 import edu.pdx.svl.coDoc.cdt.core.dom.ast.IType;
-// import edu.pdx.svl.coDoc.cdt.internal.core.dom.parser.cpp.CPPSemantics;
+import edu.pdx.svl.coDoc.cdt.internal.core.dom.parser.cpp.CPPSemantics;
 import edu.pdx.svl.coDoc.cdt.internal.core.parser.ParserMessages;
 import org.eclipse.core.runtime.PlatformObject;
 
@@ -118,8 +118,7 @@ public class ProblemBinding extends PlatformObject implements IProblemBinding,
 	 * @see edu.pdx.svl.coDoc.cdt.core.dom.ast.IBinding#getName()
 	 */
 	public String getName() {
-		return null;
-		// return CPPSemantics.EMPTY_NAME;
+		return CPPSemantics.EMPTY_NAME;
 	}
 
 	/*
@@ -128,8 +127,7 @@ public class ProblemBinding extends PlatformObject implements IProblemBinding,
 	 * @see edu.pdx.svl.coDoc.cdt.core.dom.ast.IBinding#getNameCharArray()
 	 */
 	public char[] getNameCharArray() {
-		return null;
-		// return CPPSemantics.EMPTY_NAME_ARRAY;
+		return CPPSemantics.EMPTY_NAME_ARRAY;
 	}
 
 	/*

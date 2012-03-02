@@ -108,7 +108,7 @@ public abstract class Openable extends Parent implements IOpenable,
 	}
 
 	/**
-	 * @see org.dworks.bbcdt.core.model.IOpenable#getBuffer()
+	 * @see edu.pdx.svl.coDoc.cdt.core.model.IOpenable#getBuffer()
 	 */
 	public IBuffer getBuffer() throws CModelException {
 		if (hasBuffer()) {
@@ -149,7 +149,7 @@ public abstract class Openable extends Parent implements IOpenable,
 	}
 
 	/**
-	 * @see org.dworks.bbcdt.core.model.IOpenable#hasUnsavedChanges()
+	 * @see edu.pdx.svl.coDoc.cdt.core.model.IOpenable#hasUnsavedChanges()
 	 */
 	public boolean hasUnsavedChanges() throws CModelException {
 
@@ -181,14 +181,14 @@ public abstract class Openable extends Parent implements IOpenable,
 	/**
 	 * Subclasses must override as required.
 	 * 
-	 * @see org.dworks.bbcdt.core.model.IOpenable#isConsistent()
+	 * @see edu.pdx.svl.coDoc.cdt.core.model.IOpenable#isConsistent()
 	 */
 	public boolean isConsistent() throws CModelException {
 		return true;
 	}
 
 	/**
-	 * @see org.dworks.bbcdt.core.model.IOpenable#isOpen()
+	 * @see edu.pdx.svl.coDoc.cdt.core.model.IOpenable#isOpen()
 	 */
 	public boolean isOpen() {
 		return CModelManager.getDefault().getInfo(this) != null;
@@ -203,7 +203,7 @@ public abstract class Openable extends Parent implements IOpenable,
 	}
 
 	/**
-	 * @see org.dworks.bbcdt.core.model.IOpenable#makeConsistent(IProgressMonitor)
+	 * @see edu.pdx.svl.coDoc.cdt.core.model.IOpenable#makeConsistent(IProgressMonitor)
 	 */
 	public void makeConsistent(IProgressMonitor pm) throws CModelException {
 		makeConsistent(pm, false);
@@ -246,7 +246,7 @@ public abstract class Openable extends Parent implements IOpenable,
 	}
 
 	/**
-	 * @see org.dworks.bbcdt.core.model.IOpenable#open(IProgressMonitor)
+	 * @see edu.pdx.svl.coDoc.cdt.core.model.IOpenable#open(IProgressMonitor)
 	 */
 	public void open(IProgressMonitor pm) throws CModelException {
 		getElementInfo(pm);
@@ -279,13 +279,13 @@ public abstract class Openable extends Parent implements IOpenable,
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see org.dworks.bbcdt.internal.core.model.CElement#generateInfos(java.lang.Object,
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.CElement#generateInfos(java.lang.Object,
 	 *      java.util.Map, org.eclipse.core.runtime.IProgressMonitor)
 	 */
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see org.dworks.bbcdt.internal.core.model.CElement#generateInfos(java.lang.Object,
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.CElement#generateInfos(java.lang.Object,
 	 *      java.util.Map, org.eclipse.core.runtime.IProgressMonitor)
 	 */
 	protected void generateInfos(Object info, Map newElements,
@@ -320,7 +320,7 @@ public abstract class Openable extends Parent implements IOpenable,
 	}
 
 	/**
-	 * @see org.dworks.bbcdt.core.model.IOpenable#save(IProgressMonitor,
+	 * @see edu.pdx.svl.coDoc.cdt.core.model.IOpenable#save(IProgressMonitor,
 	 *      boolean)
 	 */
 	public void save(IProgressMonitor pm, boolean force) throws CModelException {

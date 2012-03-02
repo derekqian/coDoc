@@ -51,4 +51,3 @@ public class CustomBufferFactory implements IBufferFactory {
 		return DocumentAdapter.NULL;
 	}
 }
-

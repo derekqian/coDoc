@@ -20,6 +20,7 @@ import edu.pdx.svl.coDoc.cdt.core.model.IElementChangedListener;
 import edu.pdx.svl.coDoc.cdt.core.model.IParent;
 import edu.pdx.svl.coDoc.cdt.core.model.ISourceRoot;
 
+import edu.pdx.svl.coDoc.cdt.core.CCorePlugin;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -31,6 +32,8 @@ import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.ISafeRunnable;
+import org.eclipse.core.runtime.Platform;
 
 public class CModelManager implements IResourceChangeListener {
 	/**
@@ -178,9 +181,74 @@ public class CModelManager implements IResourceChangeListener {
 				listenerCount = listeners.length;
 				listenerMask = null;
 			}
-			// firePostChangeDelta(deltaToNotify, listeners, listenerMask,
-			// listenerCount);
+			firePostChangeDelta(deltaToNotify, listeners, listenerMask,
+					listenerCount);
 			// fireReconcileDelta(listeners, listenerMask, listenerCount);
+		}
+	}
+
+	private void firePostChangeDelta(ICElementDelta deltaToNotify,
+			IElementChangedListener[] listeners, int[] listenerMask,
+			int listenerCount) {
+
+		// post change deltas
+		if (VERBOSE) {
+			System.out
+					.println("FIRING POST_CHANGE Delta [" + Thread.currentThread() + "]:"); //$NON-NLS-1$//$NON-NLS-2$
+			System.out
+					.println(deltaToNotify == null ? "<NONE>" : deltaToNotify.toString()); //$NON-NLS-1$
+		}
+		if (deltaToNotify != null) {
+			// flush now so as to keep listener reactions to post their own
+			// deltas for subsequent iteration
+			this.flush();
+			notifyListeners(deltaToNotify, ElementChangedEvent.POST_CHANGE,
+					listeners, listenerMask, listenerCount);
+		}
+	}
+
+	/**
+	 * Flushes all deltas without firing them.
+	 */
+	protected void flush() {
+		fCModelDeltas.clear();
+	}
+
+	public void notifyListeners(ICElementDelta deltaToNotify, int eventType,
+			IElementChangedListener[] listeners, int[] listenerMask,
+			int listenerCount) {
+
+		final ElementChangedEvent extraEvent = new ElementChangedEvent(
+				deltaToNotify, eventType);
+		for (int i = 0; i < listenerCount; i++) {
+			if (listenerMask == null || (listenerMask[i] & eventType) != 0) {
+				final IElementChangedListener listener = listeners[i];
+				long start = -1;
+				if (VERBOSE) {
+					System.out
+							.print("Listener #" + (i + 1) + "=" + listener.toString());//$NON-NLS-1$//$NON-NLS-2$
+					start = System.currentTimeMillis();
+				}
+				// wrap callbacks with Safe runnable for subsequent listeners to
+				// be called when some are causing grief
+				Platform.run(new ISafeRunnable() {
+
+					public void handleException(Throwable exception) {
+						// CCorePlugin.log(exception, "Exception occurred in
+						// listener of C element change notification");
+						// //$NON-NLS-1$
+						CCorePlugin.log(exception);
+					}
+
+					public void run() throws Exception {
+						listener.elementChanged(extraEvent);
+					}
+				});
+				if (VERBOSE) {
+					System.out
+							.println(" -> " + (System.currentTimeMillis() - start) + "ms"); //$NON-NLS-1$ //$NON-NLS-2$
+				}
+			}
 		}
 	}
 
@@ -268,8 +336,8 @@ public class CModelManager implements IResourceChangeListener {
 			return create((IProject) resource);
 		case IResource.FILE:
 			return create((IFile) resource, cproject);
-		case IResource.FOLDER:
-			return create((IFolder) resource, cproject);
+			// case IResource.FOLDER:
+			// return create((IFolder) resource, cproject);
 		case IResource.ROOT:
 			return getCModel((IWorkspaceRoot) resource);
 		default:

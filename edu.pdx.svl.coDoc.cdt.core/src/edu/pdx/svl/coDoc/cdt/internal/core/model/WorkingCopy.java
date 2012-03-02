@@ -319,7 +319,6 @@ public class WorkingCopy extends TranslationUnit implements IWorkingCopy {
 	protected IBuffer openBuffer(IProgressMonitor pm) throws CModelException {
 
 		// create buffer - working copies may use custom buffer factory
-		System.out.println("Opening the buffer!");
 		IBuffer buffer = getBufferFactory().createBuffer(this);
 		if (buffer == null) {
 			return null;
@@ -373,7 +372,6 @@ public class WorkingCopy extends TranslationUnit implements IWorkingCopy {
 	 * @see edu.pdx.svl.coDoc.cdt.core.model.IWorkingCopy#restore()
 	 */
 	public void restore() throws CModelException {
-		System.out.println("Restoring!");
 		if (this.useCount == 0)
 			throw newNotPresentException(); // was destroyed
 

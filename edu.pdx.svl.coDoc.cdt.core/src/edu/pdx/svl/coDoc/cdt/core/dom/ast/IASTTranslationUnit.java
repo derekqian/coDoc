@@ -11,6 +11,7 @@
 package edu.pdx.svl.coDoc.cdt.core.dom.ast;
 
 // import edu.pdx.svl.coDoc.cdt.core.dom.IPDOM;
+import edu.pdx.svl.coDoc.cdt.core.dom.IPDOM;
 import edu.pdx.svl.coDoc.cdt.core.model.ILanguage;
 import edu.pdx.svl.coDoc.cdt.core.parser.ParserLanguage;
 
@@ -207,13 +208,15 @@ public interface IASTTranslationUnit extends IASTNode {
 	 * 
 	 * @return the Index for this translation unit
 	 */
-	// public IPDOM getIndex();
+	public IPDOM getIndex();
+
 	/**
 	 * Set the Index to be used for this translation unit.
 	 * 
 	 * @param index
 	 */
-	// public void setIndex(IPDOM index);
+	public void setIndex(IPDOM index);
+
 	/**
 	 * Returns the language for this translation unit.
 	 * 

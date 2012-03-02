@@ -10,8 +10,6 @@
  *******************************************************************************/
 package edu.pdx.svl.coDoc.cdt.core.parser;
 
-import edu.pdx.svl.coDoc.cdt.core.parser.Enum;
-
 public class KeywordSetKey extends Enum {
 	public static final KeywordSetKey EMPTY = new KeywordSetKey(0);
 

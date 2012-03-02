@@ -107,7 +107,7 @@ public class CModel extends Openable implements ICModel {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see org.dworks.bbcdt.internal.core.model.Openable#buildStructure(org.dworks.bbcdt.internal.core.model.OpenableInfo,
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.Openable#buildStructure(edu.pdx.svl.coDoc.cdt.internal.core.model.OpenableInfo,
 	 *      org.eclipse.core.runtime.IProgressMonitor, java.util.Map,
 	 *      org.eclipse.core.resources.IResource)
 	 */

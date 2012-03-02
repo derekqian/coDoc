@@ -19,7 +19,7 @@ import java.util.ResourceBundle;
  * 
  */
 public class CoreModelMessages {
-	private static final String RESOURCE_BUNDLE = "org.dworks.bbcdt.internal.core.model.CoreModelMessages"; //$NON-NLS-1$
+	private static final String RESOURCE_BUNDLE = "edu.pdx.svl.coDoc.cdt.internal.core.model.CoreModelMessages"; //$NON-NLS-1$
 
 	private static ResourceBundle fgResourceBundle;
 	static {

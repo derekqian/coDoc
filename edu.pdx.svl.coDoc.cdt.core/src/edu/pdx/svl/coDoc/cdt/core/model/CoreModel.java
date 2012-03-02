@@ -195,6 +195,20 @@ public class CoreModel {
 		manager.shutdown();
 	}
 
+	/**
+	 * Return true if IFile is a possible TranslationUnit.
+	 */
+	public static boolean isTranslationUnit(IFile file) {
+		if (file != null) {
+			IProject p = file.getProject();
+			if (hasCNature(p) || hasCCNature(p)) {
+				return isValidTranslationUnitName(p, file.getFullPath()
+						.lastSegment());
+			}
+		}
+		return false;
+	}
+
 	public void addElementChangedListener(IElementChangedListener listener) {
 		manager.addElementChangedListener(listener);
 	}
@@ -208,5 +222,24 @@ public class CoreModel {
 	 */
 	public void removeElementChangedListener(IElementChangedListener listener) {
 		manager.removeElementChangedListener(listener);
+	}
+
+	/**
+	 * Return true if name is a valid name for a translation unit.
+	 */
+	public static boolean isValidSourceUnitName(IProject project, String name) {
+		IContentType contentType = CCorePlugin.getContentType(project, name);
+		if (contentType != null) {
+			String id = contentType.getId();
+			if (CCorePlugin.CONTENT_TYPE_CHEADER.equals(id)
+					|| CCorePlugin.CONTENT_TYPE_CXXHEADER.equals(id))
+				return false;
+
+			return CCorePlugin.CONTENT_TYPE_CSOURCE.equals(id)
+					|| CCorePlugin.CONTENT_TYPE_CXXSOURCE.equals(id)
+					|| LanguageManager.getInstance().isContributedContentType(
+							id);
+		}
+		return false;
 	}
 }

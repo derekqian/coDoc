@@ -11,9 +11,6 @@
 
 package edu.pdx.svl.coDoc.cdt.core.parser;
 
-import edu.pdx.svl.coDoc.cdt.core.parser.Enum;
-import edu.pdx.svl.coDoc.cdt.core.parser.ParserLanguage;
-
 /**
  * @author aniefer
  * 

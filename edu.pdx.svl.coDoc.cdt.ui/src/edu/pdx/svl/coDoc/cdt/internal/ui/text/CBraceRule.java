@@ -30,7 +30,7 @@ public class CBraceRule extends SingleCharRule {
 	}
 
 	/**
-	 * @see org.eclipse.cdt.internal.ui.text.SingleCharRule#isRuleChar(int)
+	 * @see edu.pdx.svl.coDoc.cdt.internal.ui.text.SingleCharRule#isRuleChar(int)
 	 */
 	protected boolean isRuleChar(int ch) {
 		return ch == '{' || ch == '}' || ch == '[' || ch == ']' || ch == '('

@@ -78,10 +78,10 @@ public interface ICExtensionReference {
 	 * markup. For example, the configuration markup
 	 * 
 	 * <pre>
-	 *   &lt;view&gt;
-	 *   &amp;nbsp&amp;nbsp&amp;nbsp&amp;nbsp&lt;verticalHint&gt;top&lt;/verticalHint&gt;
-	 *   &amp;nbsp&amp;nbsp&amp;nbsp&amp;nbsp&lt;horizontalHint&gt;left&lt;/horizontalHint&gt;
-	 *   &lt;/view&gt;
+	 *    &lt;view&gt;
+	 *    &amp;nbsp&amp;nbsp&amp;nbsp&amp;nbsp&lt;verticalHint&gt;top&lt;/verticalHint&gt;
+	 *    &amp;nbsp&amp;nbsp&amp;nbsp&amp;nbsp&lt;horizontalHint&gt;left&lt;/horizontalHint&gt;
+	 *    &lt;/view&gt;
 	 * </pre>
 	 * 
 	 * corresponds to a configuration element, named <code>"view"</code>,

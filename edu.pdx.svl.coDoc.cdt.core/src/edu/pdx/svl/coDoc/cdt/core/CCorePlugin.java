@@ -6,8 +6,9 @@ import java.util.ResourceBundle;
 import edu.pdx.svl.coDoc.cdt.core.model.CoreModel;
 //import edu.pdx.svl.coDoc.cdt.core.ICDescriptor;
 import edu.pdx.svl.coDoc.cdt.core.parser.IScannerInfoProvider;
-import edu.pdx.svl.coDoc.cdt.core.parser.ast.IASTCompilationUnit;
 import edu.pdx.svl.coDoc.cdt.core.resources.ScannerProvider;
+import edu.pdx.svl.coDoc.cdt.internal.core.pdom.PDOMManager;
+import edu.pdx.svl.coDoc.cdt.core.dom.IPDOMManager;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
@@ -15,10 +16,12 @@ import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Plugin;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.content.IContentType;
 import org.eclipse.core.runtime.content.IContentTypeManager;
@@ -34,17 +37,22 @@ public class CCorePlugin extends Plugin {
 
 	public static final int CDT_PROJECT_NATURE_ID_MISMATCH = 3;
 
+	public static final String INDEXER_SIMPLE_ID = "CIndexer"; //$NON-NLS-1$
+
+	public static final String INDEXER_UNIQ_ID = PLUGIN_ID
+			+ "." + INDEXER_SIMPLE_ID; //$NON-NLS-1$
+
 	public final static String PREF_USE_STRUCTURAL_PARSE_MODE = "useStructualParseMode"; //$NON-NLS-1$
 
 	/**
 	 * IContentType id for C Source Unit
 	 */
-	public final static String CONTENT_TYPE_CSOURCE =  "edu.pdx.svl.coDoc.cdt.core.cSource"; //$NON-NLS-1$
+	public final static String CONTENT_TYPE_CSOURCE = "edu.pdx.svl.coDoc.cdt.core.cSource"; //$NON-NLS-1$
 
 	/**
 	 * IContentType id for C Header Unit
 	 */
-	public final static String CONTENT_TYPE_CHEADER =  "edu.pdx.svl.coDoc.cdt.core.cHeader"; //$NON-NLS-1$
+	public final static String CONTENT_TYPE_CHEADER = "edu.pdx.svl.coDoc.cdt.core.cHeader"; //$NON-NLS-1$
 
 	/**
 	 * IContentType id for C++ Source Unit
@@ -60,7 +68,7 @@ public class CCorePlugin extends Plugin {
 
 	private static ResourceBundle fgResourceBundle;
 
-	private static IASTCompilationUnit compUnit;
+	private PDOMManager pdomManager;
 
 	private CoreModel fCoreModel;
 
@@ -78,9 +86,14 @@ public class CCorePlugin extends Plugin {
 	 */
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
+
 		// Fired up the model.
 		fCoreModel = CoreModel.getDefault();
 		fCoreModel.startup();
+
+		// Fire up the PDOM
+		pdomManager = new PDOMManager();
+		pdomManager.startup();
 	}
 
 	/**
@@ -253,11 +266,23 @@ public class CCorePlugin extends Plugin {
 		}
 	}
 
-	public static void setCompilationUnit(IASTCompilationUnit unit) {
-		compUnit = unit;
+	public static void log(Throwable e) {
+		if (e instanceof CoreException) {
+			log(((CoreException) e).getStatus());
+		} else {
+			log(new Status(IStatus.ERROR, PLUGIN_ID, IStatus.ERROR, "Error", e)); //$NON-NLS-1$
+		}
 	}
 
-	public static IASTCompilationUnit getCompilationUnit() {
-		return compUnit;
+	public static void log(IStatus status) {
+		((Plugin) getDefault()).getLog().log(status);
+	}
+
+	public CoreModel getCoreModel() {
+		return fCoreModel;
+	}
+
+	public static IPDOMManager getPDOMManager() {
+		return getDefault().pdomManager;
 	}
 }

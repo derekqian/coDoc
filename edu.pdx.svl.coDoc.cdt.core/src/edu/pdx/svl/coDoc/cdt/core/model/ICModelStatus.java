@@ -18,7 +18,7 @@ import org.eclipse.core.runtime.IStatus;
  * inside <code>CModelException</code> objects to indicate what went wrong.
  * <p>
  * C model status object are distinguished by their plug-in id:
- * <code>getPlugin</code> returns <code>"org.dworks.bbcdt.core"</code>.
+ * <code>getPlugin</code> returns <code>"edu.pdx.svl.coDoc.cdt.core"</code>.
  * <code>getCode</code> returns one of the status codes declared in
  * <code>ICModelStatusConstants</code>.
  * </p>

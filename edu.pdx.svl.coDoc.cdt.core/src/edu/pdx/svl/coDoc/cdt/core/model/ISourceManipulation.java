@@ -9,7 +9,7 @@
  *     QNX Software Systems - Initial API and implementation
  *******************************************************************************/
 package edu.pdx.svl.coDoc.cdt.core.model;
- 
+
 import org.eclipse.core.runtime.IProgressMonitor;
 
 /**

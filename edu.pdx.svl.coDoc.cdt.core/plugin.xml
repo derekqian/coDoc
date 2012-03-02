@@ -88,4 +88,22 @@
        content-type="edu.pdx.svl.coDoc.cdt.core.cxxHeader"
        file-extensions="hpp,hh,hxx"/>
    </extension> 
+   
+   <extension
+         point="edu.pdx.svl.coDoc.cdt.core.language">
+      <language
+            class="edu.pdx.svl.coDoc.cdt.core.dom.ast.gnu.c.GCCLanguage"
+            id="gcc"
+            name="GNU C">
+         <contentType id="edu.pdx.svl.coDoc.cdt.core.cSource"/>
+         <contentType id="edu.pdx.svl.coDoc.cdt.core.cHeader"/>
+      </language>
+      <language
+            class="edu.pdx.svl.coDoc.cdt.core.dom.ast.gnu.cpp.GPPLanguage"
+            id="g++"
+            name="GNU C++">
+         <contentType id="edu.pdx.svl.coDoc.cdt.core.cxxSource"/>
+         <contentType id="edu.pdx.svl.coDoc.cdt.core.cxxHeader"/>
+      </language>
+   </extension>
 </plugin>

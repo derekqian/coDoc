@@ -69,7 +69,7 @@ public class CommitWorkingCopyOperation extends CModelOperation {
 	}
 
 	/**
-	 * @see org.dworks.bbcdt.internal.core.model.CModelOperation#executeOperation()
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.CModelOperation#executeOperation()
 	 */
 	protected void executeOperation() throws CModelException {
 		try {

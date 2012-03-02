@@ -470,7 +470,7 @@ public abstract class CElement extends PlatformObject implements ICElement {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see org.dworks.bbcdt.core.model.ICElement#accept(org.dworks.bbcdt.core.model.ICElementVisitor)
+	 * @see edu.pdx.svl.coDoc.cdt.core.model.ICElement#accept(edu.pdx.svl.coDoc.cdt.core.model.ICElementVisitor)
 	 */
 	public void accept(ICElementVisitor visitor) throws CoreException {
 		// Visit me, return right away if the visitor doesn't want to visit my

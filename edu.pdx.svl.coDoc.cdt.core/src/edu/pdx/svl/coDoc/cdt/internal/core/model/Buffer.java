@@ -75,7 +75,7 @@ public class Buffer implements IBuffer {
 	}
 
 	/**
-	 * @see org.dworks.bbcdt.internal.core.model.IBuffer#append(char)
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#append(char)
 	 */
 	public void append(char[] text) {
 		if (!isReadOnly()) {
@@ -93,7 +93,7 @@ public class Buffer implements IBuffer {
 	}
 
 	/**
-	 * @see org.dworks.bbcdt.internal.core.model.IBuffer#append(java.lang.String)
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#append(java.lang.String)
 	 */
 	public void append(String text) {
 		if (text == null) {
@@ -103,7 +103,7 @@ public class Buffer implements IBuffer {
 	}
 
 	/**
-	 * @see org.dworks.bbcdt.internal.core.model.IBuffer#close()
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#close()
 	 */
 	public void close() {
 		BufferChangedEvent event = null;
@@ -119,7 +119,7 @@ public class Buffer implements IBuffer {
 	}
 
 	/**
-	 * @see org.dworks.bbcdt.internal.core.model.IBuffer#getChar(int)
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#getChar(int)
 	 */
 	public char getChar(int position) {
 		synchronized (this.lock) {
@@ -132,7 +132,7 @@ public class Buffer implements IBuffer {
 	}
 
 	/**
-	 * @see org.dworks.bbcdt.internal.core.model.IBuffer#getCharacters()
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#getCharacters()
 	 */
 	public char[] getCharacters() {
 		if (this.contents == null)
@@ -151,7 +151,7 @@ public class Buffer implements IBuffer {
 	}
 
 	/**
-	 * @see org.dworks.bbcdt.internal.core.model.IBuffer#getContents()
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#getContents()
 	 */
 	public String getContents() {
 		if (this.contents == null)
@@ -160,7 +160,7 @@ public class Buffer implements IBuffer {
 	}
 
 	/**
-	 * @see org.dworks.bbcdt.internal.core.model.IBuffer#getLength()
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#getLength()
 	 */
 	public int getLength() {
 		synchronized (this.lock) {
@@ -170,14 +170,14 @@ public class Buffer implements IBuffer {
 	}
 
 	/**
-	 * @see org.dworks.bbcdt.internal.core.model.IBuffer#getOwner()
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#getOwner()
 	 */
 	public IOpenable getOwner() {
 		return this.owner;
 	}
 
 	/**
-	 * @see org.dworks.bbcdt.internal.core.model.IBuffer#getText(int, int)
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#getText(int, int)
 	 */
 	public String getText(int offset, int length) {
 		if (this.contents == null)
@@ -198,28 +198,28 @@ public class Buffer implements IBuffer {
 	}
 
 	/**
-	 * @see org.dworks.bbcdt.internal.core.model.IBuffer#getUnderlyingResource()
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#getUnderlyingResource()
 	 */
 	public IResource getUnderlyingResource() {
 		return this.file;
 	}
 
 	/**
-	 * @see org.dworks.bbcdt.internal.core.model.IBuffer#hasUnsavedChanges()
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#hasUnsavedChanges()
 	 */
 	public boolean hasUnsavedChanges() {
 		return (this.flags & F_HAS_UNSAVED_CHANGES) != 0;
 	}
 
 	/**
-	 * @see org.dworks.bbcdt.internal.core.model.IBuffer#isClosed()
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#isClosed()
 	 */
 	public boolean isClosed() {
 		return (this.flags & F_IS_CLOSED) != 0;
 	}
 
 	/**
-	 * @see org.dworks.bbcdt.internal.core.model.IBuffer#isReadOnly()
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#isReadOnly()
 	 */
 	public boolean isReadOnly() {
 		if (this.file == null) {
@@ -263,7 +263,7 @@ public class Buffer implements IBuffer {
 	}
 
 	/**
-	 * @see org.dworks.bbcdt.internal.core.model.IBuffer#replace(int, int, char)
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#replace(int, int, char)
 	 */
 	public void replace(int position, int length, char[] text) {
 		if (!isReadOnly()) {
@@ -297,7 +297,7 @@ public class Buffer implements IBuffer {
 	}
 
 	/**
-	 * @see org.dworks.bbcdt.internal.core.model.IBuffer#replace(int, int,
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#replace(int, int,
 	 *      java.lang.String)
 	 */
 	public void replace(int position, int length, String text) {
@@ -307,7 +307,7 @@ public class Buffer implements IBuffer {
 	}
 
 	/**
-	 * @see org.dworks.bbcdt.internal.core.model.IBuffer#save(org.eclipse.core.runtime.IProgressMonitor,
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#save(org.eclipse.core.runtime.IProgressMonitor,
 	 *      boolean)
 	 */
 	public void save(IProgressMonitor progress, boolean force) {
@@ -353,7 +353,7 @@ public class Buffer implements IBuffer {
 	}
 
 	/**
-	 * @see org.dworks.bbcdt.internal.core.model.IBuffer#setContents(char)
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#setContents(char)
 	 */
 	public void setContents(char[] newContents) {
 		// allow special case for first initialization
@@ -382,7 +382,7 @@ public class Buffer implements IBuffer {
 	}
 
 	/**
-	 * @see org.dworks.bbcdt.internal.core.model.IBuffer#setContents(java.lang.String)
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBuffer#setContents(java.lang.String)
 	 */
 	public void setContents(String newContents) {
 		this.setContents(newContents.toCharArray());

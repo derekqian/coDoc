@@ -143,20 +143,19 @@
       </factory>
    </extension>
    
-   <extension
-         point="org.eclipse.ui.actionSets">
-      <actionSet
-            label="edu.pdx.svl.coDoc.cdt.ASTActionSet"
-            visible="true"
-            id="edu.pdx.svl.coDoc.cdt.ASTActionSet">
+      <extension
+         point="org.eclipse.ui.editorActions">
+      <editorContribution 
+         id="edu.pdx.svl.coDoc.cdt.ASTEditorContribution"
+         targetID="edu.pdx.svl.coDoc.cdt.ui.editor.CEditor">
          <action 
                label="AST Action"
-               icon="icons/grid.gif"
+               icon="icons/tree.gif"
                class="edu.pdx.svl.coDoc.cdt.ui.action.ASTAction"
-               tooltip="Display the AST"
+               tooltip="Analyze the current file and project"
                toolbarPath="Normal/ASTGroup"
-               id="com.example.hello.actions.SampleAction">
+               id="edu.pdx.svl.coDoc.cdt.ASTEditorAction">
          </action>
-      </actionSet>
+      </editorContribution>
    </extension>
 </plugin>

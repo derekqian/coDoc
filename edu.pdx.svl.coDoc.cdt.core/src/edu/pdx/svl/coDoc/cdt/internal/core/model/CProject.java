@@ -106,7 +106,7 @@ public class CProject extends Openable implements ICProject {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see org.dworks.bbcdt.core.model.ICProject#getSourceRoot(org.dworks.bbcdt.core.model.ISourceEntry)
+	 * @see edu.pdx.svl.coDoc.cdt.core.model.ICProject#getSourceRoot(edu.pdx.svl.coDoc.cdt.core.model.ISourceEntry)
 	 */
 	public ISourceRoot getSourceRoot(ISourceEntry entry) throws CModelException {
 		IPath p = getPath();
@@ -130,7 +130,7 @@ public class CProject extends Openable implements ICProject {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see org.dworks.bbcdt.core.model.ICProject#findSourceRoot()
+	 * @see edu.pdx.svl.coDoc.cdt.core.model.ICProject#findSourceRoot()
 	 */
 	public ISourceRoot findSourceRoot(IResource res) {
 		try {
@@ -148,7 +148,7 @@ public class CProject extends Openable implements ICProject {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see org.dworks.bbcdt.core.model.ICProject#findSourceRoot()
+	 * @see edu.pdx.svl.coDoc.cdt.core.model.ICProject#findSourceRoot()
 	 */
 	public ISourceRoot findSourceRoot(IPath path) {
 		try {
@@ -166,7 +166,7 @@ public class CProject extends Openable implements ICProject {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see org.dworks.bbcdt.core.model.ICProject#getSourceRoots()
+	 * @see edu.pdx.svl.coDoc.cdt.core.model.ICProject#getSourceRoots()
 	 */
 	public ISourceRoot[] getSourceRoots() throws CModelException {
 		Object[] children;
@@ -186,7 +186,7 @@ public class CProject extends Openable implements ICProject {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see org.dworks.bbcdt.internal.core.model.Openable#buildStructure(org.dworks.bbcdt.internal.core.model.OpenableInfo,
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.Openable#buildStructure(edu.pdx.svl.coDoc.cdt.internal.core.model.OpenableInfo,
 	 *      org.eclipse.core.runtime.IProgressMonitor, java.util.Map,
 	 *      org.eclipse.core.resources.IResource)
 	 */
@@ -263,7 +263,7 @@ public class CProject extends Openable implements ICProject {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see org.dworks.bbcdt.core.model.ICElement#exists()
+	 * @see edu.pdx.svl.coDoc.cdt.core.model.ICElement#exists()
 	 */
 	public boolean exists() {
 		if (!isCProject()) {
@@ -275,7 +275,7 @@ public class CProject extends Openable implements ICProject {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see org.dworks.bbcdt.internal.core.model.CElement#closing(java.lang.Object)
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.CElement#closing(java.lang.Object)
 	 */
 	protected void closing(Object info) throws CModelException {
 		super.closing(info);

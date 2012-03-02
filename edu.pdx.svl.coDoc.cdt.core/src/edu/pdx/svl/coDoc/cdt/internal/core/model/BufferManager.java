@@ -94,7 +94,7 @@ public class BufferManager implements IBufferFactory {
 	}
 
 	/**
-	 * @see org.dworks.bbcdt.internal.core.model.IBufferFactory#createBuffer(org.dworks.bbcdt.core.model.IOpenable)
+	 * @see edu.pdx.svl.coDoc.cdt.internal.core.model.IBufferFactory#createBuffer(edu.pdx.svl.coDoc.cdt.core.model.IOpenable)
 	 */
 	public IBuffer createBuffer(IOpenable owner) {
 		ICElement element = (ICElement) owner;

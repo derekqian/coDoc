@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import edu.pdx.svl.coDoc.cdt.core.CCorePlugin;
 import edu.pdx.svl.coDoc.cdt.core.parser.EndOfFileException;
 import edu.pdx.svl.coDoc.cdt.core.parser.IParser;
 import edu.pdx.svl.coDoc.cdt.core.parser.IParserLogService;
@@ -3017,7 +3016,6 @@ public class Parser implements IParserData, IParser {
 		this.log = log;
 		this.extension = extension;
 		this.mode = mode;
-
 		setupASTFactory(scanner, language);
 		requestor = callback;
 		if (this.mode == ParserMode.QUICK_PARSE)
@@ -3144,7 +3142,6 @@ public class Parser implements IParserData, IParser {
 			}
 		}
 		compilationUnit.exitScope(requestor);
-		CCorePlugin.setCompilationUnit(compilationUnit);
 	}
 
 	/**
@@ -6355,7 +6352,6 @@ public class Parser implements IParserData, IParser {
 	 */
 	protected void setupASTFactory(IScanner scanner, ParserLanguage language) {
 		astFactory = ParserFactory.createASTFactory(mode, language);
-
 		scanner.setASTFactory(astFactory);
 		astFactory.setLogger(log);
 	}
