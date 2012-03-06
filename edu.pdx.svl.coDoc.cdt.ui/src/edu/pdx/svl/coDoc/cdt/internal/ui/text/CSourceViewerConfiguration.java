@@ -14,6 +14,8 @@ package edu.pdx.svl.coDoc.cdt.internal.ui.text;
 import edu.pdx.svl.coDoc.cdt.internal.ui.editor.CEditor;
 import edu.pdx.svl.coDoc.cdt.internal.ui.editor.CSourceViewer;
 import edu.pdx.svl.coDoc.cdt.internal.ui.text.CReconcilingStrategy;
+
+import org.eclipse.jface.text.DefaultTextDoubleClickStrategy;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextDoubleClickStrategy;
 import org.eclipse.jface.text.presentation.IPresentationReconciler;
@@ -181,6 +183,8 @@ public class CSourceViewerConfiguration extends TextSourceViewerConfiguration {
 	
 	public ITextDoubleClickStrategy getDoubleClickStrategy(ISourceViewer sourceViewer, String contentType) 
 	{
+		//return super.getDoubleClickStrategy(sourceViewer, contentType);
+		//return new DefaultTextDoubleClickStrategy();
 		return new CustomDoubleClickStrategy();
 	}
 }

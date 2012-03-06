@@ -14,9 +14,14 @@ package edu.pdx.svl.coDoc.cdt.internal.ui.text;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.DefaultTextDoubleClickStrategy;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextDoubleClickStrategy;
 import org.eclipse.jface.text.ITextViewer;
+import org.eclipse.jface.text.TextAttribute;
+import org.eclipse.jface.text.TextPresentation;
+import org.eclipse.swt.custom.StyleRange;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbench;
@@ -36,11 +41,13 @@ import edu.pdx.svl.coDoc.cdt.internal.core.model.TranslationUnit;
 /**
  * CustomDoubleClickStrategy
  */
-public class CustomDoubleClickStrategy implements ITextDoubleClickStrategy {
+//public class CustomDoubleClickStrategy implements ITextDoubleClickStrategy {
+public class CustomDoubleClickStrategy extends DefaultTextDoubleClickStrategy {
 	private IEditorPart editor;
 	
 	@Override
 	public void doubleClicked(final ITextViewer viewer) {
+		super.doubleClicked(viewer);
 		// get doc
 		IDocument doc = viewer.getDocument();
 		
@@ -71,7 +78,14 @@ public class CustomDoubleClickStrategy implements ITextDoubleClickStrategy {
 					// select double clicked token
 					if((offset >= ((ASTNode)declaration).getOffset())&&(offset < ((ASTNode)declaration).getOffset()+((ASTNode)declaration).getLength()))
 					{
-						viewer.setSelectedRange(((ASTNode)declaration).getOffset(), ((ASTNode)declaration).getLength());
+						//viewer.setTextColor(new Color(null, 255, 0, 0), ((ASTNode)declaration).getOffset(), ((ASTNode)declaration).getLength(), true);
+						TextPresentation presentation = new TextPresentation();
+						TextAttribute attr = new TextAttribute(new Color(null, 0, 0, 0),
+							      new Color(null, 128, 128, 128), TextAttribute.STRIKETHROUGH);
+						presentation.addStyleRange(new StyleRange(((ASTNode)declaration).getOffset(), ((ASTNode)declaration).getLength(), attr.getForeground(),
+							      attr.getBackground()));
+						viewer.changeTextPresentation(presentation, true);
+						//viewer.setSelectedRange(((ASTNode)declaration).getOffset(), ((ASTNode)declaration).getLength());
 					}
 						
 					return PROCESS_CONTINUE;

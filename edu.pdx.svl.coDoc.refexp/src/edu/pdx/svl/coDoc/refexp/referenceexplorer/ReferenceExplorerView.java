@@ -15,17 +15,25 @@ import org.eclipse.ui.ide.IDE;
 import java.util.Iterator;
 import java.util.Vector;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.text.ITextOperationTarget;
+import org.eclipse.jface.text.ITextViewer;
+import org.eclipse.jface.text.TextAttribute;
+import org.eclipse.jface.text.TextPresentation;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.ui.*;
@@ -34,6 +42,13 @@ import org.eclipse.ui.part.MultiEditor;
 import org.eclipse.ui.part.ViewPart;
 
 
+import edu.pdx.svl.coDoc.cdt.core.CCorePlugin;
+import edu.pdx.svl.coDoc.cdt.core.dom.ast.ASTVisitor;
+import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTDeclaration;
+import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTTranslationUnit;
+import edu.pdx.svl.coDoc.cdt.core.model.ILanguage;
+import edu.pdx.svl.coDoc.cdt.internal.core.dom.parser.ASTNode;
+import edu.pdx.svl.coDoc.cdt.internal.core.model.TranslationUnit;
 import edu.pdx.svl.coDoc.poppler.editor.PDFEditor;
 import edu.pdx.svl.coDoc.refexp.Global;
 import edu.pdx.svl.coDoc.refexp.XML.SimpleXML;
@@ -576,6 +591,19 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		
 		if (selection instanceof TextSelection) {
 			currentTextSelection = (TextSelection)selection;
+		}
+		
+		IEditorPart editor = part.getSite().getPage().getActiveEditor();
+		IFile inputFile = ((FileEditorInput) editor.getEditorInput()).getFile();
+		final ITextOperationTarget target = (ITextOperationTarget)editor.getAdapter(ITextOperationTarget.class);
+		try {
+			TranslationUnit tu = (TranslationUnit) CCorePlugin.getDefault().getCoreModel().create(inputFile);
+			IASTTranslationUnit ast = tu.getLanguage().getASTTranslationUnit(tu,
+					ILanguage.AST_SKIP_IF_NO_BUILD_INFO);
+			ast.accept(new CustomASTVisitor(currentTextSelection,target));
+		} catch (CoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 
 		IEditorPart editorPart = part.getSite().getPage().getActiveEditor();

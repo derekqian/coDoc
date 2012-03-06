@@ -46,7 +46,7 @@ public class CDCEditor implements IEditorLauncher
 			// first time
 			if(path.getFileExtension().equals("cdc"))
 			{
-				IPath codepath = new Path("/test/code/sample1.c");
+				IPath codepath = new Path("/test/code/example.c");
 				IFile codefile = (IFile) workspaceroot.getFile(codepath);
 				final FileEditorInput codeEditorInput = new FileEditorInput(codefile);
 				IPath specpath = new Path("/test/spec/sample.pdf");
@@ -109,7 +109,7 @@ public class CDCEditor implements IEditorLauncher
 			
 			if(path.getFileExtension().equals("cdc"))
 			{
-				IPath codepath = new Path("/test/code/sample1.c");
+				IPath codepath = new Path("/test/code/example.c");
 				IFile codefile = (IFile) workspaceroot.getFile(codepath);
 				final FileEditorInput codeEditorInput = new FileEditorInput(codefile);
 				IPath specpath = new Path("/test/spec/sample.pdf");
@@ -148,7 +148,7 @@ public class CDCEditor implements IEditorLauncher
 			}
 			else
 			{
-				IPath codepath = new Path("/test/code/sample1.c");
+				IPath codepath = new Path("/test/code/example.c");
 				IFile codefile = (IFile) workspaceroot.getFile(codepath);
 				final FileEditorInput codeEditorInput = new FileEditorInput(codefile);
 				
