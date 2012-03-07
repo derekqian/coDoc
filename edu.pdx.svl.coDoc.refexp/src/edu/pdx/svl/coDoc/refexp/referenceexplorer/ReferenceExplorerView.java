@@ -470,7 +470,6 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 					int length = tsr.getLength();
 					
 					
-					
 					//new way in which we open the right source file	
 					File fileToOpen = new File(tsr.getSourceFileReference().getFilePath());
 					 
@@ -504,9 +503,28 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 							}
 						}
 					}
+					
+					String selectednode = tsr.getSelectedNode();
+					CustomASTVisitor astvisitor = CustomASTVisitor.getInstance();
+					
+					IFile inputFile = ((FileEditorInput) cEditor.getEditorInput()).getFile();
+					try {
+						TranslationUnit tu = (TranslationUnit) CCorePlugin.getDefault().getCoreModel().create(inputFile);
+						IASTTranslationUnit ast = tu.getLanguage().getASTTranslationUnit(tu,
+								ILanguage.AST_SKIP_IF_NO_BUILD_INFO);
+						astvisitor.getEnviroment();
+						astvisitor.setMode(CustomASTVisitor.MODE_NODE_TO_SELECTION);
+						astvisitor.setSelectedASTNode(selectednode);
+						ast.accept(astvisitor);
+					} catch (CoreException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
 					//ISelectionProvider selProv = workbenchPart.getSite().getSelectionProvider();
 					ISelectionProvider selProv = cEditor.getEditorSite().getSelectionProvider();
-					TextSelection newSelection = new TextSelection(offset,length);
+					//TextSelection newSelection = new TextSelection(offset,length);
+					TextSelection newSelection = astvisitor.getTextSelection();
 					selProv.setSelection(newSelection);
 					
 				}
@@ -558,6 +576,7 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		TextSelectionReference tsr = new TextSelectionReference();
 		tsr.setOffset(offset);
 		tsr.setLength(length);
+		tsr.setSelectedNode(CustomASTVisitor.getInstance().getSelectedASTNode());
 		tsr.setText(text);
 		tsr.fetchAcrobatData();
 		
@@ -595,12 +614,15 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		
 		IEditorPart editor = part.getSite().getPage().getActiveEditor();
 		IFile inputFile = ((FileEditorInput) editor.getEditorInput()).getFile();
-		final ITextOperationTarget target = (ITextOperationTarget)editor.getAdapter(ITextOperationTarget.class);
 		try {
 			TranslationUnit tu = (TranslationUnit) CCorePlugin.getDefault().getCoreModel().create(inputFile);
 			IASTTranslationUnit ast = tu.getLanguage().getASTTranslationUnit(tu,
 					ILanguage.AST_SKIP_IF_NO_BUILD_INFO);
-			ast.accept(new CustomASTVisitor(currentTextSelection,target));
+			CustomASTVisitor astvisitor = CustomASTVisitor.getInstance();
+			astvisitor.getEnviroment();
+			astvisitor.setMode(CustomASTVisitor.MODE_SELECTION_TO_NODE);
+			astvisitor.setTextSelection(currentTextSelection);
+			ast.accept(astvisitor);
 		} catch (CoreException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

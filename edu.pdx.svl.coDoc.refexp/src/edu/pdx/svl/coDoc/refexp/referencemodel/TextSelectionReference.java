@@ -15,6 +15,9 @@ public class TextSelectionReference extends Reference {
 	protected Integer length;
 	
 	@Element
+	protected String selectednode = "";
+	
+	@Element
 	protected String text = "";
 	
 	protected SourceFileReference sourceFile;
@@ -73,12 +76,20 @@ public class TextSelectionReference extends Reference {
 		this.offset = offset;
 	}
 
+	public void setSelectedNode(String selectednode) {
+		this.selectednode = selectednode;
+	}
+
 	public Integer getLength() {
 		return length;
 	}
 
 	public void setLength(Integer length) {
 		this.length = length;
+	}
+
+	public String getSelectedNode() {
+		return selectednode;
 	}
 
 	public String getText() {
