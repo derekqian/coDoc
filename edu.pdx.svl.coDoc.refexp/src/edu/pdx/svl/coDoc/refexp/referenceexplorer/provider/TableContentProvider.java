@@ -4,7 +4,7 @@ package edu.pdx.svl.coDoc.refexp.referenceexplorer.provider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
-import edu.pdx.svl.coDoc.refexp.Global;
+import edu.pdx.svl.coDoc.cdc.Global;
 
 
 

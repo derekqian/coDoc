@@ -8,7 +8,8 @@ Bundle-Vendor: Derek.QIAN
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.ui.ide,
- org.eclipse.core.filesystem
+ org.eclipse.core.filesystem,
+ edu.pdx.svl.coDoc.cdc
 Import-Package: edu.pdx.svl.coDoc.cdt.core,
  edu.pdx.svl.coDoc.cdt.core.dom.ast,
  edu.pdx.svl.coDoc.cdt.core.model,
@@ -17,7 +18,6 @@ Import-Package: edu.pdx.svl.coDoc.cdt.core,
  edu.pdx.svl.coDoc.poppler.editor,
  org.eclipse.core.resources,
  org.eclipse.jface.text
-Bundle-ClassPath: .,
- lib/simple-xml-2.5.3.jar
+Bundle-ClassPath: .
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy

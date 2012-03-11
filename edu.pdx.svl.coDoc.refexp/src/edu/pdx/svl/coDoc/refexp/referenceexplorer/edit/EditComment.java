@@ -3,9 +3,9 @@ package edu.pdx.svl.coDoc.refexp.referenceexplorer.edit;
 import org.eclipse.jface.viewers.*;
 
 
-import edu.pdx.svl.coDoc.refexp.Global;
-import edu.pdx.svl.coDoc.refexp.XML.SimpleXML;
-import edu.pdx.svl.coDoc.refexp.referencemodel.*;
+import edu.pdx.svl.coDoc.cdc.Global;
+import edu.pdx.svl.coDoc.cdc.XML.SimpleXML;
+import edu.pdx.svl.coDoc.cdc.referencemodel.*;
 
 public class EditComment extends EditingSupport {
 
@@ -35,7 +35,7 @@ public class EditComment extends EditingSupport {
 	protected void setValue(Object element, Object value) {
 		((Reference) element).setComment(String.valueOf(value));
 		viewer.refresh();
-		SimpleXML.write(Global.INSTANCE.references);
+		SimpleXML.write(Global.INSTANCE.entryEditor.getDocument());
 	}
 
 }

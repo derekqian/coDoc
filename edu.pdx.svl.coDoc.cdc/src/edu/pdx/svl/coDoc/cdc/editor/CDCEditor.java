@@ -17,9 +17,9 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.FileEditorInput;
 
-
 public class CDCEditor implements IEditorLauncher
 {
+	private IEditorPart entryeditor = null;
 
 	public CDCEditor() {
 		super();
@@ -58,7 +58,7 @@ public class CDCEditor implements IEditorLauncher
 				final EntryEditorInput entryEditorInput = new EntryEditorInput(editorID, editorInput);
 				try 
 				{
-					workbenchPage.openEditor(entryEditorInput, "edu.pdx.svl.coDoc.cdc.editor.EntryEditor");
+					entryeditor = workbenchPage.openEditor(entryEditorInput, "edu.pdx.svl.coDoc.cdc.editor.EntryEditor");
 				} 
 				catch (PartInitException e) 
 				{
@@ -75,7 +75,7 @@ public class CDCEditor implements IEditorLauncher
 				final EntryEditorInput entryEditorInput = new EntryEditorInput(editorID, editorInput);
 				try 
 				{
-					workbenchPage.openEditor(entryEditorInput, "edu.pdx.svl.coDoc.cdc.editor.EntryEditor");
+					entryeditor = workbenchPage.openEditor(entryEditorInput, "edu.pdx.svl.coDoc.cdc.editor.EntryEditor");
 				} 
 				catch (PartInitException e) 
 				{
@@ -92,7 +92,7 @@ public class CDCEditor implements IEditorLauncher
 				final EntryEditorInput entryEditorInput = new EntryEditorInput(editorID, editorInput);
 				try 
 				{
-					workbenchPage.openEditor(entryEditorInput, "edu.pdx.svl.coDoc.cdc.editor.EntryEditor");
+					entryeditor = workbenchPage.openEditor(entryEditorInput, "edu.pdx.svl.coDoc.cdc.editor.EntryEditor");
 				} 
 				catch (PartInitException e) 
 				{
@@ -121,7 +121,7 @@ public class CDCEditor implements IEditorLauncher
 				final EntryEditorInput entryEditorInput = new EntryEditorInput(editorID, editorInput);
 				try 
 				{
-					workbenchPage.openEditor(entryEditorInput, "edu.pdx.svl.coDoc.cdc.editor.EntryEditor");
+					entryeditor = workbenchPage.openEditor(entryEditorInput, "edu.pdx.svl.coDoc.cdc.editor.EntryEditor");
 				} 
 				catch (PartInitException e) 
 				{
@@ -139,7 +139,7 @@ public class CDCEditor implements IEditorLauncher
 				final EntryEditorInput entryEditorInput = new EntryEditorInput(editorID, editorInput);
 				try 
 				{
-					workbenchPage.openEditor(entryEditorInput, "edu.pdx.svl.coDoc.cdc.editor.EntryEditor");
+					entryeditor = workbenchPage.openEditor(entryEditorInput, "edu.pdx.svl.coDoc.cdc.editor.EntryEditor");
 				} 
 				catch (PartInitException e) 
 				{
@@ -157,7 +157,7 @@ public class CDCEditor implements IEditorLauncher
 				final EntryEditorInput entryEditorInput = new EntryEditorInput(editorID, editorInput);
 				try 
 				{
-					workbenchPage.openEditor(entryEditorInput, "edu.pdx.svl.coDoc.cdc.editor.EntryEditor");
+					entryeditor = workbenchPage.openEditor(entryEditorInput, "edu.pdx.svl.coDoc.cdc.editor.EntryEditor");
 				} 
 				catch (PartInitException e) 
 				{

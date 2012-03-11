@@ -6,7 +6,9 @@ import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 
-import edu.pdx.svl.coDoc.refexp.referencemodel.*;
+import edu.pdx.svl.coDoc.cdc.referencemodel.ProjectReference;
+import edu.pdx.svl.coDoc.cdc.referencemodel.SourceFileReference;
+import edu.pdx.svl.coDoc.cdc.referencemodel.TextSelectionReference;
 
 
 public class LabelProvider extends StyledCellLabelProvider {
