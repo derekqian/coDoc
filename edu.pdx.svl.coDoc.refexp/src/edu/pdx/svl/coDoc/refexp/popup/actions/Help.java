@@ -1,4 +1,4 @@
-package edu.pdx.svl.coDoc.cdc.popup.actions;
+package edu.pdx.svl.coDoc.refexp.popup.actions;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -35,7 +35,7 @@ public class Help implements IObjectActionDelegate {
 	 * @see IActionDelegate#run(IAction)
 	 */
 	public void run(IAction action) {
-		edu.pdx.svl.coDoc.cdc.view.Help.openHelpBrowser();
+		edu.pdx.svl.coDoc.refexp.view.Help.openHelpBrowser();
 	}
 
 	/**

@@ -30,10 +30,10 @@ import edu.pdx.svl.coDoc.cdc.referencemodel.*;
 import edu.pdx.svl.coDoc.cdc.editor.EntryEditor;
 import edu.pdx.svl.coDoc.cdc.editor.IReferenceExplorer;
 import edu.pdx.svl.coDoc.cdc.view.EditView;
-import edu.pdx.svl.coDoc.cdc.view.Help;
 import edu.pdx.svl.coDoc.refexp.referenceexplorer.edit.EditComment;
 import edu.pdx.svl.coDoc.refexp.referenceexplorer.provider.*;
 import edu.pdx.svl.coDoc.refexp.referenceexplorer.provider.LabelProvider;
+import edu.pdx.svl.coDoc.refexp.view.Help;
 
 public class ReferenceExplorerView extends ViewPart implements ISelectionListener, Listener, IResourceChangeListener, IReferenceExplorer {
 	public static final String ID = "edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView";
