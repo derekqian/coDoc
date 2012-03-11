@@ -1,4 +1,4 @@
-package edu.pdx.svl.coDoc.cdc.popup.actions;
+package edu.pdx.svl.coDoc.cdc.actions;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -13,19 +13,19 @@ import org.eclipse.ui.IWorkbenchPart;
 
 //import edu.pdx.svl.coDoc.refexp.editorcontextmenu.editors.SelectionAndCursor;
 
-import edu.pdx.svl.coDoc.cdc.Global;
-import edu.pdx.svl.coDoc.cdc.editor.IReferenceExplorer;
+import edu.pdx.svl.coDoc.cdc.preferences.PreferencesView;
 
 
 
-public class ViewReferencesForSelection implements IObjectActionDelegate {
+public class Preferences implements IObjectActionDelegate {
 
 	private Shell shell;
+	
 	
 	/**
 	 * Constructor for Action1.
 	 */
-	public ViewReferencesForSelection() {
+	public Preferences() {
 		super();
 	}
 
@@ -40,8 +40,9 @@ public class ViewReferencesForSelection implements IObjectActionDelegate {
 	 * @see IActionDelegate#run(IAction)
 	 */
 	public void run(IAction action) {
-		IReferenceExplorer referenceExplorerView = Global.INSTANCE.referenceExplorerView;
-		referenceExplorerView.displayListOfTextSelectionReferencesForSelectionInActiveEditor();
+		PreferencesView preferencesView = new PreferencesView();
+		preferencesView.open();
+		
 	}
 
 	/**

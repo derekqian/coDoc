@@ -60,88 +60,75 @@
       </category>
       <command
             categoryId="edu.pdx.svl.coDoc.cdc.commands.category"
-            defaultHandler="edu.pdx.svl.coDoc.cdc.handlers.ForwardSearchHandler"
-            description="Toggles a forward search in all open pdf documents"
-            id="PDFViewer.command.forwardSearchAction"
-            name="Forward search">
+            description="Add links between selected code and specification."
+            id="edu.pdx.svl.coDoc.cdc.commands.AddReference"
+            name="Add Link">
       </command>
       <command
             categoryId="edu.pdx.svl.coDoc.cdc.commands.category"
-            defaultHandler="edu.pdx.svl.coDoc.cdc.handlers.ZoomHandler"
-            description="Set the zoom level"
-            id="PDFViewer.command.Zoom"
-            name="Zoom">
-         <!--id is used in ZoomHandler.java: "String msg = event.getParameter(PARAMATER);"-->
-         <commandParameter
-               id="PDFViewer.command.parameter.zoom"
-               name="zoomlevel"
-               optional="false">
-         </commandParameter>
+            description="Delete existed link."
+            id="edu.pdx.svl.coDoc.cdc.commands.DeleteReference"
+            name="Delete Link">
       </command>
-      <!--id is used in ToggleLinkHighlightHandler.java: "Command command = service.getCommand(COMMAND_ID);"-->
       <command
             categoryId="edu.pdx.svl.coDoc.cdc.commands.category"
-            defaultHandler="edu.pdx.svl.coDoc.cdc.handlers.ToggleLinkHighlightHandler"
-            id="PDFViewer.command.ToggleLinkHighlight"
-            name="Toggle highlight">
-         <state
-               id="org.eclipse.ui.commands.toggleState">
-            <class
-                  class="org.eclipse.ui.handlers.RegistryToggleState">
-               <parameter
-                     name="persisted"
-                     value="true">
-               </parameter>
-               <parameter
-                     name="default"
-                     value="true">
-               </parameter>
-            </class>
-         </state>
+            description="Edit existed link."
+            id="edu.pdx.svl.coDoc.cdc.commands.EditReference"
+            name="Edit Link">
+      </command>
+      <command
+            categoryId="edu.pdx.svl.coDoc.cdc.commands.category"
+            description="Set preferences."
+            id="edu.pdx.svl.coDoc.cdc.commands.Preferences"
+            name="Preferences">
       </command>
    </extension>
    <extension
          point="org.eclipse.ui.handlers">
       <handler
-            commandId="PDFViewer.command.forwardSearchAction"
-            class="edu.pdx.svl.coDoc.cdc.handlers.ForwardSearchHandler">
+            commandId="edu.pdx.svl.coDoc.cdc.commands.AddReference"
+            class="edu.pdx.svl.coDoc.cdc.handles.AddReference">
       </handler>
       <handler
-            commandId="PDFViewer.command.Zoom"
-            class="edu.pdx.svl.coDoc.cdc.handlers.ZoomHandler">
+            commandId="edu.pdx.svl.coDoc.cdc.commands.DeleteReference"
+            class="edu.pdx.svl.coDoc.cdc.handles.DeleteReference">
       </handler>
       <handler
-            commandId="PDFViewer.command.ToggleLinkHighlight"
-            class="edu.pdx.svl.coDoc.cdc.handlers.ToggleLinkHighlightHandler">
+            commandId="edu.pdx.svl.coDoc.cdc.commands.EditReference"
+            class="edu.pdx.svl.coDoc.cdc.handles.EditReference">
+      </handler>
+      <handler
+            commandId="edu.pdx.svl.coDoc.cdc.commands.Preferences"
+            class="edu.pdx.svl.coDoc.cdc.handles.Preferences">
       </handler>
    </extension>
    <extension
          point="org.eclipse.ui.bindings">
+      <!--M1+M3+F = ALT+CTRL+F-->
+      <!--contextId = org.eclipse.ui.textEditorScope-->
       <key
-            commandId="PDFViewer.command.forwardSearchAction"
+            commandId="edu.pdx.svl.coDoc.cdc.commands.AddReference"
             contextId="org.eclipse.ui.textEditorScope"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-            sequence="M1+M3+F">
+            sequence="M1+M3+A">
       </key>
       <key
-            commandId="PDFViewer.command.Zoom"
-            contextId="PDFViewer.editors.contextid"
+            commandId="edu.pdx.svl.coDoc.cdc.commands.DeleteReference"
+            contextId="org.eclipse.ui.contexts.window"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-            sequence="+">
-         <parameter
-               id="PDFViewer.command.parameter.zoom"
-               value="+0.1">
-         </parameter>
+            sequence="M1+M3+D">
       </key>
       <key
-            commandId="PDFViewer.command.Zoom"
-            contextId="PDFViewer.editors.contextid"
+            commandId="edu.pdx.svl.coDoc.cdc.commands.EditReference"
+            contextId="edu.pdx.svl.coDoc.cdc.editor.EntryEditor.contextid"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-            sequence="-">
-         <parameter
-               id="PDFViewer.command.parameter.zoom"
-               value="-0.1">
-         </parameter>
+            sequence="M1+M3+E">
+      </key>
+      <key
+            commandId="edu.pdx.svl.coDoc.cdc.commands.Preferences"
+            contextId="edu.pdx.svl.coDoc.cdc.editor.EntryEditor.contextid"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+M3+P">
       </key>
    </extension>
    <extension
@@ -150,126 +137,104 @@
             allPopups="false"
             locationURI="popup:org.eclipse.ui.popup.any?after=additions">
          <command
-               commandId="PDFViewer.command.forwardSearchAction"
+               commandId="edu.pdx.svl.coDoc.cdc.commands.AddReference"
                style="push">
             <visibleWhen
                   checkEnabled="false">
-               <with
-                     variable="activePart">
-                  <instanceof
-                        value="org.eclipse.ui.texteditor.ITextEditor">
-                  </instanceof>
-               </with>
+              <reference
+                    definitionId="edu.pdx.svl.coDoc.cdt.definitions.isEntryEditorActive">
+              </reference>
+            </visibleWhen>
+         </command>
+         <command
+               commandId="edu.pdx.svl.coDoc.cdc.commands.DeleteReference"
+               style="push">
+            <visibleWhen
+                  checkEnabled="false">
+              <reference
+                    definitionId="edu.pdx.svl.coDoc.cdt.definitions.isEntryEditorActive">
+              </reference>
+            </visibleWhen>
+         </command>
+         <command
+               commandId="edu.pdx.svl.coDoc.cdc.commands.EditReference"
+               style="push">
+            <visibleWhen
+                  checkEnabled="false">
+              <reference
+                    definitionId="edu.pdx.svl.coDoc.cdt.definitions.isEntryEditorActive">
+              </reference>
+            </visibleWhen>
+         </command>
+         <command
+               commandId="edu.pdx.svl.coDoc.cdc.commands.Preferences"
+               style="push">
+            <visibleWhen
+                  checkEnabled="false">
+              <reference
+                    definitionId="edu.pdx.svl.coDoc.cdt.definitions.isEntryEditorActive">
+              </reference>
             </visibleWhen>
          </command>
       </menuContribution>
       <menuContribution
             allPopups="false"
-            locationURI="toolbar:org.eclipse.ui.main.toolbar">
+            locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
          <toolbar
-               id="PDFViewer.toolbar">
+               id="edu.pdx.svl.coDoc.cdc.toolbars">
             <command
-                  commandId="PDFViewer.command.Zoom"
-                  icon="icons/magnifier--minus.png"
+                  commandId="edu.pdx.svl.coDoc.cdc.commands.AddReference"
+                  icon="icons/ref_add.png"
                   style="push"
-                  tooltip="Zoom out">
-               <visibleWhen
-                     checkEnabled="false">
-                  <reference
-                        definitionId="PDFViewer.definitions.isPDFEditorActive">
-                  </reference>
-               </visibleWhen>
-               <parameter
-                     name="PDFViewer.command.parameter.zoom"
-                     value="-0.1">
-               </parameter>
+                  tooltip="Add Link"
+                  id="edu.pdx.svl.coDoc.cdc.toolbars.AddReference">
             </command>
             <command
-                  commandId="PDFViewer.command.Zoom"
-                  icon="icons/arrow-move.png"
+                  commandId="edu.pdx.svl.coDoc.cdc.commands.DeleteReference"
+                  icon="icons/ref_delete.png"
                   style="push"
-                  tooltip="Fit page to window">
-               <visibleWhen
-                     checkEnabled="false">
-                  <reference
-                        definitionId="PDFViewer.definitions.isPDFEditorActive">
-                  </reference>
-               </visibleWhen>
-               <parameter
-                     name="PDFViewer.command.parameter.zoom"
-                     value="fit">
-               </parameter>
+                  tooltip="Delete Link"
+                  id="edu.pdx.svl.coDoc.cdc.toolbars.DeleteReference">
             </command>
             <command
-                  commandId="PDFViewer.command.Zoom"
-                  icon="icons/arrow-resize.png"
+                  commandId="edu.pdx.svl.coDoc.cdc.commands.EditReference"
+                  icon="icons/ref_edit.png"
                   style="push"
-                  tooltip="Fit page to window width">
-               <visibleWhen
-                     checkEnabled="false">
-                  <reference
-                        definitionId="PDFViewer.definitions.isPDFEditorActive">
-                  </reference>
-               </visibleWhen>
-               <parameter
-                     name="PDFViewer.command.parameter.zoom"
-                     value="fitH">
-               </parameter>
+                  tooltip="Edit Link"
+                  id="edu.pdx.svl.coDoc.cdc.toolbars.EditReference">
             </command>
             <command
-                  commandId="PDFViewer.command.Zoom"
-                  icon="icons/magnifier--plus.png"
+                  commandId="edu.pdx.svl.coDoc.cdc.commands.Preferences"
+                  icon="icons/preference.png"
                   style="push"
-                  tooltip="Zoom in">
-               <visibleWhen
-                     checkEnabled="false">
-                  <reference
-                        definitionId="PDFViewer.definitions.isPDFEditorActive">
-                  </reference>
-               </visibleWhen>
-               <parameter
-                     name="PDFViewer.command.parameter.zoom"
-                     value="+0.1">
-               </parameter>
-            </command>
-            <command
-                  commandId="PDFViewer.command.ToggleLinkHighlight"
-                  icon="icons/chain--pencil.png"
-                  style="toggle"
-                  tooltip="Toggle link highlighting">
-               <visibleWhen
-                     checkEnabled="false">
-                  <reference
-                        definitionId="PDFViewer.definitions.isPDFEditorActive">
-                  </reference>
-               </visibleWhen>
+                  tooltip="Delete Link"
+                  id="edu.pdx.svl.coDoc.cdc.toolbars.Preferences">
             </command>
          </toolbar>
       </menuContribution>
       <menuContribution
             locationURI="menu:org.eclipse.ui.main.menu?after=additions">
          <menu
-               label="Sample Menu"
-               mnemonic="M"
-               id="edu.pdx.svl.coDoc.cdc.menus.sampleMenu">
+               label="coDoc"
+               mnemonic="D"
+               id="edu.pdx.svl.coDoc.cdc.menus">
             <command
-                  commandId="edu.pdx.svl.coDoc.cdc.commands.sampleCommand"
-                  mnemonic="S"
-                  id="edu.pdx.svl.coDoc.cdc.menus.sampleCommand">
+                  commandId="edu.pdx.svl.coDoc.cdc.commands.AddReference"
+                  mnemonic="A"
+                  id="edu.pdx.svl.coDoc.cdc.menus.AddReference">
+               <visibleWhen
+                     checkEnabled="false">
+                  <reference
+                        definitionId="edu.pdx.svl.coDoc.cdt.definitions.isEntryEditorActive">
+                  </reference>
+               </visibleWhen>
+            </command>
+            <command
+                  commandId="edu.pdx.svl.coDoc.cdc.commands.DeleteReference"
+                  mnemonic="D"
+                  id="edu.pdx.svl.coDoc.cdc.menus.DeleteReference">
             </command>
          </menu>
-      </menuContribution>
-      <menuContribution
-            locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
-         <toolbar
-               id="edu.pdx.svl.coDoc.cdc.toolbars.sampleToolbar">
-            <command
-                  commandId="edu.pdx.svl.coDoc.cdc.commands.sampleCommand"
-                  icon="icons/sample.gif"
-                  tooltip="Say hello world"
-                  id="edu.pdx.svl.coDoc.cdc.toolbars.sampleCommand">
-            </command>
-         </toolbar>
       </menuContribution>
    </extension>
    <extension
@@ -284,22 +249,51 @@
    <extension
          point="org.eclipse.ui.popupMenus">
       <objectContribution
+            adaptable="true"
             objectClass="org.eclipse.core.resources.IFile"
-            id="edu.pdx.svl.coDoc.cdc.contribution1">
+            id="edu.pdx.svl.coDoc.contextMenu">
          <menu
-               label="New Submenu"
+               label="coDoc"
                path="additions"
-               id="edu.pdx.svl.coDoc.cdc.menu1">
+               id="edu.pdx.svl.coDoc.menu">
             <separator
                   name="group1">
             </separator>
          </menu>
          <action
-               label="New Action"
-               class="edu.pdx.svl.coDoc.cdc.action.NewAction"
-               menubarPath="edu.pdx.svl.coDoc.cdc.menu1/group1"
+               class="edu.pdx.svl.coDoc.cdc.actions.AddReference"
                enablesFor="1"
-               id="edu.pdx.svl.coDoc.cdc.action.newAction">
+               id="edu.pdx.svl.coDoc.cdc.actions.AddReference"
+               label="Add Reference"
+               menubarPath="edu.pdx.svl.coDoc.menu/group1">
+         </action>
+         <action
+               class="edu.pdx.svl.coDoc.cdc.actions.DeleteReference"
+               enablesFor="1"
+               id="edu.pdx.svl.coDoc.cdc.actions.DeleteReference"
+               label="Delete Reference"
+               menubarPath="edu.pdx.svl.coDoc.menu/group1">
+         </action>
+         <action
+               class="edu.pdx.svl.coDoc.cdc.actions.SelectPDF"
+               enablesFor="1"
+               id="edu.pdx.svl.coDoc.cdc.actions.SelectPDF"
+               label="Select PDF"
+               menubarPath="edu.pdx.svl.coDoc.menu/group1">
+         </action>
+         <action
+               class="edu.pdx.svl.coDoc.cdc.actions.ViewReferencesForSelection"
+               enablesFor="1"
+               id="edu.pdx.svl.coDoc.cdc.actions.ViewReferencesForSelection"
+               label="View References For Selection"
+               menubarPath="edu.pdx.svl.coDoc.menu/group1">
+         </action>
+         <action
+               class="edu.pdx.svl.coDoc.cdc.actions.Preferences"
+               enablesFor="1"
+               id="edu.pdx.svl.coDoc.cdc.actions.Preferences"
+               label="Preferences"
+               menubarPath="edu.pdx.svl.coDoc.menu/group2">
          </action>
       </objectContribution>
    </extension>
@@ -320,12 +314,12 @@
    <extension
          point="org.eclipse.core.expressions.definitions">
       <definition
-            id="PDFViewer.definitions.isPDFEditorActive">
+            id="edu.pdx.svl.coDoc.cdt.definitions.isEntryEditorActive">
          <with
-               variable="activeEditorId">
-            <equals
-                  value="de.vonloesch.pdf4eclipse.editors.PDFEditor">
-            </equals>
+               variable="activePart">
+            <instanceof
+                  value="edu.pdx.svl.coDoc.cdc.editor.EntryEditor">
+            </instanceof>
          </with>
       </definition>
    </extension>
@@ -333,8 +327,8 @@
          point="org.eclipse.ui.contexts">
       <!--id is used in CDCEditor.java and PDFEditor.java: "currentContext = service.activateContext(CONTEXT_ID);"-->
       <context
-            id="PDFViewer.editors.contextid"
-            name="PDF viewer"
+            id="edu.pdx.svl.coDoc.cdc.editor.EntryEditor.contextid"
+            name="Entry Editor"
             parentId="org.eclipse.ui.contexts.window">
       </context>
    </extension>

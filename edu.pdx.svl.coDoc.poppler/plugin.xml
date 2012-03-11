@@ -73,21 +73,6 @@
       </command>
    </extension>
    <extension
-         point="org.eclipse.ui.handlers">
-      <handler
-            commandId="PDFViewer.command.forwardSearchAction"
-            class="edu.pdx.svl.coDoc.handlers.ForwardSearchHandler">
-      </handler>
-      <handler
-            commandId="PDFViewer.command.Zoom"
-            class="edu.pdx.svl.coDoc.handlers.ZoomHandler">
-      </handler>
-      <handler
-            commandId="PDFViewer.command.ToggleLinkHighlight"
-            class="edu.pdx.svl.coDoc.handlers.ToggleLinkHighlightHandler">
-      </handler>
-   </extension>
-   <extension
          point="org.eclipse.ui.bindings">
       <key
             commandId="PDFViewer.command.forwardSearchAction"

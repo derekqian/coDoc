@@ -1,4 +1,4 @@
-package edu.pdx.svl.coDoc.cdc.popup.actions;
+package edu.pdx.svl.coDoc.cdc.actions;
 
 import java.util.Iterator;
 
@@ -27,11 +27,12 @@ import org.eclipse.ui.PlatformUI;
 import edu.pdx.svl.coDoc.cdc.editor.EntryEditor;
 import edu.pdx.svl.coDoc.cdc.referencemodel.Reference;
 import edu.pdx.svl.coDoc.cdc.referencemodel.References;
+import edu.pdx.svl.coDoc.cdc.view.EditView;
 import edu.pdx.svl.coDoc.cdc.Global;
 
 
 
-public class DeleteReference implements IObjectActionDelegate {
+public class EditReference implements IObjectActionDelegate {
 
 	private Shell shell;
 	
@@ -39,7 +40,7 @@ public class DeleteReference implements IObjectActionDelegate {
 	/**
 	 * Constructor for Action1.
 	 */
-	public DeleteReference() {
+	public EditReference() {
 		super();
 	}
 
@@ -54,6 +55,8 @@ public class DeleteReference implements IObjectActionDelegate {
 	 * @see IActionDelegate#run(IAction)
 	 */
 	public void run(IAction action) {
+		boolean refNotSelected = true;
+
 		IWorkbench workbench = PlatformUI.getWorkbench();
 		IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
 		IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
@@ -68,14 +71,17 @@ public class DeleteReference implements IObjectActionDelegate {
 			IStructuredSelection sel = (IStructuredSelection) selection;
 			
 			for (Iterator<Reference> iterator = sel.iterator(); iterator.hasNext();) {
-				Reference refToDelete = iterator.next();
-				refs.deleteReference(refToDelete);
-				
+				Reference refToEdit = iterator.next();
+				refNotSelected = false;
+				(new EditView(new Shell(), refToEdit)).open();
 			}
 			((ISelectionListener)view).selectionChanged(editor, new TextSelection(0,0));
 			//view.setInput();
 			//view.refresh();
 			
+		}
+		if (refNotSelected == true) {
+			MessageDialog.openError(null, "Alert",  "You must select a reference to be able to edit it!");
 		}
 	}
 

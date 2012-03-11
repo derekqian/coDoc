@@ -54,46 +54,11 @@
             </groupMarker>
          </menu>
          <action
-               class="edu.pdx.svl.coDoc.refexp.popup.actions.AddReference"
-               enablesFor="1"
-               id="edu.pdx.svl.coDoc.refexp.popup.actions.AddReference"
-               label="Add Reference"
-               menubarPath="edu.pdx.svl.coDoc.menu/group1">
-         </action>
-         <action
-               class="edu.pdx.svl.coDoc.refexp.popup.action.DeleteReference"
-               enablesFor="1"
-               id="edu.pdx.svl.coDoc.refexp.popup.action.DeleteReference"
-               label="Delete Reference"
-               menubarPath="edu.pdx.svl.coDoc.menu/group2">
-         </action>
-         <action
                class="edu.pdx.svl.coDoc.refexp.popup.actions.Help"
                enablesFor="1"
                id="edu.pdx.svl.coDoc.refexp.popup.actions.Help"
                label="Help"
                menubarPath="edu.pdx.svl.coDoc.menu/group2">
-         </action>
-         <action
-               class="edu.pdx.svl.coDoc.refexp.popup.actions.Preferences"
-               enablesFor="1"
-               id="edu.pdx.svl.coDoc.refexp.popup.actions.Preferences"
-               label="Preferences"
-               menubarPath="edu.pdx.svl.coDoc.menu/group2">
-         </action>
-         <action
-               class="edu.pdx.svl.coDoc.refexp.popup.actions.SelectPDF"
-               enablesFor="1"
-               id="edu.pdx.svl.coDoc.refexp.popup.actions.SelectPDF"
-               label="Select PDF"
-               menubarPath="edu.pdx.svl.coDoc.menu/group2">
-         </action>
-         <action
-               class="edu.pdx.svl.coDoc.refexp.popup.actions.ViewReferencesForSelection"
-               enablesFor="1"
-               id="edu.pdx.svl.coDoc.refexp.popup.actions.ViewReferencesForSelection"
-               label="View References For Selection"
-               menubarPath="edu.pdx.svl.coDoc.menu/group1">
          </action>
       </objectContribution>
    </extension>

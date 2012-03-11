@@ -39,7 +39,7 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 	public static final String ID = "edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView";
 	private static TreeViewer treeViewer;
 	private static TableViewer tableViewer;
-	private final int NUM_HORIZONTAL_ELEMENTS = 9; // max num elements in a row
+	private final int NUM_HORIZONTAL_ELEMENTS = 5; // max num elements in a row
 	private References references = null;
 	Button checkButton;
 	//IWorkbenchPart workbenchPart;
@@ -96,10 +96,6 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		
 		// setup buttons
 		createSearchTypeComboBox(parent);
-		createAddButton(parent);
-		createEditButton(parent);
-		createDeleteButton(parent);
-		createPreferencesButton(parent);
 		createHelpButton(parent);
 		createAllSourcesCheckBox(parent);
 	}
@@ -182,73 +178,6 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		}
 		treeViewer.refresh();
 		treeViewer.expandToLevel(4);
-	}
-	
-	private void createPreferencesButton(Composite parent) {
-		Button preferencesButton = new Button(parent, SWT.PUSH);
-		preferencesButton.setText("Preferences");
-		preferencesView = new PreferencesView();
-		preferencesButton.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent e) {
-				
-				preferencesView.open();
-			}
-		});
-	}
-
-	private void createAddButton(Composite parent) {
-		Button addButton = new Button(parent, SWT.PUSH);
-		addButton.setText("Add");
-		
-		addButton.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent e) {
-				Global.INSTANCE.entryEditor.getDocument().addReference();
-			}
-		});
-	}
-	
-	private void createEditButton(Composite parent) {
-		Button editButton = new Button(parent, SWT.PUSH);
-		editButton.setText("Edit");
-		
-		editButton.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent e) {
-				boolean refNotSelected = true;
-				ISelection selection = treeViewer.getSelection();
-				if (selection != null && selection instanceof IStructuredSelection) {
-					IStructuredSelection sel = (IStructuredSelection) selection;
-					for (Iterator<Reference> iterator = sel.iterator(); iterator.hasNext();) {
-						Reference refToEdit = iterator.next();
-						refNotSelected = false;
-						(new EditView(new Shell(), refToEdit)).open();
-					}
-					treeViewer.refresh();
-				} 
-				if (refNotSelected == true) {
-					MessageDialog.openError(null, "Alert",  "You must select a reference to be able to edit it!");
-				}
-			}
-		});
-	}
-	
-	private void createDeleteButton(Composite parent) {
-		Button ok = new Button(parent, SWT.PUSH);
-		ok.setText("Delete");
-		ok.addSelectionListener(new SelectionAdapter() {
-			@SuppressWarnings("unchecked")
-			public void widgetSelected(SelectionEvent e) {
-				ISelection selection = treeViewer.getSelection();
-				if (selection != null && selection instanceof IStructuredSelection) {
-					References refs = Global.INSTANCE.entryEditor.getDocument();
-					IStructuredSelection sel = (IStructuredSelection) selection;
-					for (Iterator<Reference> iterator = sel.iterator(); iterator.hasNext();) {
-						Reference refToDelete = iterator.next();
-						refs.deleteReference(refToDelete);
-					}
-					treeViewer.refresh();
-				}
-			}
-		});
 	}
 
 	private void createHelpButton(Composite parent) {
@@ -448,10 +377,18 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 	}
 	
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
+		System.out.println("<<<<<-------------------");
 		System.out.println("ReferenceExplorerView.selectionChanged: " + part.getClass().getName());
 
 		if (selection == null) return;
 		System.out.println("ReferenceExplorerView.selectionChanged: " + selection.getClass().getName());
+		
+		IEditorReference[] ef = part.getSite().getPage().getEditorReferences();
+		for(int i=0; i<ef.length; i++) {
+			System.out.println("ReferenceExplorerView.selectionChanged: editors: " + ef[i].getEditor(false).getClass().getName());
+		}
+		System.out.println("ReferenceExplorerView.selectionChanged: active editor: " + part.getSite().getPage().getActiveEditor().getClass().getName());
+		System.out.println("------------------->>>>>>>>");
 
 		if(part instanceof EntryEditor) {
 			IEditorPart editorPart = part.getSite().getPage().getActiveEditor();

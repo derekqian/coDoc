@@ -17,6 +17,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ViewForm;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -33,6 +35,8 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.contexts.IContextActivation;
+import org.eclipse.ui.contexts.IContextService;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.EditorPart;
 import org.eclipse.ui.part.FileEditorInput;
@@ -52,6 +56,8 @@ import edu.pdx.svl.coDoc.cdt.internal.core.model.TranslationUnit;
 
 public class EntryEditor extends MultiEditor implements ISelectionListener
 {
+	private static final String CONTEXT_ID = "edu.pdx.svl.coDoc.cdc.editor.EntryEditor.contextid";
+	private Composite container;
 	private CLabel innerEditorTitle[];
 	public References references;
 
@@ -81,9 +87,9 @@ public class EntryEditor extends MultiEditor implements ISelectionListener
 	public void createPartControl(Composite parent)
 	{
 		System.out.println("EntryEditor.createPartControl\n");
-		parent = new Composite(parent, SWT.BORDER);
-		parent.setLayout(new FillLayout());
-		SashForm sashForm = new SashForm(parent, SWT.HORIZONTAL);
+		container = new Composite(parent, SWT.BORDER);
+		container.setLayout(new FillLayout());
+		SashForm sashForm = new SashForm(container, SWT.HORIZONTAL);
 		IEditorPart innerEditors[] = getInnerEditors();
 		for (int i = 0; i < innerEditors.length; i++) 
 		{
@@ -110,7 +116,28 @@ public class EntryEditor extends MultiEditor implements ISelectionListener
 				}
 			});
 		}
+		
+		initKeyBindingContext();
 	}
+
+	private void initKeyBindingContext() {
+		final IContextService service = (IContextService)getSite().getService(IContextService.class);
+
+		container.addFocusListener(new FocusListener() {
+			IContextActivation currentContext = null;
+			public void focusGained(FocusEvent e) {
+				if (currentContext == null)
+					currentContext = service.activateContext(CONTEXT_ID);
+			}
+
+			public void focusLost(FocusEvent e) {
+				if (currentContext != null) {
+					service.deactivateContext(currentContext);
+					currentContext = null;
+				}
+			}
+		});
+	}	
 
 	/**
 	 * Draw the gradient for the specified editor.

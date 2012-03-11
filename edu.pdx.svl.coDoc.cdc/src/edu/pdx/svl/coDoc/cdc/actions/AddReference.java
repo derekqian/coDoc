@@ -1,4 +1,4 @@
-package edu.pdx.svl.coDoc.cdc.popup.actions;
+package edu.pdx.svl.coDoc.cdc.actions;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -13,11 +13,11 @@ import org.eclipse.ui.IWorkbenchPart;
 
 //import edu.pdx.svl.coDoc.refexp.editorcontextmenu.editors.SelectionAndCursor;
 
-import edu.pdx.svl.coDoc.cdc.preferences.PreferencesView;
+import edu.pdx.svl.coDoc.cdc.Global;
 
 
 
-public class Preferences implements IObjectActionDelegate {
+public class AddReference implements IObjectActionDelegate {
 
 	private Shell shell;
 	
@@ -25,7 +25,7 @@ public class Preferences implements IObjectActionDelegate {
 	/**
 	 * Constructor for Action1.
 	 */
-	public Preferences() {
+	public AddReference() {
 		super();
 	}
 
@@ -40,9 +40,7 @@ public class Preferences implements IObjectActionDelegate {
 	 * @see IActionDelegate#run(IAction)
 	 */
 	public void run(IAction action) {
-		PreferencesView preferencesView = new PreferencesView();
-		preferencesView.open();
-		
+		Global.INSTANCE.entryEditor.getDocument().addReference();
 	}
 
 	/**

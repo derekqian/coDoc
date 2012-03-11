@@ -1,4 +1,4 @@
-package edu.pdx.svl.coDoc.cdc.popup.actions;
+package edu.pdx.svl.coDoc.cdc.actions;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -13,19 +13,19 @@ import org.eclipse.ui.IWorkbenchPart;
 
 //import edu.pdx.svl.coDoc.refexp.editorcontextmenu.editors.SelectionAndCursor;
 
-import edu.pdx.svl.coDoc.cdc.referencemodel.PDFManager;
+import edu.pdx.svl.coDoc.cdc.Global;
+import edu.pdx.svl.coDoc.cdc.editor.IReferenceExplorer;
 
 
 
-public class SelectPDF implements IObjectActionDelegate {
+public class ViewReferencesForSelection implements IObjectActionDelegate {
 
 	private Shell shell;
-	
 	
 	/**
 	 * Constructor for Action1.
 	 */
-	public SelectPDF() {
+	public ViewReferencesForSelection() {
 		super();
 	}
 
@@ -40,7 +40,8 @@ public class SelectPDF implements IObjectActionDelegate {
 	 * @see IActionDelegate#run(IAction)
 	 */
 	public void run(IAction action) {
-		PDFManager.INSTANCE.openFileInAcrobat();
+		IReferenceExplorer referenceExplorerView = Global.INSTANCE.referenceExplorerView;
+		referenceExplorerView.displayListOfTextSelectionReferencesForSelectionInActiveEditor();
 	}
 
 	/**
