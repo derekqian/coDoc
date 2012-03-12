@@ -2,6 +2,11 @@ package edu.pdx.svl.coDoc.refexp.referenceexplorer;
 
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
 
 import java.util.Iterator;
 import java.util.Vector;
@@ -20,6 +25,7 @@ import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.ui.*;
 import org.eclipse.ui.part.FileEditorInput;
+import org.eclipse.ui.part.MultiEditor;
 import org.eclipse.ui.part.ViewPart;
 
 
@@ -30,6 +36,7 @@ import edu.pdx.svl.coDoc.cdc.referencemodel.*;
 import edu.pdx.svl.coDoc.cdc.editor.EntryEditor;
 import edu.pdx.svl.coDoc.cdc.editor.IReferenceExplorer;
 import edu.pdx.svl.coDoc.cdc.view.EditView;
+import edu.pdx.svl.coDoc.poppler.editor.PDFEditor;
 import edu.pdx.svl.coDoc.refexp.referenceexplorer.edit.EditComment;
 import edu.pdx.svl.coDoc.refexp.referenceexplorer.provider.*;
 import edu.pdx.svl.coDoc.refexp.referenceexplorer.provider.LabelProvider;
@@ -77,13 +84,16 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		treeViewer.getControl().setFocus();
 	}
 	
-	public EntryEditor getActiveEntryEditor() {
-		IEditorPart editor = getSite().getPage().getActiveEditor();
-		if(editor instanceof EntryEditor) {
-			return (EntryEditor)editor;
-		} else {
-			return null;
+	public EntryEditor getEntryEditor() {
+		EntryEditor editor = null;
+		// IEditorPart editor = getSite().getPage().getActiveEditor();
+		IWorkbenchPage workbenchPage = getSite().getPage();
+		IEditorReference[] editorrefs = workbenchPage.findEditors(null,"edu.pdx.svl.coDoc.cdc.editor.EntryEditor",IWorkbenchPage.MATCH_ID);
+		if(editorrefs.length != 0)
+		{
+			editor = (EntryEditor) editorrefs[0].getEditor(false);
 		}
+		return editor;
 	}
 
 	private void createSearchBarAndButtons(Composite parent) {
@@ -280,8 +290,19 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 
 		tree.addListener (SWT.Selection, new Listener () {
 			public void handleEvent (Event event) {
-				selectTextInTextEditor();
-				selectTextInAcrobat();
+				EntryEditor editor = getEntryEditor();
+				ISelection selection = treeViewer.getSelection();
+				if (selection != null && selection instanceof IStructuredSelection) {
+					IStructuredSelection sel = (IStructuredSelection) selection;
+					for (Iterator<Reference> iterator = sel.iterator(); iterator.hasNext();) {
+						Reference ref = iterator.next();
+						editor.selectTextInAcrobat(ref);
+						if (ref instanceof TextSelectionReference) {
+							TextSelectionReference tsr = (TextSelectionReference)ref;
+							editor.selectTextInTextEditor(tsr);
+						}
+					}
+				}
 			}
 		});
 		tree.addMouseListener(new MouseAdapter() {
@@ -333,42 +354,6 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		column.setResizable(true);
 		column.setMoveable(true);
 		return viewerColumn;
-	}
-	
-
-	@SuppressWarnings("unchecked")
-	private void selectTextInTextEditor() {
-		EntryEditor editor = getActiveEntryEditor();
-		ISelection selection = treeViewer.getSelection();
-		if (selection != null && selection instanceof IStructuredSelection) {
-			IStructuredSelection sel = (IStructuredSelection) selection;
-			for (Iterator<Reference> iterator = sel.iterator(); iterator.hasNext();) {
-				Reference ref = iterator.next();
-				if (ref instanceof TextSelectionReference) {
-					TextSelectionReference tsr = (TextSelectionReference)ref;
-					editor.selectTextInTextEditor(tsr);
-				}
-			}
-		}
-		setFocus();
-	}
-	
-
-
-	@SuppressWarnings("unchecked")
-	private void selectTextInAcrobat() {
-		EntryEditor editor = getActiveEntryEditor();
-
-//		if (PDFManager.INSTANCE.isAcrobatOpened() == true) {
-			ISelection selection = treeViewer.getSelection();
-			if (selection != null && selection instanceof IStructuredSelection) {
-				IStructuredSelection sel = (IStructuredSelection) selection;
-				for (Iterator<Reference> iterator = sel.iterator(); iterator.hasNext();) {
-					Reference ref = iterator.next();
-					editor.selectTextInAcrobat(ref);
-				}
-			}
-//		}
 	}
 
 	public void handleEvent(Event event) {
@@ -503,7 +488,7 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 	}
 	
 	public void displayListOfTextSelectionReferencesForSelectionInActiveEditor() {
-		EntryEditor editor = getActiveEntryEditor();
+		EntryEditor editor = getEntryEditor();
 		References references = Global.INSTANCE.entryEditor.getDocument();
 		TextSelectionReference currentTextSelection = editor.getCurrentTextSelectionReference();
 		Vector<Reference> matches = references.findReferencesContainingTextSelectionInActiveEditor(currentTextSelection);
