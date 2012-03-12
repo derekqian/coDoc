@@ -5,11 +5,13 @@ import java.util.Vector;
 
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -22,6 +24,7 @@ import edu.pdx.svl.coDoc.cdc.referencemodel.Reference;
 import edu.pdx.svl.coDoc.cdc.Global;
 import edu.pdx.svl.coDoc.cdc.XML.SimpleXML;
 import edu.pdx.svl.coDoc.cdc.editor.EntryEditor;
+import edu.pdx.svl.coDoc.cdc.editor.IReferenceExplorer;
 import edu.pdx.svl.coDoc.cdc.preferences.PreferenceValues;
 import edu.pdx.svl.coDoc.cdc.referencemodel.ProjectReference;
 import edu.pdx.svl.coDoc.cdc.referencemodel.SourceFileReference;
@@ -59,7 +62,27 @@ public class References {
 		SourceFileReference sfr = null;
 		boolean matchingFile = false;
 		
-		String sourceFile = Global.INSTANCE.activeFileEditorInput.getName();
+		EntryEditor editor = null;
+		IEditorPart cEditor = null;
+		IWorkbench workbench = PlatformUI.getWorkbench();
+		IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
+		IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
+		IEditorReference[] editorrefs = workbenchPage.findEditors(null,"edu.pdx.svl.coDoc.cdc.editor.EntryEditor",IWorkbenchPage.MATCH_ID);
+		if(editorrefs.length != 0)
+		{
+			editor = (EntryEditor) editorrefs[0].getEditor(false);
+		}
+		IEditorPart[] editors = editor.getInnerEditors();
+		for(int i=0; i<editors.length; i++)
+		{
+			System.out.println(editors[i].getClass().getName());
+			if(editors[i].getClass().getName().equals("edu.pdx.svl.coDoc.cdt.internal.ui.editor.CEditor"))
+			{
+				cEditor = editors[i];
+			}
+		}
+		Global.INSTANCE.activeFileEditorInput = (FileEditorInput) cEditor.getEditorInput();
+		String sourceFile = cEditor.getEditorInput().getName();
 		String projectName = Global.INSTANCE.getActiveProjectName();
 		String projectDirectory = Global.INSTANCE.getActiveProjectDirectory();
 		
@@ -105,14 +128,9 @@ public class References {
 		sfr.getChildrenList().add(tsr);
 		tsr.setSourceFile(sfr);
 		
-		IWorkbench workbench = PlatformUI.getWorkbench();
-		IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
-		IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
-		EntryEditor editor = (EntryEditor)workbenchPage.getActiveEditor();
-		ISelectionListener view = (ISelectionListener)workbenchPage.findView("");
-		view.selectionChanged(editor, new TextSelection(0,0));
-		//view.setInput();
-		//view.refresh();
+		IReferenceExplorer view = (IReferenceExplorer)workbenchPage.findView("edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView");
+		view.setInput(this);
+		view.refresh();
 
 		SimpleXML.write(this);
 //		Global.INSTANCE.previousTextSelection = Global.INSTANCE.currentTextSelection;

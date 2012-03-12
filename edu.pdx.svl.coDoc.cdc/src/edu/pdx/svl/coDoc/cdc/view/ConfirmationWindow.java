@@ -13,6 +13,7 @@ import org.eclipse.jface.text.TextViewer;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -52,11 +53,15 @@ public class ConfirmationWindow extends Dialog {
 	}
 
 	public void getReferenceData() {
+		EntryEditor editor = null;
 		IWorkbench workbench = PlatformUI.getWorkbench();
 		IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
 		IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
-		EntryEditor editor = (EntryEditor)workbenchPage.getActiveEditor();
-		//EntryEditor editor = (EntryEditor)workbenchPart.getSite().getPage().getActiveEditor();
+		IEditorReference[] editorrefs = workbenchPage.findEditors(null,"edu.pdx.svl.coDoc.cdc.editor.EntryEditor",IWorkbenchPage.MATCH_ID);
+		if(editorrefs.length != 0)
+		{
+			editor = (EntryEditor) editorrefs[0].getEditor(false);
+		}
 		tsr = editor.getCurrentTextSelectionReference();
 	}
 	

@@ -361,6 +361,10 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		
 	}
 	
+	public ISelection getSelection() {
+		return treeViewer.getSelection();
+	}
+	
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
 		System.out.println("<<<<<-------------------");
 		System.out.println("ReferenceExplorerView.selectionChanged: " + part.getClass().getName());

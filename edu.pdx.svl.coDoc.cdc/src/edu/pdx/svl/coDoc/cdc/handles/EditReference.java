@@ -26,12 +26,16 @@ import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 import edu.pdx.svl.coDoc.cdc.Global;
 import edu.pdx.svl.coDoc.cdc.editor.EntryEditor;
+import edu.pdx.svl.coDoc.cdc.editor.IReferenceExplorer;
 import edu.pdx.svl.coDoc.cdc.referencemodel.Reference;
 import edu.pdx.svl.coDoc.cdc.referencemodel.References;
 import edu.pdx.svl.coDoc.cdc.view.EditView;
@@ -49,17 +53,18 @@ public class EditReference extends AbstractHandler {
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		boolean refNotSelected = true;
-		IEditorPart e = HandlerUtil.getActiveEditor(event);
-		
-		if (!(e instanceof ITextEditor)) {
-			return null;
+		// IEditorPart e = HandlerUtil.getActiveEditor(event);
+		EntryEditor editor = null;
+		IWorkbench workbench = PlatformUI.getWorkbench();
+		IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
+		IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
+		IEditorReference[] editorrefs = workbenchPage.findEditors(null,"edu.pdx.svl.coDoc.cdc.editor.EntryEditor",IWorkbenchPage.MATCH_ID);
+		if(editorrefs.length != 0)
+		{
+			editor = (EntryEditor) editorrefs[0].getEditor(false);
 		}
-		
-		EntryEditor editor = (EntryEditor)e;
-		IViewPart view = editor.getSite().getPage().findView("");
-		ISelection selection = view.getViewSite().getSelectionProvider().getSelection();
-		//TreeViewer treeViewer = Global.INSTANCE.referenceExplorerView.getTreeViewer();
-		//ISelection selection = treeViewer.getSelection();
+		IReferenceExplorer view = (IReferenceExplorer)editor.getSite().getPage().findView("edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView");
+		ISelection selection = view.getSelection();
 		
 		if (selection != null && selection instanceof IStructuredSelection) {
 			References refs = Global.INSTANCE.entryEditor.getDocument();
@@ -70,9 +75,8 @@ public class EditReference extends AbstractHandler {
 				refNotSelected = false;
 				(new EditView(new Shell(), refToEdit)).open();
 			}
-			((ISelectionListener)view).selectionChanged(editor, new TextSelection(0,0));
-			//view.setInput();
-			//view.refresh();
+			view.setInput(refs);
+			view.refresh();
 			
 		}
 		if (refNotSelected == true) {
