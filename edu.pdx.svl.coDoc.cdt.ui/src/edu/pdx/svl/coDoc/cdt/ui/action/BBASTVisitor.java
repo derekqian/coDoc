@@ -48,15 +48,16 @@ public class BBASTVisitor extends ASTVisitor {
 		return results;
 	}
 	
-	public void writeHead(String head) {
+	private void writeString(String string, boolean append) {
 		try {
 			File dotfile = new File(name);
 			FileOutputStream os = null;
-			if(dotfile.exists()) {
-				os = new FileOutputStream(dotfile,false);
-				os.write(head.getBytes());
-				os.close();
+			if(!dotfile.exists()) {
+				dotfile.createNewFile();
 			}
+			os = new FileOutputStream(dotfile,append);
+			os.write(string.getBytes());
+			os.close();
 			os = null;
 			dotfile = null;
 		} catch (FileNotFoundException e) {
@@ -64,44 +65,21 @@ public class BBASTVisitor extends ASTVisitor {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		return;
+	}
+	
+	public void writeHead(String head) {
+		writeString(head,false);
 		return;
 	}
 	
 	public void writeBody(String body) {
-		try {
-			File dotfile = new File(name);
-			FileOutputStream os = null;
-			if(dotfile.exists()) {
-				os = new FileOutputStream(dotfile,true);
-				os.write(body.getBytes());
-				os.close();
-			}
-			os = null;
-			dotfile = null;
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		writeString(body,true);
 		return;
 	}
 	
 	public void writeTail(String tail) {
-		try {
-			File dotfile = new File(name);
-			FileOutputStream os = null;
-			if(dotfile.exists()) {
-				os = new FileOutputStream(dotfile,true);
-				os.write(tail.getBytes());
-				os.close();
-			}
-			os = null;
-			dotfile = null;
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		writeString(tail,true);
 		return;
 	}
 	
@@ -201,6 +179,9 @@ public class BBASTVisitor extends ASTVisitor {
 
 	public int visit(IASTStatement statement) {
 		System.out.println(statement);
+		System.out.println("<<<<<<<<<<<<<----------------");
+		System.out.println(statement.getRawSignature());
+		System.out.println("---------------->>>>>>>>>>>>>");
 		writeBody("node"+Integer.toHexString(statement.hashCode())+"[label="+getNameOfClass(statement)+"];\n");
 		if(statement.getParent() != null) {
 			writeBody("node"+Integer.toHexString(statement.getParent().hashCode())+" -> "
