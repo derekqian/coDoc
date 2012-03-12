@@ -42,17 +42,21 @@ public class PDFSelection implements IPDF {
 			if(editorrefs.length != 0)
 			{
 				MultiEditor editor = (MultiEditor) editorrefs[0].getEditor(false);
-				
-				IEditorPart[] editors = editor.getInnerEditors();
-				for(int i=0; i<editors.length; i++)
-				{
-					System.out.println(editors[i].getClass().getName());
-					if(editors[i].getClass().getName().equals("edu.pdx.svl.coDoc.poppler.editor.PDFEditor"))
+				if(editor != null) {
+					IEditorPart[] editors = editor.getInnerEditors();
+					for(int i=0; i<editors.length; i++)
 					{
-						pdfEditor = (PDFEditor) editors[i];
+						System.out.println(editors[i].getClass().getName());
+						if(editors[i].getClass().getName().equals("edu.pdx.svl.coDoc.poppler.editor.PDFEditor"))
+						{
+							pdfEditor = (PDFEditor) editors[i];
+						}
 					}
+					acrobatInterface = pdfEditor.getPDFPageViewer();
+				} else {
+					pdfEditor = null;
+					acrobatInterface = null;
 				}
-				acrobatInterface = pdfEditor.getPDFPageViewer();
 			}
 			else
 			{

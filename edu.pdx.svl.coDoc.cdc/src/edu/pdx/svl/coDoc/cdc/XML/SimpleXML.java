@@ -11,6 +11,7 @@ import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.core.Persister;
 
 import edu.pdx.svl.coDoc.cdc.Global;
+import edu.pdx.svl.coDoc.cdc.editor.CDCModel;
 import edu.pdx.svl.coDoc.cdc.preferences.PreferenceValues;
 import edu.pdx.svl.coDoc.cdc.referencemodel.ProjectReference;
 import edu.pdx.svl.coDoc.cdc.referencemodel.Reference;
@@ -32,6 +33,30 @@ public class SimpleXML {
 //		System.out.println("Project Name     : " + projectName);
 //		System.out.println("C File Name      : " + cFileName);
 //	}
+	
+	public static CDCModel readCDCModel(String filepath) {
+		CDCModel cdcModel = null;
+		File cdcFile = new File(filepath);
+		Serializer serializer = new Persister();
+		try {
+			cdcModel = serializer.read(CDCModel.class, cdcFile);
+		} catch (Exception e) {
+			System.out.println("Unable to read " + filepath + "!");
+			e.printStackTrace();
+		}
+		return cdcModel;
+	}
+	
+	public static void writeCDCModel(CDCModel cdcModel, String filepath) {
+		Serializer serializer = new Persister();
+		File cdcFile = new File(filepath);
+		try {
+			serializer.write(cdcModel, cdcFile);
+		} catch (Exception e) {
+			System.out.println("Unable to write " + filepath + "!");
+			e.printStackTrace();
+		}
+	}
 	
 	public static References read() {
 		File source = null;

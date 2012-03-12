@@ -29,6 +29,8 @@ import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IPropertyListener;
 import org.eclipse.ui.ISelectionListener;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
@@ -60,6 +62,7 @@ public class EntryEditor extends MultiEditor implements ISelectionListener
 	private Composite container;
 	private CLabel innerEditorTitle[];
 	public References references;
+	private IViewPart refview;
 
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException
 	{
@@ -74,6 +77,20 @@ public class EntryEditor extends MultiEditor implements ISelectionListener
 		if (references == null) {
 			references = new References();
 			references.addProject();
+		}
+		
+		IWorkbench workbench = PlatformUI.getWorkbench();
+		IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
+		IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
+		IViewReference viewref = workbenchPage.findViewReference("edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView");
+		if(viewref != null) {
+			refview = viewref.getView(false);
+			
+			IReferenceExplorer re = (IReferenceExplorer)refview;
+			re.setInput(references);
+			re.refresh();
+		} else {
+			refview = null;
 		}
 	}
 	

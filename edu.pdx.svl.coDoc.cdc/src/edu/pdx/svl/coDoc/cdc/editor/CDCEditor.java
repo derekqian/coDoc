@@ -19,7 +19,8 @@ import org.eclipse.ui.part.FileEditorInput;
 
 public class CDCEditor implements IEditorLauncher
 {
-	private IEditorPart entryeditor = null;
+	private static IEditorPart entryeditor = null;
+	private static IPath path = null;
 
 	public CDCEditor() {
 		super();
@@ -28,6 +29,8 @@ public class CDCEditor implements IEditorLauncher
 	@Override
 	public void open(IPath path) 
 	{
+		this.path = path;
+		
 		IWorkspace workspace = ResourcesPlugin.getWorkspace();
 		IWorkspaceRoot workspaceroot = workspace.getRoot();
 		
@@ -184,5 +187,9 @@ public class CDCEditor implements IEditorLauncher
 				}
 			} */
 		}
+	}
+	
+	public static IPath getLatestPath() {
+		return path;
 	}
 }
