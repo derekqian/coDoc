@@ -92,7 +92,8 @@ public class BBASTVisitor extends ASTVisitor {
 	public int visit(IASTTranslationUnit tu) {
 		System.out.println(tu);
 		writeBody("node"+Integer.toHexString(tu.hashCode())
-				+"[label="+getNameOfClass(tu)+"_"+((ASTNode)tu).getOffset()+"_"+((ASTNode)tu).getLength()+"];\n");
+				+"[label="+getNameOfClass(tu)+"_"+((ASTNode)tu).getOffset()+"_"+((ASTNode)tu).getLength()+", "
+				+"color=\"#000000\"];\n");
 		if(tu.getParent() != null) {
 			writeBody("node"+Integer.toHexString(tu.getParent().hashCode())+" -> "
 					+"node"+Integer.toHexString(tu.hashCode())+";\n");
@@ -103,7 +104,8 @@ public class BBASTVisitor extends ASTVisitor {
 	public int visit(IASTName name) {
 		System.out.println(name);
 		writeBody("node"+Integer.toHexString(name.hashCode())
-				+"[label="+getNameOfClass(name)+"];\n");
+				+"[label="+getNameOfClass(name)+", "
+				+"style=filled, color=\"#00ff00\"];\n");
 		if(name.getParent() != null) {
 			writeBody("node"+Integer.toHexString(name.getParent().hashCode())+" -> "
 					+"node"+Integer.toHexString(name.hashCode())+";\n");
@@ -119,7 +121,8 @@ public class BBASTVisitor extends ASTVisitor {
 	public int visit(IASTDeclaration declaration) {
 		System.out.println(declaration);
 		writeBody("node"+Integer.toHexString(declaration.hashCode())
-				+"[label="+getNameOfClass(declaration)+"_"+((ASTNode)declaration).getOffset()+"_"+((ASTNode)declaration).getLength()+"];\n");
+				+"[label="+getNameOfClass(declaration)+"_"+((ASTNode)declaration).getOffset()+"_"+((ASTNode)declaration).getLength()+", "
+				+"style=filled, color=\"#ff0000\"];\n");
 		if(declaration.getParent() != null) {
 			writeBody("node"+Integer.toHexString(declaration.getParent().hashCode())+" -> "
 					+"node"+Integer.toHexString(declaration.hashCode())+";\n");
@@ -129,7 +132,8 @@ public class BBASTVisitor extends ASTVisitor {
 
 	public int visit(IASTInitializer initializer) {
 		System.out.println(initializer);
-		writeBody("node"+Integer.toHexString(initializer.hashCode())+"[label="+getNameOfClass(initializer)+"];\n");
+		writeBody("node"+Integer.toHexString(initializer.hashCode())+"[label="+getNameOfClass(initializer)+", "
+				+"style=filled, color=\"#ff0000\"];\n");
 		if(initializer.getParent() != null) {
 			writeBody("node"+Integer.toHexString(initializer.getParent().hashCode())+" -> "
 					+"node"+Integer.toHexString(initializer.hashCode())+";\n");
@@ -139,7 +143,8 @@ public class BBASTVisitor extends ASTVisitor {
 
 	public int visit(IASTParameterDeclaration parameterDeclaration) {
 		System.out.println(parameterDeclaration);
-		writeBody("node"+Integer.toHexString(parameterDeclaration.hashCode())+"[label="+getNameOfClass(parameterDeclaration)+"];\n");
+		writeBody("node"+Integer.toHexString(parameterDeclaration.hashCode())+"[label="+getNameOfClass(parameterDeclaration)+", "
+				+"style=filled, color=\"#ff0000\"];\n");
 		if(parameterDeclaration.getParent() != null) {
 			writeBody("node"+Integer.toHexString(parameterDeclaration.getParent().hashCode())+" -> "
 					+"node"+Integer.toHexString(parameterDeclaration.hashCode())+";\n");
@@ -149,7 +154,8 @@ public class BBASTVisitor extends ASTVisitor {
 
 	public int visit(IASTDeclarator declarator) {
 		System.out.println(declarator);
-		writeBody("node"+Integer.toHexString(declarator.hashCode())+"[label="+getNameOfClass(declarator)+"];\n");
+		writeBody("node"+Integer.toHexString(declarator.hashCode())+"[label="+getNameOfClass(declarator)+", "
+				+"style=filled, color=\"#ff0000\"];\n");
 		if(declarator.getParent() != null) {
 			writeBody("node"+Integer.toHexString(declarator.getParent().hashCode())+" -> "
 					+"node"+Integer.toHexString(declarator.hashCode())+";\n");
@@ -159,7 +165,8 @@ public class BBASTVisitor extends ASTVisitor {
 
 	public int visit(IASTDeclSpecifier declSpec) {
 		System.out.println(declSpec);
-		writeBody("node"+Integer.toHexString(declSpec.hashCode())+"[label="+getNameOfClass(declSpec)+"];\n");
+		writeBody("node"+Integer.toHexString(declSpec.hashCode())+"[label="+getNameOfClass(declSpec)+", "
+				+"style=filled, color=\"#ff0000\"];\n");
 		if(declSpec.getParent() != null) {
 			writeBody("node"+Integer.toHexString(declSpec.getParent().hashCode())+" -> "
 					+"node"+Integer.toHexString(declSpec.hashCode())+";\n");
@@ -169,7 +176,8 @@ public class BBASTVisitor extends ASTVisitor {
 
 	public int visit(IASTExpression expression) {
 		System.out.println(expression);
-		writeBody("node"+Integer.toHexString(expression.hashCode())+"[label="+getNameOfClass(expression)+"];\n");
+		writeBody("node"+Integer.toHexString(expression.hashCode())+"[label="+getNameOfClass(expression)+", "
+				+"style=filled, color=\"#ff0000\"];\n");
 		if(expression.getParent() != null) {
 			writeBody("node"+Integer.toHexString(expression.getParent().hashCode())+" -> "
 					+"node"+Integer.toHexString(expression.hashCode())+";\n");
@@ -182,7 +190,8 @@ public class BBASTVisitor extends ASTVisitor {
 		System.out.println("<<<<<<<<<<<<<----------------");
 		System.out.println(statement.getRawSignature());
 		System.out.println("---------------->>>>>>>>>>>>>");
-		writeBody("node"+Integer.toHexString(statement.hashCode())+"[label="+getNameOfClass(statement)+"];\n");
+		writeBody("node"+Integer.toHexString(statement.hashCode())+"[label="+getNameOfClass(statement)+", "
+				+"style=filled, color=\"#0000ff\"];\n");
 		if(statement.getParent() != null) {
 			writeBody("node"+Integer.toHexString(statement.getParent().hashCode())+" -> "
 					+"node"+Integer.toHexString(statement.hashCode())+";\n");
@@ -210,7 +219,8 @@ public class BBASTVisitor extends ASTVisitor {
 
 	public int visit(IASTTypeId typeId) {
 		System.out.println(typeId);
-		writeBody("node"+Integer.toHexString(typeId.hashCode())+"[label="+getNameOfClass(typeId)+"];\n");
+		writeBody("node"+Integer.toHexString(typeId.hashCode())+"[label="+getNameOfClass(typeId)+", "
+				+"style=filled, color=\"#ff0000\"];\n");
 		if(typeId.getParent() != null) {
 			writeBody("node"+Integer.toHexString(typeId.getParent().hashCode())+" -> "
 					+"node"+Integer.toHexString(typeId.hashCode())+";\n");
@@ -220,7 +230,8 @@ public class BBASTVisitor extends ASTVisitor {
 
 	public int visit(IASTEnumerator enumerator) {
 		System.out.println(enumerator);
-		writeBody("node"+Integer.toHexString(enumerator.hashCode())+"[label="+getNameOfClass(enumerator)+"];\n");
+		writeBody("node"+Integer.toHexString(enumerator.hashCode())+"[label="+getNameOfClass(enumerator)+", "
+				+"style=filled, color=\"#ff0000\"];\n");
 		if(enumerator.getParent() != null) {
 			writeBody("node"+Integer.toHexString(enumerator.getParent().hashCode())+" -> "
 					+"node"+Integer.toHexString(enumerator.hashCode())+";\n");
@@ -230,7 +241,8 @@ public class BBASTVisitor extends ASTVisitor {
 
 	public int visit(IASTProblem problem) {
 		System.out.println(problem);
-		writeBody("node"+Integer.toHexString(problem.hashCode())+"[label="+getNameOfClass(problem)+"];\n");
+		writeBody("node"+Integer.toHexString(problem.hashCode())+"[label="+getNameOfClass(problem)+", "
+				+"style=filled, color=\"#ff0000\"];\n");
 		if(problem.getParent() != null) {
 			writeBody("node"+Integer.toHexString(problem.getParent().hashCode())+" -> "
 					+"node"+Integer.toHexString(problem.hashCode())+";\n");
