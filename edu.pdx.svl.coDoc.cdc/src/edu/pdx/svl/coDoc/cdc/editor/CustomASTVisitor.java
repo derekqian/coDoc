@@ -1,10 +1,5 @@
 package edu.pdx.svl.coDoc.cdc.editor;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-
 import org.eclipse.jface.text.ITextOperationTarget;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.TextAttribute;
@@ -42,14 +37,14 @@ import edu.pdx.svl.coDoc.cdt.internal.core.dom.parser.ASTNode;
 public class CustomASTVisitor extends ASTVisitor {
 
 	{
-		shouldVisitNames = true; //
+		//shouldVisitNames = true; //
 		//shouldVisitDeclarations = true;
 		//shouldVisitInitializers = true;
 		//shouldVisitParameterDeclarations = true;
 		//shouldVisitDeclarators = true;
 		//shouldVisitDeclSpecifiers = true;
 		//shouldVisitExpressions = true;
-		//shouldVisitStatements = true; //
+		shouldVisitStatements = true; //
 		//shouldVisitTypeIds = true;
 		//shouldVisitEnumerators = true;
 		//shouldVisitTranslationUnit = true;
@@ -70,10 +65,6 @@ public class CustomASTVisitor extends ASTVisitor {
 	private ITextOperationTarget target = null;
 	private ITextViewer viewer = null;
 	private TextSelection currentSyntaxSelection = null;
-	
-	private String name = "/home/derek/Research/ast.dot";
-	private File dotfile = null;
-	private FileOutputStream os = null;
 	
 	public static CustomASTVisitor getInstance() {
 		if(instance == null) {
@@ -129,63 +120,6 @@ public class CustomASTVisitor extends ASTVisitor {
 		return results;
 	}
 	
-	public void writeHead(String head) {
-		try {
-			File dotfile = new File(name);
-			FileOutputStream os = null;
-			if(dotfile.exists()) {
-				os = new FileOutputStream(dotfile,false);
-				os.write(head.getBytes());
-				os.close();
-			}
-			os = null;
-			dotfile = null;
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return;
-	}
-	
-	public void writeBody(String body) {
-		try {
-			File dotfile = new File(name);
-			FileOutputStream os = null;
-			if(dotfile.exists()) {
-				os = new FileOutputStream(dotfile,true);
-				os.write(body.getBytes());
-				os.close();
-			}
-			os = null;
-			dotfile = null;
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return;
-	}
-	
-	public void writeTail(String tail) {
-		try {
-			File dotfile = new File(name);
-			FileOutputStream os = null;
-			if(dotfile.exists()) {
-				os = new FileOutputStream(dotfile,true);
-				os.write(tail.getBytes());
-				os.close();
-			}
-			os = null;
-			dotfile = null;
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return;
-	}
-	
 	public String getNameOfClass(Object obj) {
 		String str = obj.getClass().getName();
 		int index = str.lastIndexOf('.');
@@ -194,11 +128,7 @@ public class CustomASTVisitor extends ASTVisitor {
 
 	public int visit(IASTTranslationUnit tu) {
 		System.out.println(tu);
-		writeBody("node"+Integer.toHexString(tu.hashCode())
-				+"[label="+getNameOfClass(tu)+"_"+((ASTNode)tu).getOffset()+"_"+((ASTNode)tu).getLength()+"];\n");
 		if(tu.getParent() != null) {
-			writeBody("node"+Integer.toHexString(tu.getParent().hashCode())+" -> "
-					+"node"+Integer.toHexString(tu.hashCode())+";\n");
 		}
 		return PROCESS_CONTINUE;
 	}
@@ -270,60 +200,96 @@ public class CustomASTVisitor extends ASTVisitor {
 
 	public int visit(IASTInitializer initializer) {
 		System.out.println(initializer);
-		writeBody("node"+Integer.toHexString(initializer.hashCode())+"[label="+getNameOfClass(initializer)+"];\n");
 		if(initializer.getParent() != null) {
-			writeBody("node"+Integer.toHexString(initializer.getParent().hashCode())+" -> "
-					+"node"+Integer.toHexString(initializer.hashCode())+";\n");
 		}
 		return PROCESS_CONTINUE;
 	}
 
 	public int visit(IASTParameterDeclaration parameterDeclaration) {
 		System.out.println(parameterDeclaration);
-		writeBody("node"+Integer.toHexString(parameterDeclaration.hashCode())+"[label="+getNameOfClass(parameterDeclaration)+"];\n");
 		if(parameterDeclaration.getParent() != null) {
-			writeBody("node"+Integer.toHexString(parameterDeclaration.getParent().hashCode())+" -> "
-					+"node"+Integer.toHexString(parameterDeclaration.hashCode())+";\n");
 		}
 		return PROCESS_CONTINUE;
 	}
 
 	public int visit(IASTDeclarator declarator) {
 		System.out.println(declarator);
-		writeBody("node"+Integer.toHexString(declarator.hashCode())+"[label="+getNameOfClass(declarator)+"];\n");
 		if(declarator.getParent() != null) {
-			writeBody("node"+Integer.toHexString(declarator.getParent().hashCode())+" -> "
-					+"node"+Integer.toHexString(declarator.hashCode())+";\n");
 		}
 		return PROCESS_CONTINUE;
 	}
 
 	public int visit(IASTDeclSpecifier declSpec) {
 		System.out.println(declSpec);
-		writeBody("node"+Integer.toHexString(declSpec.hashCode())+"[label="+getNameOfClass(declSpec)+"];\n");
 		if(declSpec.getParent() != null) {
-			writeBody("node"+Integer.toHexString(declSpec.getParent().hashCode())+" -> "
-					+"node"+Integer.toHexString(declSpec.hashCode())+";\n");
 		}
 		return PROCESS_CONTINUE;
 	}
 
 	public int visit(IASTExpression expression) {
 		System.out.println(expression);
-		writeBody("node"+Integer.toHexString(expression.hashCode())+"[label="+getNameOfClass(expression)+"];\n");
 		if(expression.getParent() != null) {
-			writeBody("node"+Integer.toHexString(expression.getParent().hashCode())+" -> "
-					+"node"+Integer.toHexString(expression.hashCode())+";\n");
 		}
 		return PROCESS_CONTINUE;
 	}
 
 	public int visit(IASTStatement statement) {
-		System.out.println(statement);
-		writeBody("node"+Integer.toHexString(statement.hashCode())+"[label="+getNameOfClass(statement)+"];\n");
+		if(viewer == null) return PROCESS_CONTINUE;
+		if(mode == MODE_SELECTION_TO_NODE) {
+			if(statement.getParent().getParent() instanceof IASTFunctionDefinition) {
+				currentSyntaxSelection = new TextSelection(((ASTNode)statement).getOffset(),((ASTNode)statement).getLength());
+				// select double clicked token
+				if(currentTextSelection.getLength() == 0) {
+					viewer.invalidateTextPresentation();
+				} else if((currentTextSelection.getOffset() >= currentSyntaxSelection.getOffset())
+						&&(currentTextSelection.getOffset()+currentTextSelection.getLength() < currentSyntaxSelection.getOffset()+currentSyntaxSelection.getLength())) {
+					viewer.invalidateTextPresentation();
+					//viewer.setTextColor(new Color(null, 255, 0, 0), currentSyntaxSelection.getOffset(), currentSyntaxSelection.getLength(), true);
+					TextPresentation presentation = new TextPresentation();
+					TextAttribute attr = new TextAttribute(new Color(null, 0, 0, 0),
+						      new Color(null, 128, 128, 128), TextAttribute.STRIKETHROUGH);
+					presentation.addStyleRange(new StyleRange(currentSyntaxSelection.getOffset(), currentSyntaxSelection.getLength(), attr.getForeground(),
+						      attr.getBackground()));
+					viewer.changeTextPresentation(presentation, true);
+					//viewer.setSelectedRange(currentSyntaxSelection.getOffset(), currentSyntaxSelection.getLength());
+					
+					results = statement.getRawSignature();
+					for(IASTNode node = statement; node != null; node = node.getParent()) {
+						results += "\\"+getNameOfClass(node);
+					}
+					System.out.println(results);
+				}
+			} else if(statement.getParent().getParent() instanceof IASTSimpleDeclaration) {
+				//viewer.invalidateTextPresentation();
+			} else {
+				//viewer.invalidateTextPresentation();
+				assert(false);
+			}
+		} else {
+			IASTNode node = statement;
+			String str = results;
+			int index = str.indexOf('\\');
+			String piece = str.substring(0, index);
+			if(piece.equals(statement.getRawSignature())) {
+				for(node = statement; node != null; node = node.getParent()) {
+					str = str.substring(index+1);
+					index = str.indexOf('\\');
+					if(index == -1) {
+						piece = str;
+					} else {
+						piece = str.substring(0,index);
+					}
+					if(!piece.equals(getNameOfClass(node))) {
+						break;
+					}
+				}
+			}
+			if(node == null) {
+				currentTextSelection = new TextSelection(((ASTNode)statement).getOffset(),((ASTNode)statement).getLength());
+			}
+		}
+		
 		if(statement.getParent() != null) {
-			writeBody("node"+Integer.toHexString(statement.getParent().hashCode())+" -> "
-					+"node"+Integer.toHexString(statement.hashCode())+";\n");
 		}
 		try {
 			if (statement instanceof IASTForStatement) {
@@ -348,30 +314,21 @@ public class CustomASTVisitor extends ASTVisitor {
 
 	public int visit(IASTTypeId typeId) {
 		System.out.println(typeId);
-		writeBody("node"+Integer.toHexString(typeId.hashCode())+"[label="+getNameOfClass(typeId)+"];\n");
 		if(typeId.getParent() != null) {
-			writeBody("node"+Integer.toHexString(typeId.getParent().hashCode())+" -> "
-					+"node"+Integer.toHexString(typeId.hashCode())+";\n");
 		}
 		return PROCESS_CONTINUE;
 	}
 
 	public int visit(IASTEnumerator enumerator) {
 		System.out.println(enumerator);
-		writeBody("node"+Integer.toHexString(enumerator.hashCode())+"[label="+getNameOfClass(enumerator)+"];\n");
 		if(enumerator.getParent() != null) {
-			writeBody("node"+Integer.toHexString(enumerator.getParent().hashCode())+" -> "
-					+"node"+Integer.toHexString(enumerator.hashCode())+";\n");
 		}
 		return PROCESS_CONTINUE;
 	}
 
 	public int visit(IASTProblem problem) {
 		System.out.println(problem);
-		writeBody("node"+Integer.toHexString(problem.hashCode())+"[label="+getNameOfClass(problem)+"];\n");
 		if(problem.getParent() != null) {
-			writeBody("node"+Integer.toHexString(problem.getParent().hashCode())+" -> "
-					+"node"+Integer.toHexString(problem.hashCode())+";\n");
 		}
 		return PROCESS_CONTINUE;
 	}
