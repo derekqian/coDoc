@@ -293,7 +293,7 @@ public class CustomASTVisitor extends ASTVisitor {
 		}
 		try {
 			if (statement instanceof IASTForStatement) {
-				results += "FOR initializer: "
+				/*results += "FOR initializer: "
 						+ ((IASTForStatement) statement)
 								.getInitializerStatement().getRawSignature()
 						+ "\n";
@@ -304,7 +304,7 @@ public class CustomASTVisitor extends ASTVisitor {
 				results += "FOR iteration: "
 						+ ((IASTForStatement) statement)
 								.getIterationExpression().getRawSignature()
-						+ "\n";
+						+ "\n";*/
 			}
 			return PROCESS_CONTINUE;
 		} catch (Throwable e) {

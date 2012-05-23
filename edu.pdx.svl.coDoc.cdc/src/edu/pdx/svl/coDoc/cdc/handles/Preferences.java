@@ -26,7 +26,10 @@ import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.ui.texteditor.ITextEditor;
 
@@ -49,8 +52,15 @@ public class Preferences extends AbstractHandler {
 	
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
-		PreferencesView preferencesView = new PreferencesView();
-		preferencesView.open();
+		//PreferencesView preferencesView = new PreferencesView();
+		//preferencesView.open();
+		IWorkbench workbench = PlatformUI.getWorkbench();
+		IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
+		IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
+		//IWorkbenchPage workbenchPage = getEditorSite().getPage();
+		//IEditorReference[] editorrefs = workbenchPage.getEditorReferences();
+		IEditorPart activeeditor = workbenchPage.getActiveEditor();
+		workbenchPage.closeEditor(activeeditor, true);
 		return null;
 	}
 }

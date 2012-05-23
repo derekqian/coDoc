@@ -7,6 +7,7 @@ import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.TextSelection;
@@ -27,7 +28,9 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IEditorSite;
+import org.eclipse.ui.IPartListener;
 import org.eclipse.ui.IPropertyListener;
+import org.eclipse.ui.IReusableEditor;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IViewReference;
@@ -56,19 +59,34 @@ import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTTranslationUnit;
 import edu.pdx.svl.coDoc.cdt.core.model.ILanguage;
 import edu.pdx.svl.coDoc.cdt.internal.core.model.TranslationUnit;
 
-public class EntryEditor extends MultiEditor implements ISelectionListener
+public class EntryEditor extends MultiEditor implements IReusableEditor, ISelectionListener
 {
 	private static final String CONTEXT_ID = "edu.pdx.svl.coDoc.cdc.editor.EntryEditor.contextid";
 	private Composite container;
 	private CLabel innerEditorTitle[];
 	public References references;
 	private IViewPart refview;
+	private IPath cdcFilepath;
+	public CDCModel cdcModel;
+	
+	public void setInput(IEditorInput input) {
+		super.setInput(input);
+		cdcModel = SimpleXML.readCDCModel(cdcFilepath.toString());
+		firePropertyChange(IEditorPart.PROP_INPUT);
+		return;
+	}
 
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException
 	{
 		System.out.println("EntryEditor.init\n");
+		IPath path = CDCEditor.getLatestPath();
+		if(path.getFileExtension().equals("cdc")) {
+			cdcFilepath = path;
+		}
+		setPartName(cdcFilepath.lastSegment());
 		setSite(site);
 		setInput(input);
+		
 		createWorkbenchListener();
 		
 		Global.INSTANCE.entryEditor = this;
@@ -92,6 +110,10 @@ public class EntryEditor extends MultiEditor implements ISelectionListener
 		} else {
 			refview = null;
 		}
+	}
+	
+	public IPath getCDCFilepath() {
+		return cdcFilepath;
 	}
 	
 	public References getDocument() {
@@ -234,6 +256,12 @@ public class EntryEditor extends MultiEditor implements ISelectionListener
 	}
 	public void setFocus()
 	{
+		IEditorPart innerEditors[] = getInnerEditors();
+		IWorkbench workbench = PlatformUI.getWorkbench();
+		IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
+		IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
+		workbenchPage.activate(innerEditors[0]);
+		System.out.println("get focus");
 	}
 	
 	private TextSelection currentTextSelection;

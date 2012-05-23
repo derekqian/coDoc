@@ -22,7 +22,6 @@ import edu.pdx.svl.coDoc.cdc.referencemodel.TextSelectionReference;
 
 public class SimpleXML {
 	private static String xmlFile = "Spec2ModelReferences.xml";
-	private static String hardPath = "C:\\Spec2Model\\runtime-EclipseApplication\\CTestProject\\.Spec2ModelReferences.xml";
 	
 //	private static void printSourceFileInfo() {
 //		String projectDirectory = Spec2ModelEditor.SINGLETON.getProjectDirectory();
@@ -159,5 +158,22 @@ public class SimpleXML {
 			System.out.println("Unable to write Spec2ModelPreferences.xml file!");
 			e.printStackTrace();
 		}
+	}
+	
+	public static void main(String[] args) {
+		CDCModel cdcModel = new CDCModel();
+		cdcModel.addCodeFileEntry("project:///test/code/example.c");
+		cdcModel.addSpecFileEntry("project:///test/spec/test.pdf");
+		cdcModel.addCodeFileEntry("project:///test/code/test1.c");
+		cdcModel.addSpecFileEntry("project:///test/spec/test1.pdf");
+		cdcModel.addCodeFileEntry("project:///test/code/test2.c");
+		cdcModel.addSpecFileEntry("project:///test/spec/test3.pdf");
+		cdcModel.addMapEntry("project:///test/code/example.c", "int i;/Node", "project:///test/spec/sample.pdf", "page/left/top/right/bottom", "comment");
+		cdcModel.addMapEntry("project:///test/code/test.c", "double i;/Node", "project:///test/spec/test.pdf", "page/left/top/right/bottom", "comment");
+		cdcModel.addMapEntry("project:///test/code/test2.c", "double i;/Node", "project:///test/spec/test.pdf", "page/left/top/right/bottom", "comment");
+		String filepath = "/home/derek/runtime-EclipseApplication/test/sample.cdc";
+		SimpleXML.writeCDCModel(cdcModel, filepath);
+		CDCModel cdcModel1 = SimpleXML.readCDCModel(filepath);
+		return;
 	}
 }
