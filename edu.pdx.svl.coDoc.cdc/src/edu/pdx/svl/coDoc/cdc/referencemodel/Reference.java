@@ -21,9 +21,6 @@ public abstract class Reference {
 	@Element
 	protected PDFFile pdfFile;
 	
-	@Element(required=false)
-	protected PDFSelection pdfSelection;
-	
 
 	/**
 	 * By default a new reference is linked to the currently selected PDF File.
@@ -61,30 +58,6 @@ public abstract class Reference {
 
 	public void setPdfFile(PDFFile pdfFile) {
 		this.pdfFile = pdfFile;
-	}
-
-
-	public PDFSelection getPdfSelection() {
-		return pdfSelection;
-	}
-
-
-	public void setPdfSelection(PDFSelection pdfSelection) {
-		this.pdfSelection = pdfSelection;
-	}
-	
-	public String pdfDescription() {
-		if (pdfSelection != null) {
-			return pdfSelection.description();
-		}
-		return "";
-	}
-	
-	public String pdfPage() {
-		if (pdfSelection != null) {
-			return pdfSelection.page();
-		}
-		return "";
 	}
 
 }

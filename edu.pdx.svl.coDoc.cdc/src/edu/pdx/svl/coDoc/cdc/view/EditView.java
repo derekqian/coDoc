@@ -10,19 +10,20 @@ import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.layout.GridData;
 
+import edu.pdx.svl.coDoc.cdc.editor.MapEntry;
 import edu.pdx.svl.coDoc.cdc.referencemodel.Reference;
 
 
 public class EditView extends Dialog {
 
 	StyledText commentText;
-	Reference refToEdit;
+	MapEntry refToEdit;
 	
 	/**
 	 * Create the dialog.
 	 * @param parentShell
 	 */
-	public EditView(Shell parentShell, Reference ref) {
+	public EditView(Shell parentShell, MapEntry ref) {
 		super(parentShell);
 		refToEdit = ref;
 	}

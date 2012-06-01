@@ -35,8 +35,11 @@ import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IPersistableElement;
 import org.eclipse.ui.IReusableEditor;
 import org.eclipse.ui.IStorageEditorInput;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
@@ -47,6 +50,8 @@ import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.part.MultiEditor;
 
 import edu.pdx.svl.coDoc.cdc.XML.SimpleXML;
+import edu.pdx.svl.coDoc.cdt.internal.ui.editor.CEditor;
+import edu.pdx.svl.coDoc.poppler.editor.PDFEditor;
 
 class TempCodeEditorInput implements IStorageEditorInput
 {
@@ -271,9 +276,39 @@ public class CDCEditor implements IEditorLauncher
 	private static IEditorPart entryeditor = null;
 	private static IPath path = null;
 	private static IPath cdcfilepath = null;
+	public static IWorkbenchPart workbenchPart;
+	public static FileEditorInput activeFileEditorInput = null;
 
 	public CDCEditor() {
 		super();
+	}
+	
+	public static IProject getActiveProject() {
+		IWorkbench workbench = PlatformUI.getWorkbench();
+		IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
+		IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
+		IEditorPart activeeditor = workbenchPage.getActiveEditor();
+		IFile file = ((FileEditorInput) activeeditor.getEditorInput()).getFile();
+		return file.getProject();
+	}
+	
+	public static String getActiveProjectName() {
+		// IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
+		// IProject[] projects = workspaceRoot.getProjects();
+		IProject project = getActiveProject();
+		String activeProjectName = project.getName();
+		return activeProjectName;
+	}
+	
+	public static String getActiveProjectDirectory() {
+		String dir = null;
+		IProject project = getActiveProject();
+		IPath path = project.getFullPath();
+		File pathAsFile = path.toFile();
+		String relativeDir = pathAsFile.getPath() + '\\';
+		String workspaceDir = ResourcesPlugin.getWorkspace().getRoot().getLocation().toFile().getAbsolutePath();
+		dir = workspaceDir + relativeDir;
+		return dir;
 	}
 	
 	/*
@@ -298,7 +333,22 @@ public class CDCEditor implements IEditorLauncher
 		}
 	}
 	
-	public IEditorPart getOpenedEntryEditorTop(IPath path) {
+	public static IViewPart findView(String viewname) {
+		IWorkbench workbench = PlatformUI.getWorkbench();
+		IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
+		IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
+		// return workbenchPage.findView(viewname);
+		IViewReference viewref = workbenchPage.findViewReference(viewname);
+		if(viewref != null) {
+			return viewref.getView(false);
+		} else {
+			return null;
+		}
+	}
+	
+	// get the opened entryeditor for the input cdc file. if no editor found for this cdc file, return null.
+	// input: path to the cdc file (example: /home/derek/.../test.cdc).
+	public static IEditorPart getOpenedEntryEditorTop(IPath path) {
 		IEditorPart editor = null;
 		IWorkbench workbench = PlatformUI.getWorkbench();
 		IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
@@ -318,9 +368,8 @@ public class CDCEditor implements IEditorLauncher
 		return editor;
 	}
 	
-	// not practical here
-	// will always get "edu.pdx.svl.coDoc.cdc.editor.CDCEditor"
-	public IEditorPart getActiveEntryEditor() {
+	// get the editor which is an entryeditor and is active. if not found, return null.
+	public static IEditorPart getActiveEntryEditor() {
 		IEditorPart editor = null;
 		IWorkbench workbench = PlatformUI.getWorkbench();
 		IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
@@ -344,6 +393,30 @@ public class CDCEditor implements IEditorLauncher
 				if(editor != null) {
 					break;
 				}
+			}
+		}
+		return editor;
+	}
+	
+	public static IEditorPart getActiveCEditorChild(EntryEditor parentEditor) {
+		IEditorPart editor = null;
+		IEditorPart innerEditors[] = parentEditor.getInnerEditors();
+		for(IEditorPart ep : innerEditors) {
+			if(ep instanceof CEditor) {
+				editor = ep;
+				break;
+			}
+		}
+		return editor;
+	}
+	
+	public static IEditorPart getActivePDFEditorChild(EntryEditor parentEditor) {
+		IEditorPart editor = null;
+		IEditorPart innerEditors[] = parentEditor.getInnerEditors();
+		for(IEditorPart ep : innerEditors) {
+			if(ep instanceof PDFEditor) {
+				editor = ep;
+				break;
 			}
 		}
 		return editor;

@@ -14,6 +14,8 @@ import org.eclipse.ui.IWorkbenchPart;
 //import edu.pdx.svl.coDoc.refexp.editorcontextmenu.editors.SelectionAndCursor;
 
 import edu.pdx.svl.coDoc.cdc.Global;
+import edu.pdx.svl.coDoc.cdc.editor.CDCEditor;
+import edu.pdx.svl.coDoc.cdc.editor.EntryEditor;
 
 
 
@@ -40,7 +42,7 @@ public class AddReference implements IObjectActionDelegate {
 	 * @see IActionDelegate#run(IAction)
 	 */
 	public void run(IAction action) {
-		Global.INSTANCE.entryEditor.getDocument().addReference();
+		((EntryEditor) CDCEditor.getActiveEntryEditor()).addReference();
 	}
 
 	/**

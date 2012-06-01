@@ -2,13 +2,19 @@ package edu.pdx.svl.coDoc.cdc.editor;
 
 import java.io.File;
 import java.util.Iterator;
+import java.util.Vector;
 
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.ISelection;
@@ -21,6 +27,7 @@ import org.eclipse.swt.custom.ViewForm;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
@@ -47,17 +54,21 @@ import org.eclipse.ui.part.EditorPart;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.part.MultiEditor;
 
-import edu.pdx.svl.coDoc.cdc.Global;
 import edu.pdx.svl.coDoc.cdc.XML.SimpleXML;
+import edu.pdx.svl.coDoc.cdc.preferences.PreferenceValues;
 import edu.pdx.svl.coDoc.cdc.referencemodel.PDFManager;
-import edu.pdx.svl.coDoc.cdc.referencemodel.PDFSelection;
+import edu.pdx.svl.coDoc.cdc.referencemodel.ProjectReference;
 import edu.pdx.svl.coDoc.cdc.referencemodel.Reference;
 import edu.pdx.svl.coDoc.cdc.referencemodel.References;
+import edu.pdx.svl.coDoc.cdc.referencemodel.SourceFileReference;
 import edu.pdx.svl.coDoc.cdc.referencemodel.TextSelectionReference;
+import edu.pdx.svl.coDoc.cdc.view.ConfirmationWindow;
 import edu.pdx.svl.coDoc.cdt.core.CCorePlugin;
 import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTTranslationUnit;
 import edu.pdx.svl.coDoc.cdt.core.model.ILanguage;
 import edu.pdx.svl.coDoc.cdt.internal.core.model.TranslationUnit;
+import edu.pdx.svl.coDoc.poppler.editor.PDFEditor;
+import edu.pdx.svl.coDoc.poppler.editor.PDFPageViewer;
 
 public class EntryEditor extends MultiEditor implements IReusableEditor, ISelectionListener
 {
@@ -67,11 +78,22 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 	public References references;
 	private IViewPart refview;
 	private IPath cdcFilepath;
+	private IPath codeFilepath = null;
+	private IPath specFilepath = null;
 	public CDCModel cdcModel;
 	
 	public void setInput(IEditorInput input) {
 		super.setInput(input);
 		cdcModel = SimpleXML.readCDCModel(cdcFilepath.toString());
+		IEditorInput[] editorinputs = ((EntryEditorInput) input).getInput();
+		IPath path = ((FileEditorInput) editorinputs[0]).getPath();
+		if(!path.getFileExtension().equals("pdf")) {
+			codeFilepath = path;
+		}
+		path = ((FileEditorInput) editorinputs[editorinputs.length-1]).getPath();
+		if(path.getFileExtension().equals("pdf")) {
+			specFilepath = path;
+		}
 		firePropertyChange(IEditorPart.PROP_INPUT);
 		return;
 	}
@@ -89,26 +111,19 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 		
 		createWorkbenchListener();
 		
-		Global.INSTANCE.entryEditor = this;
-		//Global.INSTANCE.activeFileEditorInput = input;
-		references = SimpleXML.read();
-		if (references == null) {
-			references = new References();
-			references.addProject();
+		IReferenceExplorer refview = (IReferenceExplorer)CDCEditor.findView("edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView");
+		if(refview != null) {
+			refview.setInput(cdcModel);
+			refview.refresh();
 		}
-		
-		IWorkbench workbench = PlatformUI.getWorkbench();
-		IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
-		IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
-		IViewReference viewref = workbenchPage.findViewReference("edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView");
-		if(viewref != null) {
-			refview = viewref.getView(false);
-			
-			IReferenceExplorer re = (IReferenceExplorer)refview;
-			re.setInput(references);
-			re.refresh();
-		} else {
-			refview = null;
+	}
+	
+	public void dispose() {
+		//super.dispose();
+		IReferenceExplorer refview = (IReferenceExplorer)CDCEditor.findView("edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView");
+		if(refview != null) {
+			refview.setInput(null);
+			refview.refresh();
 		}
 	}
 	
@@ -116,11 +131,8 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 		return cdcFilepath;
 	}
 	
-	public References getDocument() {
-		return references;
-	}
-	public void setDocument(References refs) {
-		references = refs;
+	public CDCModel getDocument() {
+		return cdcModel;
 	}
 	
 	public void createPartControl(Composite parent)
@@ -265,44 +277,25 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 	}
 	
 	private TextSelection currentTextSelection;
-	public TextSelectionReference getCurrentTextSelectionReference() {
+	public CodeSelection getSelectionInTextEditor() {
 		if (currentTextSelection == null) {
 			MessageDialog.openError(null, "Alert",  "Warning:\nYou have not selected any text in your source file.\nNo reference has been saved.");
 			return null;
 		}
-
 		int length = currentTextSelection.getLength();
 		if (length == 0) {
 			MessageDialog.openError(null, "Alert",  "Warning:\nYou have not selected any text in your source file.\nNo reference has been saved.");
 			return null;
 		}
 		int offset = currentTextSelection.getOffset();
-		String text = currentTextSelection.getText();
-		
-		TextSelectionReference tsr = new TextSelectionReference();
-		tsr.setOffset(offset);
-		tsr.setLength(length);
-		tsr.setSelectedNode(CustomASTVisitor.getInstance().getSelectedASTNode());
-		tsr.setText(text);
-		tsr.fetchAcrobatData();
-		
-		PDFSelection pdfSel = tsr.getPdfSelection();
-		if (pdfSel == null) {
-			MessageDialog.openError(null, "Alert", "Warning:\nYou do not have an open PDF file in Acrobat from which you will create a reference.\nNo reference has been saved.");
-			return null;
-		}
-		String pdfTxt = pdfSel.getText();
-		if (pdfTxt == null || pdfTxt.equals("")) {
-			MessageDialog.openError(null, "Alert", "Warning:\nYou have not selected any text in your PDF file.\nNo reference has been saved.");
-			return null;
-		}
-		
-		tsr.setPdfFile(PDFManager.INSTANCE.getCurrentPdfFile());
-
-		return tsr;
+		CodeSelection selection = new CodeSelection();
+		selection.setCodeSelPath(CustomASTVisitor.getInstance().getSelectedASTNode());
+		selection.setCodeText(currentTextSelection.getText());
+		return selection;
 	}
+
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-		Global.INSTANCE.workbenchPart = part;
+		CDCEditor.workbenchPart = part;
 
 		if (selection == null) return;
 		
@@ -349,14 +342,9 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 		//selectionChanged(getSite().getPart(), getSite().getPage().getSelection());
 	}
 
-	public void selectTextInTextEditor(TextSelectionReference tsr) {
-
-		int offset = tsr.getOffset();
-		int length = tsr.getLength();
-		
-		
+	public void selectTextInTextEditor(MapEntry mapEntry) {
 		//new way in which we open the right source file	
-		File fileToOpen = new File(tsr.getSourceFileReference().getFilePath());
+		File fileToOpen = new File(mapEntry.getCodefilename());
 		 
 		if (fileToOpen.exists() && fileToOpen.isFile()) {
 		    IFileStore fileStore = EFS.getLocalFileSystem().getStore(fileToOpen.toURI());
@@ -369,27 +357,9 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 		    }
 		}
 		
-		IEditorPart cEditor = null;
-		IWorkbench workbench = PlatformUI.getWorkbench();
-		IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
-		IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
-		IEditorReference[] editorrefs = workbenchPage.findEditors(null,"edu.pdx.svl.coDoc.cdc.editor.EntryEditor",IWorkbenchPage.MATCH_ID);
-		if(editorrefs.length != 0)
-		{
-			MultiEditor editor = (MultiEditor) editorrefs[0].getEditor(false);
-			
-			IEditorPart[] editors = editor.getInnerEditors();
-			for(int i=0; i<editors.length; i++)
-			{
-				System.out.println(editors[i].getClass().getName());
-				if(editors[i].getClass().getName().equals("edu.pdx.svl.coDoc.cdt.internal.ui.editor.CEditor"))
-				{
-					cEditor = editors[i];
-				}
-			}
-		}
+		IEditorPart cEditor = CDCEditor.getActiveCEditorChild(this);
 		
-		String selectednode = tsr.getSelectedNode();
+		String selectednode = mapEntry.getCodeselpath().getCodeSelPath();
 		CustomASTVisitor astvisitor = CustomASTVisitor.getInstance();
 		
 		IFile inputFile = ((FileEditorInput) cEditor.getEditorInput()).getFile();
@@ -402,7 +372,6 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 			astvisitor.setSelectedASTNode(selectednode);
 			ast.accept(astvisitor);
 		} catch (CoreException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -411,14 +380,78 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 		//TextSelection newSelection = new TextSelection(offset,length);
 		TextSelection newSelection = astvisitor.getTextSelection();
 		selProv.setSelection(newSelection);
-		
 	}
 	
-	public void selectTextInAcrobat(Reference ref) {
+	public SpecSelection getSelectionInAcrobat() {
+		PDFPageViewer acrobatInterface = ((PDFEditor) CDCEditor.getActivePDFEditorChild(this)).getPDFPageViewer();
+		if (CDCEditor.getActivePDFEditorChild(this) == null) {
+			MessageDialog.openError(null, "Alert", "Warning:\nYou do not have an open PDF file in Acrobat from which you will create a reference.\nNo reference has been saved.");
+			return null;
+		}
+		String pdftext = acrobatInterface.getSelectedText();
+		// String formattedText = pdftext.replace('\n', ' ').replace('\t', ' ');
+		if (pdftext == null || pdftext.equals("")) {
+			MessageDialog.openError(null, "Alert", "Warning:\nYou have not selected any text in your PDF file.\nNo reference has been saved.");
+			return null;
+		}
+		
+		int page = acrobatInterface.getPage();
+		Rectangle sel = acrobatInterface.getSelection();
+		int top = sel.y;
+		int bottom = sel.y + sel.height;
+		int left = sel.x;
+		int right = sel.x + sel.width;
+		
+		SpecSelection selection = new SpecSelection();
+		selection.setPage(page);
+		selection.setTop(top);
+		selection.setBottom(bottom);
+		selection.setLeft(left);
+		selection.setRight(right);
+		selection.setPDFText(pdftext);
+		
+		return selection;
+	}
+	
+	public void selectTextInAcrobat(MapEntry mapEntry) {
+		PDFPageViewer acrobatInterface;
+		acrobatInterface = ((PDFEditor) CDCEditor.getActivePDFEditorChild(this)).getPDFPageViewer();
 
-		PDFSelection pdfs = ref.getPdfSelection();
-		if (pdfs != null) {
-			pdfs.selectTextInAcrobat();
+		SpecSelection sel = mapEntry.getSpecselpath();
+		acrobatInterface.selectText(sel.getPage(), sel.getTop(), sel.getBottom(), sel.getLeft(), sel.getRight());
+	}
+
+	public void addReference() {
+		if (PreferenceValues.getInstance().isUseConfirmationWindow() == true) {
+			ConfirmationWindow cw = new ConfirmationWindow();
+			cw.open();
+		} else {
+			EntryEditor editor = (EntryEditor)CDCEditor.getActiveEntryEditor();
+			addReference("");
+		}
+		
+	}
+	public void addReference(String comment) {
+		IWorkspace workspace = ResourcesPlugin.getWorkspace();
+		IWorkspaceRoot workspaceroot = workspace.getRoot();
+		IPath workspacerootpath = workspaceroot.getLocation();
+		String codefilename = "project:///"+codeFilepath.makeRelativeTo(workspacerootpath);
+		CodeSelection codeselpath = getSelectionInTextEditor();
+		String specfilename = "project:///"+specFilepath.makeRelativeTo(workspacerootpath);
+		SpecSelection specselpath = getSelectionInAcrobat();
+		cdcModel.addMapEntry(codefilename, codeselpath, specfilename, specselpath, comment);
+		
+		IReferenceExplorer view = (IReferenceExplorer)CDCEditor.findView("edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView");
+		view.refresh();
+		
+		String filepath = cdcFilepath.toString();
+		SimpleXML.writeCDCModel(cdcModel, filepath);
+		
+		try {
+			ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor() );
+		} catch (CoreException e) {
+			System.out.println("Could not refresh the Project Explorer");
+			e.printStackTrace();
 		}
 	}
 }

@@ -22,15 +22,13 @@ import org.eclipse.ui.PlatformUI;
 
 //import org.eclipse.cdt.internal.ui.editor.Spec2ModelEditor;
 
+import edu.pdx.svl.coDoc.cdc.editor.CDCEditor;
 import edu.pdx.svl.coDoc.cdc.editor.EntryEditor;
-import edu.pdx.svl.coDoc.cdc.referencemodel.PDFSelection;
 import edu.pdx.svl.coDoc.cdc.referencemodel.TextSelectionReference;
 import edu.pdx.svl.coDoc.cdc.Global;
 
 
 public class ConfirmationWindow extends Dialog {
-
-	TextSelectionReference tsr;
 	
 	StyledText commentStyledText;
 	
@@ -44,25 +42,6 @@ public class ConfirmationWindow extends Dialog {
 	 */
 	public ConfirmationWindow(Shell parentShell) {
 		super(parentShell);
-	
-		
-//		Shell sh = this.getShell();
-//		sh.setText("Confirm New Spec2Model Reference");
-		
-		getReferenceData();
-	}
-
-	public void getReferenceData() {
-		EntryEditor editor = null;
-		IWorkbench workbench = PlatformUI.getWorkbench();
-		IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
-		IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
-		IEditorReference[] editorrefs = workbenchPage.findEditors(null,"edu.pdx.svl.coDoc.cdc.editor.EntryEditor",IWorkbenchPage.MATCH_ID);
-		if(editorrefs.length != 0)
-		{
-			editor = (EntryEditor) editorrefs[0].getEditor(false);
-		}
-		tsr = editor.getCurrentTextSelectionReference();
 	}
 	
 	/**
@@ -87,9 +66,9 @@ public class ConfirmationWindow extends Dialog {
 //		codeText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		codeText.setBounds(5, 25, 584, 148);
 		
-		String txt = tsr.getText();
-		if (txt != null) {
-			codeText.setText(txt);
+		String codetext = ((EntryEditor) CDCEditor.getActiveEntryEditor()).getSelectionInTextEditor().getCodeText();
+		if (codetext != null) {
+			codeText.setText(codetext);
 		}
 		
 		
@@ -104,19 +83,14 @@ public class ConfirmationWindow extends Dialog {
 //		specStyledText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		specStyledText.setBounds(5, 198, 584, 148);
 		
-		PDFSelection pdfSel = tsr.getPdfSelection();
-		if (pdfSel != null && pdfSel.getText().equals("") == false) {
-			txt = tsr.getPdfSelection().getText();
+		String spectext = ((EntryEditor) CDCEditor.getActiveEntryEditor()).getSelectionInAcrobat().getPDFText();
+		if (spectext != null) {
+			specStyledText.setText(spectext);
 		} else {
-			txt = "missing PDF text data";
+			spectext = "missing PDF text data";
 			this.close();
 			MessageDialog.openError(new Shell(), "Alert", "No PDF data has been retrieved from Acrobat.\nHave you made a text selection in Acrobat?");
 		}
-		
-		if (txt != null) {
-			specStyledText.setText(txt);
-		}
-		
 		
 		Label lblComment = new Label(container, SWT.NONE);
 		lblComment.setBounds(5, 351, 100, 15);
@@ -151,7 +125,7 @@ public class ConfirmationWindow extends Dialog {
 
 	public void okButtonPressed(MouseEvent evt) {
 		String comTxt = commentStyledText.getText();
-		Global.INSTANCE.entryEditor.getDocument().addReference(tsr, comTxt);
+		((EntryEditor) CDCEditor.getActiveEntryEditor()).addReference(comTxt);
 	}
 	
 	/**

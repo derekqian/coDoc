@@ -14,6 +14,8 @@ import org.eclipse.ui.IWorkbenchPart;
 //import edu.pdx.svl.coDoc.refexp.editorcontextmenu.editors.SelectionAndCursor;
 
 import edu.pdx.svl.coDoc.cdc.Global;
+import edu.pdx.svl.coDoc.cdc.editor.CDCEditor;
+import edu.pdx.svl.coDoc.cdc.editor.EntryEditor;
 import edu.pdx.svl.coDoc.cdc.editor.IReferenceExplorer;
 
 
@@ -40,7 +42,7 @@ public class ViewReferencesForSelection implements IObjectActionDelegate {
 	 * @see IActionDelegate#run(IAction)
 	 */
 	public void run(IAction action) {
-		IReferenceExplorer referenceExplorerView = Global.INSTANCE.referenceExplorerView;
+		IReferenceExplorer referenceExplorerView = (IReferenceExplorer) CDCEditor.findView("edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView");
 		referenceExplorerView.displayListOfTextSelectionReferencesForSelectionInActiveEditor();
 	}
 

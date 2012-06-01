@@ -15,6 +15,8 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 
 import edu.pdx.svl.coDoc.cdc.Global;
+import edu.pdx.svl.coDoc.cdc.editor.CDCEditor;
+import edu.pdx.svl.coDoc.cdc.editor.EntryEditor;
 
 
 /**
@@ -28,7 +30,7 @@ public class AddReference extends AbstractHandler {
 	
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
-		Global.INSTANCE.entryEditor.getDocument().addReference();
+		((EntryEditor) CDCEditor.getActiveEntryEditor()).addReference();
 
 		return null;
 	}

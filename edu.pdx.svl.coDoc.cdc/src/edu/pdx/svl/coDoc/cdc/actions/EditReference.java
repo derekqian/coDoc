@@ -24,7 +24,10 @@ import org.eclipse.ui.PlatformUI;
 
 //import edu.pdx.svl.coDoc.refexp.editorcontextmenu.editors.SelectionAndCursor;
 
+import edu.pdx.svl.coDoc.cdc.editor.CDCEditor;
+import edu.pdx.svl.coDoc.cdc.editor.CDCModel;
 import edu.pdx.svl.coDoc.cdc.editor.EntryEditor;
+import edu.pdx.svl.coDoc.cdc.editor.MapEntry;
 import edu.pdx.svl.coDoc.cdc.referencemodel.Reference;
 import edu.pdx.svl.coDoc.cdc.referencemodel.References;
 import edu.pdx.svl.coDoc.cdc.view.EditView;
@@ -67,16 +70,15 @@ public class EditReference implements IObjectActionDelegate {
 		//ISelection selection = treeViewer.getSelection();
 		
 		if (selection != null && selection instanceof IStructuredSelection) {
-			References refs = Global.INSTANCE.entryEditor.getDocument();
+			CDCModel cdcModel = ((EntryEditor) CDCEditor.getActiveEntryEditor()).getDocument();
 			IStructuredSelection sel = (IStructuredSelection) selection;
 			
-			for (Iterator<Reference> iterator = sel.iterator(); iterator.hasNext();) {
-				Reference refToEdit = iterator.next();
+			for (Iterator<MapEntry> iterator = sel.iterator(); iterator.hasNext();) {
+				MapEntry refToEdit = iterator.next();
 				refNotSelected = false;
 				(new EditView(new Shell(), refToEdit)).open();
 			}
 			((ISelectionListener)view).selectionChanged(editor, new TextSelection(0,0));
-			//view.setInput();
 			//view.refresh();
 			
 		}

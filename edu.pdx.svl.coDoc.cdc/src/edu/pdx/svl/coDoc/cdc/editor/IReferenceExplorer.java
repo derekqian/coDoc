@@ -6,7 +6,7 @@ import edu.pdx.svl.coDoc.cdc.referencemodel.References;
 
 public interface IReferenceExplorer
 {
-	public void setInput(References refs);
+	public void setInput(CDCModel cdcModel);
 	public void refresh();
 	public ISelection getSelection();
 	public void displayListOfTextSelectionReferencesForSelectionInActiveEditor();

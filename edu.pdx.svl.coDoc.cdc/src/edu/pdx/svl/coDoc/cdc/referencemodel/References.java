@@ -23,6 +23,7 @@ import org.eclipse.jface.text.TextSelection;
 import edu.pdx.svl.coDoc.cdc.referencemodel.Reference;
 import edu.pdx.svl.coDoc.cdc.Global;
 import edu.pdx.svl.coDoc.cdc.XML.SimpleXML;
+import edu.pdx.svl.coDoc.cdc.editor.CDCEditor;
 import edu.pdx.svl.coDoc.cdc.editor.EntryEditor;
 import edu.pdx.svl.coDoc.cdc.editor.IReferenceExplorer;
 import edu.pdx.svl.coDoc.cdc.preferences.PreferenceValues;
@@ -37,112 +38,10 @@ public class References {
 	private Vector<Reference> projects;
 	
 	private String workspacePath = ResourcesPlugin.getWorkspace().getRoot().getLocation().toFile().getAbsolutePath();
-	private static boolean projectExplorerNeedsRefresh = true;
 	
 	public References() {
 		projects = new Vector<Reference>();
 //		createSampleData();
-	}
-
-	public void addReference() {
-		if (PreferenceValues.getInstance().isUseConfirmationWindow() == true) {
-			ConfirmationWindow cw = new ConfirmationWindow();
-			cw.open();
-		} else {
-			IWorkbench workbench = PlatformUI.getWorkbench();
-			IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
-			IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
-			EntryEditor editor = (EntryEditor)workbenchPage.getActiveEditor();
-			addReference(editor.getCurrentTextSelectionReference(), "");
-		}
-		
-	}
-	
-	public void addReference(TextSelectionReference currTsr, String comment) {
-		SourceFileReference sfr = null;
-		boolean matchingFile = false;
-		
-		EntryEditor editor = null;
-		IEditorPart cEditor = null;
-		IWorkbench workbench = PlatformUI.getWorkbench();
-		IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
-		IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
-		IEditorReference[] editorrefs = workbenchPage.findEditors(null,"edu.pdx.svl.coDoc.cdc.editor.EntryEditor",IWorkbenchPage.MATCH_ID);
-		if(editorrefs.length != 0)
-		{
-			editor = (EntryEditor) editorrefs[0].getEditor(false);
-		}
-		IEditorPart[] editors = editor.getInnerEditors();
-		for(int i=0; i<editors.length; i++)
-		{
-			System.out.println(editors[i].getClass().getName());
-			if(editors[i].getClass().getName().equals("edu.pdx.svl.coDoc.cdt.internal.ui.editor.CEditor"))
-			{
-				cEditor = editors[i];
-			}
-		}
-		Global.INSTANCE.activeFileEditorInput = (FileEditorInput) cEditor.getEditorInput();
-		String sourceFile = cEditor.getEditorInput().getName();
-		String projectName = Global.INSTANCE.getActiveProjectName();
-		String projectDirectory = Global.INSTANCE.getActiveProjectDirectory();
-		
-		TextSelectionReference tsr = currTsr;
-		tsr.setComment(comment);
-		
-		Vector<Reference> existingFiles;
-		if (projects != null && projects.size() != 0) {
-			ProjectReference matchingProject = getMatchingProject();
-			matchingProject.setProjectName(projectName);
-			existingFiles = matchingProject.getChildrenList();
-			for (Reference r : existingFiles) {
-				SourceFileReference ref = (SourceFileReference)r;
-				if (ref.getFileName().equals(sourceFile) == true) {
-					sfr = ref;
-					matchingFile = true;
-					projectExplorerNeedsRefresh = false;
-					break;
-				}
-			}
-			if (matchingFile == false) {
-				sfr = new SourceFileReference();
-				sfr.setProjectReference(matchingProject);
-				sfr.setFileName(sourceFile);
-				String sourceFilePath = projectDirectory + sourceFile;
-				sfr.setFilePath(sourceFilePath);
-				matchingProject.getChildrenList().add(sfr);
-			}
-		} else {
-			projects = new Vector<Reference>();
-			ProjectReference proj = new ProjectReference();
-			proj.setProjectDirectory(projectDirectory);
-			proj.setProjectName(projectName);
-			projects.add(proj);
-			
-			sfr = new SourceFileReference();
-			sfr.setFileName(sourceFile);
-			String sourceFilePath = projectDirectory + sourceFile;
-			sfr.setFilePath(sourceFilePath);
-			proj.getChildrenList().add(sfr);
-		}
-		
-		sfr.getChildrenList().add(tsr);
-		tsr.setSourceFile(sfr);
-		
-		IReferenceExplorer view = (IReferenceExplorer)workbenchPage.findView("edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView");
-		view.setInput(this);
-		view.refresh();
-
-		SimpleXML.write(this);
-//		Global.INSTANCE.previousTextSelection = Global.INSTANCE.currentTextSelection;
-		
-		if (projectExplorerNeedsRefresh == true) {
-			try {
-				ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor() );
-			} catch (CoreException e) {
-				System.out.println("Could not refresh the Project Explorer");
-				e.printStackTrace();
-			}
-		}
 	}
 	
 	
@@ -170,23 +69,6 @@ public class References {
 			SimpleXML.delete(pr);
 		}
 	}
-
-	private ProjectReference getMatchingProject() {
-		for (Reference r : projects) {
-			ProjectReference aProj = (ProjectReference)r;
-			if (aProj.getProjectDirectory().equals(Global.INSTANCE.getActiveProjectDirectory())) {
-				projectExplorerNeedsRefresh = false;
-				return aProj;
-			}
-		}
-		ProjectReference newProjRef = new ProjectReference();
-		projectExplorerNeedsRefresh = true;
-		newProjRef.setProjectDirectory(Global.INSTANCE.getActiveProjectDirectory());
-		newProjRef.setProjectName(Global.INSTANCE.getActiveProjectName());
-		newProjRef.setPdfFile(new PDFFile(PDFManager.INSTANCE.getCurrentPdfFile().getFile()));
-		projects.add(newProjRef);
-		return newProjRef;
-	}
 	
 	public Vector<Reference> getProjects() {
 		return projects;
@@ -194,8 +76,8 @@ public class References {
 	
 	public void addProject() {
 		ProjectReference proj = new ProjectReference();
-		String projectName = Global.INSTANCE.getActiveProjectName();
-		String projectDirectory = Global.INSTANCE.getActiveProjectDirectory();
+		String projectName = CDCEditor.getActiveProjectName();
+		String projectDirectory = CDCEditor.getActiveProjectDirectory();
 		proj.setProjectDirectory(projectDirectory);
 		proj.setProjectName(projectName);
 		projects.add(proj);
@@ -203,7 +85,7 @@ public class References {
 	
 	public SourceFileReference findActiveSourceFileReference() {
 		SourceFileReference matchingSourceFile = null;
-		IEditorPart editorPart = Global.INSTANCE.workbenchPart.getSite().getPage().getActiveEditor();
+		IEditorPart editorPart = CDCEditor.workbenchPart.getSite().getPage().getActiveEditor();
 		String editorFileName = editorPart.getEditorInput().getName();
 		
 		for (Reference r : projects) {
@@ -225,7 +107,7 @@ public class References {
 		ProjectReference matchingProject = null;
 		SourceFileReference matchingSourceFile = null;
 		
-		IEditorPart editorPart = Global.INSTANCE.workbenchPart.getSite().getPage().getActiveEditor();
+		IEditorPart editorPart = CDCEditor.workbenchPart.getSite().getPage().getActiveEditor();
 		String editorFileName = editorPart.getEditorInput().getName();
 		
 		for (Reference r : projects) {
@@ -325,7 +207,7 @@ public class References {
 	public Vector<Reference> findProjectReferences(String searchString) {
 		String comment;
 		Vector<Reference> matches = new Vector<Reference>();
-		Vector<Reference> projects = Global.INSTANCE.entryEditor.getDocument().getProjects();
+		Vector<Reference> projects = null;//((EntryEditor) CDCEditor.getActiveEntryEditor()).getDocument().getProjects();
 		for (Reference r: projects) {
 			ProjectReference proj = (ProjectReference)r;
 			comment = proj.getComment();
@@ -388,7 +270,7 @@ public class References {
 				Vector<Reference> tsrs = sourceFileReference.getChildrenList();
 				for (Reference r3 : tsrs) {
 					TextSelectionReference tsr = (TextSelectionReference)r3;
-					if ( tsr.getPdfSelection().getText().contains(searchString) ) {
+					if ( true/*tsr.getPdfSelection().getText().contains(searchString)*/ ) {
 						matches.add(tsr);
 					}
 				}
@@ -413,7 +295,7 @@ public class References {
 				Vector<Reference> tsrs = sourceFileReference.getChildrenList();
 				for (Reference r3 : tsrs) {
 					TextSelectionReference tsr = (TextSelectionReference)r3;
-					int pageNum = tsr.getPdfSelection().getPage();
+					int pageNum = 0; //tsr.getPdfSelection().getPage();
 					++pageNum;	//the stored page number works as an array. e.g., the first page is 0
 					if (	Integer.valueOf(searchString).equals(pageNum) 	) {
 						matches.add(tsr);
@@ -509,13 +391,13 @@ public class References {
 					if (comment == null) {
 						comment = "";
 					}
-					int pageNum = tsr.getPdfSelection().getPage();
+					int pageNum = 0; //tsr.getPdfSelection().getPage();
 					++pageNum;	//the stored page number works as an array. e.g., the first page is 0.
 					String pageNumStr = String.valueOf(pageNum);
 					if (	tsr.getText().contains(searchString) ||
 							comment.contains(searchString) ||
 							tsr.getPdfFile().getFileName().contains(searchString) ||
-							tsr.getPdfSelection().getText().contains(searchString) ||
+							//tsr.getPdfSelection().getText().contains(searchString) ||
 							pageNumStr.contains(searchString) 	) {
 						matches.add(tsr);
 					}
@@ -663,21 +545,6 @@ public class References {
 	public void createSampleData() {
 		PDFFile f = new PDFFile(new File("C:\\simple.pdf:"));
 		
-		PDFSelection ps1 = new PDFSelection();
-		PDFSelection ps2 = new PDFSelection();
-		ps1.setPage(1);
-		ps1.setTop(2);
-		ps1.setBottom(3);
-		ps1.setLeft(4);
-		ps1.setRight(5);
-		ps1.setText("ps1 PDFSelection text");
-		ps1.setPage(6);
-		ps1.setTop(7);
-		ps1.setBottom(8);
-		ps1.setLeft(9);
-		ps1.setRight(10);
-		ps1.setText("ps2 PDFSelection text");
-		
 		ProjectReference pr1 = new ProjectReference();
 		ProjectReference pr2 = new ProjectReference();
 		SourceFileReference sfr1 = new SourceFileReference();
@@ -687,37 +554,31 @@ public class References {
 		
 		pr1.setComment("project1 comment");
 		pr1.setPdfFile(new PDFFile());
-		pr1.setPdfSelection(null);
 		pr1.setProjectDirectory("D:\\dir1\\dir2");
 		pr1.setProjectName("Project1");
 		
 		pr2.setComment("project2 comment");
 		pr2.setPdfFile(f);
-		pr2.setPdfSelection(null);
 		pr2.setProjectDirectory("D:\\dir3\\dir4");
 		pr2.setProjectName("Project2");
 		
 		sfr1.setPdfFile(new PDFFile());
-		sfr1.setPdfSelection(null);
 		sfr1.setComment("source file 1 comment");
 		sfr1.setFileName("Something1.mc");
 		sfr1.setFilePath("D:\\dir1\\dir2\\Something1.mc");
 		
 		sfr2.setPdfFile(f);
-		sfr2.setPdfSelection(null);
 		sfr2.setComment("source file 2 comment");
 		sfr2.setFileName("Something2.mc");
 		sfr2.setFilePath("D:\\dir3\\dir4\\Something2.mc");
 		
 		tsr1.setPdfFile(new PDFFile());
-		tsr1.setPdfSelection(ps1);
 		tsr1.setText("text selection 1");
 		tsr1.setComment("text selection 1 comment");
 		tsr1.setOffset(1);
 		tsr1.setLength(2);
 		
 		tsr2.setPdfFile(f);
-		tsr2.setPdfSelection(ps2);
 		tsr2.setText("text selection 2");
 		tsr2.setComment("text selection 2 comment");
 		tsr2.setOffset(3);

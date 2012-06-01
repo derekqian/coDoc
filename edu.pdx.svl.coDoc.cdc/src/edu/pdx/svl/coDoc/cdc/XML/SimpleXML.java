@@ -1,6 +1,7 @@
 package edu.pdx.svl.coDoc.cdc.XML;
 
 import java.io.File;
+import java.util.Properties;
 import java.util.Vector;
 
 import org.eclipse.core.resources.IProject;
@@ -11,6 +12,7 @@ import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.core.Persister;
 
 import edu.pdx.svl.coDoc.cdc.Global;
+import edu.pdx.svl.coDoc.cdc.editor.CDCEditor;
 import edu.pdx.svl.coDoc.cdc.editor.CDCModel;
 import edu.pdx.svl.coDoc.cdc.preferences.PreferenceValues;
 import edu.pdx.svl.coDoc.cdc.referencemodel.ProjectReference;
@@ -60,7 +62,7 @@ public class SimpleXML {
 	public static References read() {
 		File source = null;
 		ProjectReference projectReference = null;
-		String xmlFilePath = Global.getProjectDirectory() + xmlFile;
+		String xmlFilePath = CDCEditor.getActiveProjectDirectory() + xmlFile;
 		
 		References refs = new References();
 		Serializer serializer = new Persister();
@@ -161,6 +163,9 @@ public class SimpleXML {
 	}
 	
 	public static void main(String[] args) {
+		Properties props=System.getProperties();
+		String osName = props.getProperty("os.name");
+		props.list(System.out);
 		CDCModel cdcModel = new CDCModel();
 		cdcModel.addCodeFileEntry("project:///test/code/example.c");
 		cdcModel.addSpecFileEntry("project:///test/spec/test.pdf");
@@ -168,9 +173,9 @@ public class SimpleXML {
 		cdcModel.addSpecFileEntry("project:///test/spec/test1.pdf");
 		cdcModel.addCodeFileEntry("project:///test/code/test2.c");
 		cdcModel.addSpecFileEntry("project:///test/spec/test3.pdf");
-		cdcModel.addMapEntry("project:///test/code/example.c", "int i;/Node", "project:///test/spec/sample.pdf", "page/left/top/right/bottom", "comment");
-		cdcModel.addMapEntry("project:///test/code/test.c", "double i;/Node", "project:///test/spec/test.pdf", "page/left/top/right/bottom", "comment");
-		cdcModel.addMapEntry("project:///test/code/test2.c", "double i;/Node", "project:///test/spec/test.pdf", "page/left/top/right/bottom", "comment");
+		//cdcModel.addMapEntry("project:///test/code/example.c", "int i;/Node", "project:///test/spec/sample.pdf", "page/left/top/right/bottom", "comment");
+		//cdcModel.addMapEntry("project:///test/code/test.c", "double i;/Node", "project:///test/spec/test.pdf", "page/left/top/right/bottom", "comment");
+		//cdcModel.addMapEntry("project:///test/code/test2.c", "double i;/Node", "project:///test/spec/test.pdf", "page/left/top/right/bottom", "comment");
 		String filepath = "/home/derek/runtime-EclipseApplication/test/sample.cdc";
 		SimpleXML.writeCDCModel(cdcModel, filepath);
 		CDCModel cdcModel1 = SimpleXML.readCDCModel(filepath);

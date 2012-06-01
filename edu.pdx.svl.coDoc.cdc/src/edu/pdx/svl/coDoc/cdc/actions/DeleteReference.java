@@ -24,6 +24,7 @@ import org.eclipse.ui.PlatformUI;
 
 //import edu.pdx.svl.coDoc.refexp.editorcontextmenu.editors.SelectionAndCursor;
 
+import edu.pdx.svl.coDoc.cdc.editor.CDCEditor;
 import edu.pdx.svl.coDoc.cdc.editor.EntryEditor;
 import edu.pdx.svl.coDoc.cdc.referencemodel.Reference;
 import edu.pdx.svl.coDoc.cdc.referencemodel.References;
@@ -64,7 +65,7 @@ public class DeleteReference implements IObjectActionDelegate {
 		//ISelection selection = treeViewer.getSelection();
 		
 		if (selection != null && selection instanceof IStructuredSelection) {
-			References refs = Global.INSTANCE.entryEditor.getDocument();
+			References refs = null;//((EntryEditor) CDCEditor.getActiveEntryEditor()).getDocument();
 			IStructuredSelection sel = (IStructuredSelection) selection;
 			
 			for (Iterator<Reference> iterator = sel.iterator(); iterator.hasNext();) {

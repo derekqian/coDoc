@@ -31,6 +31,7 @@ import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 import edu.pdx.svl.coDoc.cdc.Global;
+import edu.pdx.svl.coDoc.cdc.editor.CDCEditor;
 import edu.pdx.svl.coDoc.cdc.editor.EntryEditor;
 import edu.pdx.svl.coDoc.cdc.editor.IReferenceExplorer;
 import edu.pdx.svl.coDoc.cdc.preferences.PreferencesView;
@@ -51,7 +52,7 @@ public class ViewReferencesForSelection extends AbstractHandler {
 	
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
-		IReferenceExplorer referenceExplorerView = Global.INSTANCE.referenceExplorerView;
+		IReferenceExplorer referenceExplorerView = (IReferenceExplorer) CDCEditor.findView("edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView");
 		referenceExplorerView.displayListOfTextSelectionReferencesForSelectionInActiveEditor();
 		return null;
 	}

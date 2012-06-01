@@ -7,6 +7,7 @@ package edu.pdx.svl.coDoc.cdc.editor;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Properties;
 import java.util.Vector;
 
 import org.simpleframework.xml.Element;
@@ -20,6 +21,8 @@ class Head {
 	private String creater=" ";
 	@Element
 	private String createtime=" ";
+	@Element
+	private String os=" ";
 	
 	public void setFiletype(String filetype) {
 		this.filetype = filetype;
@@ -33,113 +36,11 @@ class Head {
 	public String getCreatetime() {
 		return createtime;
 	}
-}
-
-class CodeFileEntry {
-	@Element
-	private String filename=" ";	
-	
-	public void setFilename(String filename) {
-		this.filename = filename;
+	public void setOS(String os) {
+		this.os = os;
 	}
-	public String getFilename() {
-		return filename;
-	}
-}
-
-class CodeFiles {
-	@ElementList
-	private Vector<CodeFileEntry> files = new Vector<CodeFileEntry>();
-	
-	public void addFileEntry(String filename) {
-		CodeFileEntry fileentry = new CodeFileEntry();
-		fileentry.setFilename(filename);
-		files.add(fileentry);
-	}
-	
-	public void deleteFileEntry(String filename) {
-		for(CodeFileEntry entry : files) {
-			if(entry.getFilename().equals(filename)) {
-				files.removeElement(entry);
-				break;
-			}
-		}
-	}
-}
-
-class SpecFileEntry {
-	@Element
-	private String filename=" ";
-	
-	public void setFilename(String filename) {
-		this.filename = filename;
-	}
-	public String getFilename() {
-		return filename;
-	}
-}
-
-class SpecFiles {
-	@ElementList
-	private Vector<SpecFileEntry> files = new Vector<SpecFileEntry>();
-	
-	public void addFileEntry(String filename) {
-		SpecFileEntry fileentry = new SpecFileEntry();
-		fileentry.setFilename(filename);
-		files.add(fileentry);
-	}
-	
-	public void deleteFileEntry(String filename) {
-		for(SpecFileEntry entry : files) {
-			if(entry.getFilename().equals(filename)) {
-				files.removeElement(entry);
-				break;
-			}
-		}
-	}
-}
-
-class MapEntry {
-	@Element
-	private String codefilename=" ";
-	@Element
-	private String codeselpath=" ";
-	@Element
-	private String specfilename=" ";
-	@Element
-	private String specselpath=" ";
-	@Element
-	private String comment=" ";
-	
-	public void setCodefilename(String codefilename) {
-		this.codefilename = codefilename;
-	}
-	public String getCodefilename() {
-		return codefilename;
-	}
-	public void setCodeselpath(String codeselpath) {
-		this.codeselpath = codeselpath;
-	}
-	public String getCodeselpath() {
-		return codeselpath;
-	}
-	public void setSpecfilename(String specfilename) {
-		this.specfilename = specfilename;
-	}
-	public String getSpecfilename() {
-		return specfilename;
-	}
-	public void setSpecselpath(String specselpath) {
-		this.specselpath = specselpath;
-	}
-	public String getSpecselpath() {
-		return specselpath;
-	}
-	public void setComment(String comment) {
-		this.comment = comment;
-	}
-	public String getComment() {
-		return comment;
+	public String getOS() {
+		return os;
 	}
 }
 
@@ -147,7 +48,7 @@ class Maps {
 	@ElementList
 	private Vector<MapEntry> maplist = new Vector<MapEntry>();
 	
-	public void addMapEntry(String codefilename, String codeselpath, String specfilename, String specselpath, String comment) {
+	public void addMapEntry(String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
 		MapEntry mapentry = new MapEntry();
 		mapentry.setCodefilename(codefilename);
 		mapentry.setCodeselpath(codeselpath);
@@ -157,7 +58,7 @@ class Maps {
 		maplist.add(mapentry);
 	}
 	
-	public void deleteMapEntry(String codefilename, String codeselpath, String specfilename, String specselpath, String comment) {
+	public void deleteMapEntry(String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
 		for(MapEntry entry : maplist) {
 			if(entry.getCodefilename().equals(codefilename) && entry.getCodeselpath().equals(codeselpath)
 					                                        && entry.getSpecfilename().equals(specfilename)
@@ -270,10 +171,12 @@ public class CDCModel {
 	private SimpleDateFormat ft = null;
 	
 	public CDCModel() {
+		Properties props=System.getProperties();
 		ft = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss:SSS zzz");
 		head = new Head();
 		head.setFiletype("CDC");
-		head.setCreater("Derek");
+		head.setCreater(props.getProperty("user.name"));
+		head.setOS(props.getProperty("os.name"));
 		date = new Date();
 		head.setCreatetime(ft.format(date));
 		body = new Body();
@@ -281,43 +184,49 @@ public class CDCModel {
 	}
 	
 	public void addCodeFileEntry(String filename) {
+		Properties props=System.getProperties();
 		body.codefiles.addFileEntry(filename);
 		date = new Date();
-		hist.addOperation(ft.format(date)+"#add#codefileentry#"+filename);
+		hist.addOperation(ft.format(date)+"#"+props.getProperty("os.name")+"#"+props.getProperty("user.name")+"#add#codefileentry#"+filename);
 	}
 	
 	public void deleteCodeFileEntry(String filename) {
+		Properties props=System.getProperties();
 		body.codefiles.deleteFileEntry(filename);
 		date = new Date();
-		hist.addOperation(ft.format(date)+"#del#codefileentry#"+filename);
+		hist.addOperation(ft.format(date)+"#"+props.getProperty("os.name")+"#"+props.getProperty("user.name")+"#del#codefileentry#"+filename);
 	}
 	
 	public void addSpecFileEntry(String filename) {
+		Properties props=System.getProperties();
 		body.specfiles.addFileEntry(filename);
 		date = new Date();
-		hist.addOperation(ft.format(date)+"#add#specfileentry#"+filename);
+		hist.addOperation(ft.format(date)+"#"+props.getProperty("os.name")+"#"+props.getProperty("user.name")+"#add#specfileentry#"+filename);
 	}
 	
 	public void deleteSpecFileEntry(String filename) {
+		Properties props=System.getProperties();
 		body.specfiles.deleteFileEntry(filename);
 		date = new Date();
-		hist.addOperation(ft.format(date)+"#del#specfileentry#"+filename);
+		hist.addOperation(ft.format(date)+"#"+props.getProperty("os.name")+"#"+props.getProperty("user.name")+"#del#specfileentry#"+filename);
 	}
 	
-	public void addMapEntry(String codefilename, String codeselpath, String specfilename, String specselpath, String comment) {
+	public void addMapEntry(String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
+		Properties props=System.getProperties();
 		body.maps.addMapEntry(codefilename, codeselpath, specfilename, specselpath, comment);
 		date = new Date();
-		hist.addOperation(ft.format(date)+"#add#mapentry#"+codefilename+"#"+codeselpath+"#"+specfilename+"#"+specselpath+"#"+comment);
+		hist.addOperation(ft.format(date)+"#"+props.getProperty("os.name")+"#"+props.getProperty("user.name")+"#add#mapentry#"+codefilename+"#"+codeselpath+"#"+specfilename+"#"+specselpath+"#"+comment);
 	}
 	
-	public void deleteMapEntry(String codefilename, String codeselpath, String specfilename, String specselpath, String comment) {
+	public void deleteMapEntry(String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
+		Properties props=System.getProperties();
 		body.maps.deleteMapEntry(codefilename, codeselpath, specfilename, specselpath, comment);
 		date = new Date();
-		hist.deleteOperation(ft.format(date)+"#del#mapentry#"+codefilename+"#"+codeselpath+"#"+specfilename+"#"+specselpath+"#"+comment);
+		hist.deleteOperation(ft.format(date)+"#"+props.getProperty("os.name")+"#"+props.getProperty("user.name")+"#del#mapentry#"+codefilename+"#"+codeselpath+"#"+specfilename+"#"+specselpath+"#"+comment);
 	}
 	
-	public MapEntry getFirstMapEntry() {
-		return body.maps.getMapList().firstElement();
+	public Vector<MapEntry> getMapEntries() {
+		return body.maps.getMapList();
 	}
 	
 	public void setLastOpenedCodeFilename(String codeFilename) {

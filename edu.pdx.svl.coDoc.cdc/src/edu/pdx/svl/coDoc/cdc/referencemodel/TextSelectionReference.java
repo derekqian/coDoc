@@ -36,19 +36,6 @@ public class TextSelectionReference extends Reference {
 	public TextSelectionReference() {
 //		fetchAcrobatData();
 	}
-	
-	public void fetchAcrobatData() {
-//		if (PDFManager.INSTANCE.isAcrobatOpened() == true) {
-			if (pdfSelection == null) {
-				pdfSelection = new PDFSelection();
-			}
-			pdfSelection.fetchFromAcrobat();
-			String text = pdfSelection.getText();
-//			if (text.length() == 0) {
-//				javax.swing.JOptionPane.showMessageDialog(null, "Warning: You have not selected any text in your PDF document!", "No PDF Selection", JOptionPane.WARNING_MESSAGE);
-//			}
-//		}
-	}
 
 	@Override
 	public String getType() {

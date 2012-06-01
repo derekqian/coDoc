@@ -17,6 +17,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 
 import edu.pdx.svl.coDoc.cdc.FileCopy;
 import edu.pdx.svl.coDoc.cdc.Global;
+import edu.pdx.svl.coDoc.cdc.editor.CDCEditor;
 import edu.pdx.svl.coDoc.cdc.preferences.PreferenceValues;
 import edu.pdx.svl.coDoc.cdc.view.FileChooser;
 
@@ -140,7 +141,7 @@ public enum PDFManager {
 //	}
 
 	private void copyCurrentFileToProject() {
-		String dir = Global.INSTANCE.getActiveProjectDirectory();
+		String dir = CDCEditor.getActiveProjectDirectory();
 		String fileName = getCurrentPdfFile().getFileName();
 		String projectPDFPath = dir + fileName;
 		
@@ -190,7 +191,7 @@ public enum PDFManager {
 	}
 	
 	private boolean isPDFInProject() {
-		String dir = Global.INSTANCE.getActiveProjectDirectory();
+		String dir = CDCEditor.getActiveProjectDirectory();
 		String fileName = getCurrentPdfFile().getFileName();
 		String fullPath = dir + fileName;
 		

@@ -5,6 +5,8 @@ import java.util.Vector;
 import org.eclipse.ui.IEditorPart;
 
 import edu.pdx.svl.coDoc.cdc.Global;
+import edu.pdx.svl.coDoc.cdc.editor.CDCEditor;
+import edu.pdx.svl.coDoc.cdc.editor.EntryEditor;
 
 
 public class ReferencesForActiveSourceFile {
@@ -13,8 +15,8 @@ public class ReferencesForActiveSourceFile {
 	private Vector<Reference> referencesInActiveSourceFile;
 	
 	public ReferencesForActiveSourceFile() {
-		allProjects = Global.INSTANCE.entryEditor.getDocument().getProjects();
-		IEditorPart editorPart = Global.INSTANCE.workbenchPart.getSite().getPage().getActiveEditor();
+		allProjects = null;//((EntryEditor) CDCEditor.getActiveEntryEditor()).getDocument().getProjects();
+		IEditorPart editorPart = CDCEditor.workbenchPart.getSite().getPage().getActiveEditor();
 		String editorFileName = editorPart.getEditorInput().getName();
 		for (Reference r : allProjects) {
 			Vector<Reference> sfrs = r.getChildrenList();

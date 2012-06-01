@@ -5,6 +5,7 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
@@ -33,8 +34,11 @@ import edu.pdx.svl.coDoc.cdc.Global;
 import edu.pdx.svl.coDoc.cdc.XML.SimpleXML;
 import edu.pdx.svl.coDoc.cdc.preferences.PreferencesView;
 import edu.pdx.svl.coDoc.cdc.referencemodel.*;
+import edu.pdx.svl.coDoc.cdc.editor.CDCEditor;
+import edu.pdx.svl.coDoc.cdc.editor.CDCModel;
 import edu.pdx.svl.coDoc.cdc.editor.EntryEditor;
 import edu.pdx.svl.coDoc.cdc.editor.IReferenceExplorer;
+import edu.pdx.svl.coDoc.cdc.editor.MapEntry;
 import edu.pdx.svl.coDoc.cdc.view.EditView;
 import edu.pdx.svl.coDoc.poppler.editor.PDFEditor;
 import edu.pdx.svl.coDoc.refexp.referenceexplorer.edit.EditComment;
@@ -42,38 +46,41 @@ import edu.pdx.svl.coDoc.refexp.referenceexplorer.provider.*;
 import edu.pdx.svl.coDoc.refexp.referenceexplorer.provider.LabelProvider;
 import edu.pdx.svl.coDoc.refexp.view.Help;
 
-public class ReferenceExplorerView extends ViewPart implements ISelectionListener, Listener, IResourceChangeListener, IReferenceExplorer {
+public class ReferenceExplorerView extends ViewPart implements ISelectionListener, Listener, IPartListener2, IResourceChangeListener, IReferenceExplorer {
 	public static final String ID = "edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView";
-	private static TreeViewer treeViewer;
-	private static TableViewer tableViewer;
+	private CDCModel cdcModel = null;
+	Composite parent;
 	private final int NUM_HORIZONTAL_ELEMENTS = 5; // max num elements in a row
-	private References references = null;
+	Text searchText;
+	String searchTextStr;
+	Combo combo;
 	Button checkButton;
+	private static TableViewer tableViewer = null;
+	private static TreeViewer treeViewer = null;
 	//IWorkbenchPart workbenchPart;
 	String activeEditorFileName;
 	Button selectPDFButton;
 	Button openActivePDF;
 	PreferencesView preferencesView;
-	Composite parent;
-	String searchTextStr;
-	Text searchText;
-	Combo combo;
 	
-	
-//	public void createPartControl() {
-//		createPartControl(parent);
-//	}
 	@Override
 	public void createPartControl(Composite parent) {
 		this.parent = parent;
 		
 		//NH - I split the setup into several parts...
 		createSearchBarAndButtons(parent);
-		createTreeViewer(parent);
+		createTableViewer(parent);
+		//createTreeViewer(parent);
+		getSite().getWorkbenchWindow().getPartService().addPartListener(this);
 		createWorkbenchListener();
 		createResourceChangeListener();
 		
 		refresh();
+	}
+
+	@Override
+	public void setInput(CDCModel cdcModel) {
+		this.cdcModel = cdcModel;
 	}
 
 	/**
@@ -81,25 +88,21 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 	 */
 	@Override
 	public void setFocus() {
-		treeViewer.getControl().setFocus();
+		if(tableViewer != null) {
+			tableViewer.getControl().setFocus();			
+		}
+		if(treeViewer != null) {
+			treeViewer.getControl().setFocus();
+		}
 	}
 	
 	public EntryEditor getEntryEditor() {
-		EntryEditor editor = null;
-		// IEditorPart editor = getSite().getPage().getActiveEditor();
-		IWorkbenchPage workbenchPage = getSite().getPage();
-		IEditorReference[] editorrefs = workbenchPage.findEditors(null,"edu.pdx.svl.coDoc.cdc.editor.EntryEditor",IWorkbenchPage.MATCH_ID);
-		if(editorrefs.length != 0)
-		{
-			editor = (EntryEditor) editorrefs[0].getEditor(false);
-		}
-		return editor;
+		return (EntryEditor) CDCEditor.getActiveEntryEditor();
 	}
 
 	private void createSearchBarAndButtons(Composite parent) {
 		GridLayout layout = new GridLayout(NUM_HORIZONTAL_ELEMENTS, false);
 		parent.setLayout(layout);
-		
 
 		// setup search bar
 		createSearchBar(parent);
@@ -114,13 +117,10 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		Label searchLabel = new Label(parent, SWT.NONE);
 		searchLabel.setText("Search: ");
 		searchText = new Text(parent, SWT.BORDER | SWT.SEARCH);
-		searchText.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL
-				| GridData.HORIZONTAL_ALIGN_FILL));
+		searchText.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL));
 		searchText.addKeyListener(new KeyListener() {
-			
 			@Override
 			public void keyReleased(KeyEvent e) {
-				
 			}
 			
 			@Override
@@ -143,7 +143,6 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		combo.setToolTipText("Search Categories.");
 		combo.select(0);
 		combo.addSelectionListener( new SelectionListener() {
-			
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				searchTextStr = searchText.getText();
@@ -152,7 +151,6 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 			
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
-				
 			}
 		});
 	}
@@ -170,37 +168,110 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		checkButton.setToolTipText("When checked, all saved references are shown.\nWhen unchecked, only references for the currently\nactive source file are shown.");
 	}
 
-	public void setInput(References refs) {
-		references = refs;
-		return;
-	}
-	
-	public void refresh() {
-		searchText.setText("");
-		
-		if(references == null){}
-		treeViewer.setInput(references);
-		TreeContentProvider tcp = (TreeContentProvider)treeViewer.getContentProvider();
-		if (checkButton.getSelection() == true) {
-			tcp.allSources = true;
-		} else {
-			tcp.allSources = false;
-		}
-		treeViewer.refresh();
-		treeViewer.expandToLevel(4);
-	}
-
 	private void createHelpButton(Composite parent) {
 		Button ok = new Button(parent, SWT.PUSH);
 		ok.setText("Help");
 		ok.addSelectionListener(new SelectionAdapter() {
-			
 			public void widgetSelected(SelectionEvent e) {
 				Help.openHelpBrowser();
 			}
 		});
 	}
+	
+	public void refresh() {
+		searchText.setText("");
+		
+		if(cdcModel == null) {
+			//return;
+		}
+		if(tableViewer != null) {
+			tableViewer.setInput(cdcModel);
+			TableContentProvider tcp = (TableContentProvider)tableViewer.getContentProvider();
+			if (checkButton.getSelection() == true) {
+				//tcp.allSources = true;
+			} else {
+				//tcp.allSources = false;
+			}
+			tableViewer.refresh();
+		}
+		if(treeViewer != null) {
+			treeViewer.setInput(cdcModel);
+			TreeContentProvider tcp = (TreeContentProvider)treeViewer.getContentProvider();
+			if (checkButton.getSelection() == true) {
+				tcp.allSources = true;
+			} else {
+				tcp.allSources = false;
+			}
+			treeViewer.refresh();
+			treeViewer.expandToLevel(4);
+		}
+	}
 
+	private void createTableViewer(Composite parent) {
+		tableViewer = new TableViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL
+				| SWT.FULL_SELECTION | SWT.BORDER);
+
+		Table table = tableViewer.getTable();
+		table.setHeaderVisible(true);
+		table.setLinesVisible(true);
+		TableLayout tLayout = new TableLayout();
+		table.setLayout(tLayout);
+		
+		tLayout.addColumnData(new ColumnWeightData(24));
+		new TableColumn(table,SWT.NONE).setText("Source file");
+		tLayout.addColumnData(new ColumnWeightData(60));
+		new TableColumn(table,SWT.NONE).setText("Code");
+		tLayout.addColumnData(new ColumnWeightData(24));
+		new TableColumn(table,SWT.NONE).setText("PDF file");
+		tLayout.addColumnData(new ColumnWeightData(10));
+		new TableColumn(table,SWT.NONE).setText("Page");
+		tLayout.addColumnData(new ColumnWeightData(64));
+		new TableColumn(table,SWT.NONE).setText("Specification Text");
+		tLayout.addColumnData(new ColumnWeightData(52));
+		new TableColumn(table,SWT.NONE).setText("Comments");
+
+		tableViewer.setContentProvider(new TableContentProvider());
+		tableViewer.setLabelProvider(new TableLabelProvider());
+
+		table.addListener (SWT.Selection, new Listener () {
+			public void handleEvent (Event event) {
+				EntryEditor editor = getEntryEditor();
+				if(editor == null) return;
+				ISelection selection = tableViewer.getSelection();
+				if (selection != null && selection instanceof IStructuredSelection) {
+					IStructuredSelection sel = (IStructuredSelection) selection;
+					for (Iterator<MapEntry> iterator = sel.iterator(); iterator.hasNext();) {
+						MapEntry mp = iterator.next();
+						editor.selectTextInAcrobat(mp);
+						editor.selectTextInTextEditor(mp);
+					}
+				}
+			}
+		});
+		table.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseDoubleClick(MouseEvent e) {
+				ISelection selection = tableViewer.getSelection();
+				if (selection != null && selection instanceof IStructuredSelection) {
+					IStructuredSelection sel = (IStructuredSelection) selection;
+					for (Iterator<MapEntry> iterator = sel.iterator(); iterator.hasNext();) {
+						MapEntry mp = iterator.next();
+						MessageDialog.openInformation(null, "Info", "Double clicked");
+					}
+				}
+				setFocus();
+			}
+		});
+
+		// Layout the viewer
+		GridData gridData = new GridData();
+		gridData.verticalAlignment = GridData.FILL;
+		gridData.horizontalSpan = 6;
+		gridData.grabExcessHorizontalSpace = true;
+		gridData.grabExcessVerticalSpace = true;
+		gridData.horizontalAlignment = GridData.FILL;
+		tableViewer.getControl().setLayoutData(gridData);
+	}
 
 	private void createTreeViewer(Composite parent) {
 		treeViewer = new TreeViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL
@@ -233,7 +304,7 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 			public String getText(Object element) {
 				if (element instanceof Reference) {
 					Reference r = (Reference)element;
-					return r.pdfDescription();
+					return ""; //r.pdfDescription();
 				} else {
 					return "";
 				}
@@ -260,7 +331,7 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 			public String getText(Object element) {
 				if (element instanceof Reference) {
 					Reference r = (Reference)element;
-					return r.pdfPage();
+					return ""; //r.pdfPage();
 				} else {
 					return "";
 				}
@@ -296,11 +367,6 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 					IStructuredSelection sel = (IStructuredSelection) selection;
 					for (Iterator<Reference> iterator = sel.iterator(); iterator.hasNext();) {
 						Reference ref = iterator.next();
-						editor.selectTextInAcrobat(ref);
-						if (ref instanceof TextSelectionReference) {
-							TextSelectionReference tsr = (TextSelectionReference)ref;
-							editor.selectTextInTextEditor(tsr);
-						}
 					}
 				}
 			}
@@ -316,17 +382,8 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 						PDFFile pdfFile = ref.getPdfFile();
 						if (pdfFile != null) {
 							PDFManager.INSTANCE.openFileInAcrobatForced(pdfFile);
-							PDFSelection pdfs = ref.getPdfSelection();
-							if (pdfs != null) {
-								//We have to sleep, because Acrobat needs time to load before making a selection.
-								try {
-									Thread.sleep(1000);
-								} catch (InterruptedException e1) {
-									System.out.println("cannot sleep for creating acrobat selection");
-									e1.printStackTrace();
-								}
-								pdfs.selectTextInAcrobat();
-							}
+							//PDFSelection pdfs = ref.getPdfSelection();
+							//pdfs.selectTextInAcrobat();
 						}
 					}
 				}
@@ -358,11 +415,16 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 
 	public void handleEvent(Event event) {
 		MessageDialog.openError(null, "Alert",  "handleEvent(Event event)");
-		
 	}
 	
 	public ISelection getSelection() {
-		return treeViewer.getSelection();
+		if(tableViewer != null) {
+			return tableViewer.getSelection();			
+		}
+		if(treeViewer != null) {
+			return treeViewer.getSelection();			
+		}
+		return null;
 	}
 	
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
@@ -384,12 +446,12 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 			if (editorPart != null) {
 				IEditorInput iEditorInput = editorPart.getEditorInput();
 				FileEditorInput fei = (FileEditorInput)iEditorInput;
-				FileEditorInput oldFei = Global.INSTANCE.activeFileEditorInput;
-				Global.INSTANCE.activeFileEditorInput = fei;
+				FileEditorInput oldFei = CDCEditor.activeFileEditorInput;
+				CDCEditor.activeFileEditorInput = fei;
 				
 				if (checkButton.getSelection() == false && fei != oldFei) {
 					searchText.setText("");
-					treeViewer.setInput(Global.INSTANCE.entryEditor.getDocument());
+					treeViewer.setInput(((EntryEditor) CDCEditor.getActiveEntryEditor()).getDocument());
 					TreeContentProvider tcp = (TreeContentProvider)treeViewer.getContentProvider();
 					if (checkButton.getSelection() == true) {
 						tcp.allSources = true;
@@ -423,6 +485,47 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		IResourceChangeListener listener = this;
 		workspace.addResourceChangeListener(listener);
 	}
+
+	@Override
+	public void partActivated(IWorkbenchPartReference arg0) {
+	}
+
+	@Override
+	public void partBroughtToTop(IWorkbenchPartReference arg0) {
+	}
+
+	@Override
+	public void partClosed(IWorkbenchPartReference partRef) {
+		refresh();
+		return;
+	}
+
+	@Override
+	public void partDeactivated(IWorkbenchPartReference arg0) {
+	}
+
+	@Override
+	public void partHidden(IWorkbenchPartReference arg0) {
+	}
+
+	@Override
+	public void partInputChanged(IWorkbenchPartReference arg0) {
+	}
+
+	@Override
+	public void partOpened(IWorkbenchPartReference partRef) {
+		/*EntryEditor editorPart = (EntryEditor) partRef.getPart(false);
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		refresh();*/
+	}
+
+	@Override
+	public void partVisible(IWorkbenchPartReference arg0) {
+	}
 	
 	@Override
 	public void resourceChanged(IResourceChangeEvent event) {
@@ -441,7 +544,7 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 //		int removedPhantom = IResourceDelta.REMOVED_PHANTOM;
 //		int replaced = IResourceDelta.REPLACED;
 		
-		References references = Global.INSTANCE.entryEditor.getDocument();
+		References references = null;if(references==null)return;//((EntryEditor) CDCEditor.getActiveEntryEditor()).getDocument();
 		
 		IResourceDelta workspaceIrd = event.getDelta(); //workspace
 		if (workspaceIrd == null) return;
@@ -466,7 +569,7 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 			}
 			//new project imported, we need to scan to see if there are saved references
 			else if (projectIrdKind == IResourceDelta.ADDED && projectIrdFlag == IResourceDelta.OPEN) {
-				Global.INSTANCE.entryEditor.setDocument(SimpleXML.read());
+				//((EntryEditor) CDCEditor.getActiveEntryEditor()).setDocument(SimpleXML.read());
 				break;
 			}
 			
@@ -493,8 +596,8 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 	
 	public void displayListOfTextSelectionReferencesForSelectionInActiveEditor() {
 		EntryEditor editor = getEntryEditor();
-		References references = Global.INSTANCE.entryEditor.getDocument();
-		TextSelectionReference currentTextSelection = editor.getCurrentTextSelectionReference();
+		References references = null;//((EntryEditor) CDCEditor.getActiveEntryEditor()).getDocument();
+		TextSelectionReference currentTextSelection = null; //editor.getCurrentTextSelectionReference();
 		Vector<Reference> matches = references.findReferencesContainingTextSelectionInActiveEditor(currentTextSelection);
 		checkButton.setSelection(false);
 		treeViewer.setInput(matches);
@@ -506,7 +609,7 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 			refresh();
 			return;
 		}
-		References references = Global.INSTANCE.entryEditor.getDocument();
+		References references = null;//((EntryEditor) CDCEditor.getActiveEntryEditor()).getDocument();
 		Vector<Reference> matches = null;
 		
 		int comboSelection = combo.getSelectionIndex();
@@ -552,8 +655,7 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 			} else {
 				matches = references.findCommentReferencesForActiveSourceFile(searchTextStr);
 			}
-		} 
-		
+		}
 		
 //		checkButton.setSelection(false);
 		treeViewer.setInput(matches);

@@ -5,6 +5,8 @@ import org.eclipse.jface.viewers.*;
 
 import edu.pdx.svl.coDoc.cdc.Global;
 import edu.pdx.svl.coDoc.cdc.XML.SimpleXML;
+import edu.pdx.svl.coDoc.cdc.editor.CDCEditor;
+import edu.pdx.svl.coDoc.cdc.editor.EntryEditor;
 import edu.pdx.svl.coDoc.cdc.referencemodel.*;
 
 public class EditComment extends EditingSupport {
@@ -35,7 +37,7 @@ public class EditComment extends EditingSupport {
 	protected void setValue(Object element, Object value) {
 		((Reference) element).setComment(String.valueOf(value));
 		viewer.refresh();
-		SimpleXML.write(Global.INSTANCE.entryEditor.getDocument());
+		SimpleXML.writeCDCModel(((EntryEditor) CDCEditor.getActiveEntryEditor()).getDocument(), "/derek/a.cdc");
 	}
 
 }

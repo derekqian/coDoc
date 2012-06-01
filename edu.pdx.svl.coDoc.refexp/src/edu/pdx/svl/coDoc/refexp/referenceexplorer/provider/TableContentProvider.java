@@ -1,41 +1,33 @@
 package edu.pdx.svl.coDoc.refexp.referenceexplorer.provider;
 
 
-import org.eclipse.jface.viewers.ITreeContentProvider;
+import java.util.Vector;
+
+import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
-import edu.pdx.svl.coDoc.cdc.Global;
+import edu.pdx.svl.coDoc.cdc.editor.CDCModel;
+import edu.pdx.svl.coDoc.cdc.editor.MapEntry;
 
 
 
-public class TableContentProvider implements ITreeContentProvider {
-	
-	public TableContentProvider() {
-
+public class TableContentProvider implements IStructuredContentProvider {
+	@Override
+	public Object[] getElements(Object element) {
+		if(element instanceof CDCModel) {
+			CDCModel cdcModel = (CDCModel) element;
+			Vector<MapEntry> mapEntries = cdcModel.getMapEntries();
+			return mapEntries.toArray();
+		} else {
+			return null;
+		}
 	}
-	
+
+	@Override
+	public void inputChanged(Viewer arg0, Object arg1, Object arg2) {
+	}
+
+	@Override
 	public void dispose() {
 	}
-
-	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-
-	}
-
-	public Object[] getElements(Object inputElement) {
-		return Global.INSTANCE.testModel.getTestModelItems();
-	}
-
-	public Object[] getChildren(Object parentElement) {
-		return null;
-	}
-
-	public Object getParent(Object element) {
-		return null;
-		
-	}
-
-	public boolean hasChildren(Object element) {
-		return false;
-	}
-
 }
