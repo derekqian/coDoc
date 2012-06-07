@@ -28,4 +28,7 @@ public class CodeSelection {
 	public String getCodeText() {
 		return codetext;
 	}
+	public String toString() {
+		return codetext+"/"+codeselpath;
+	}
 }

@@ -16,7 +16,7 @@ public class ReferencesForActiveSourceFile {
 	
 	public ReferencesForActiveSourceFile() {
 		allProjects = null;//((EntryEditor) CDCEditor.getActiveEntryEditor()).getDocument().getProjects();
-		IEditorPart editorPart = CDCEditor.workbenchPart.getSite().getPage().getActiveEditor();
+		IEditorPart editorPart = CDCEditor.getActiveEntryEditor();
 		String editorFileName = editorPart.getEditorInput().getName();
 		for (Reference r : allProjects) {
 			Vector<Reference> sfrs = r.getChildrenList();

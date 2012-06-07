@@ -261,6 +261,11 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 		System.out.println("get focus");
 	}
 	
+	private void createWorkbenchListener() {
+		getSite().getPage().addSelectionListener(this);
+		//selectionChanged(getSite().getPart(), getSite().getPage().getSelection());
+	}
+	
 	private TextSelection currentTextSelection;
 	public CodeSelection getSelectionInTextEditor() {
 		if (currentTextSelection == null) {
@@ -280,51 +285,48 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 	}
 
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-		CDCEditor.workbenchPart = part;
+		System.out.println("<<<<<-------------------");
+		System.out.println("EntryEditor.selectionChanged: " + part.getClass().getName());
 
 		if (selection == null) return;
+		System.out.println("EntryEditor.selectionChanged: " + selection.getClass().getName());
 		
-//		if (selection instanceof TreeSelection) {
-//			MessageDialog.openInformation(null, "Tree Selection", "Tree Selection");
-//			System.out.println("Tree Selection");
-//			TreeSelection ts = (TreeSelection)selection;
-//		}
-		
-		if (selection instanceof TextSelection) {
-			currentTextSelection = (TextSelection)selection;
+		IEditorReference[] ef = part.getSite().getPage().getEditorReferences();
+		for(int i=0; i<ef.length; i++) {
+			System.out.println("EntryEditor.selectionChanged: editors: " + ef[i].getEditor(false).getClass().getName());
 		}
-		
-		IEditorPart editor = part.getSite().getPage().getActiveEditor();
-		IFile inputFile = ((FileEditorInput) editor.getEditorInput()).getFile();
-		try {
-			TranslationUnit tu = (TranslationUnit) CCorePlugin.getDefault().getCoreModel().create(inputFile);
-			IASTTranslationUnit ast = tu.getLanguage().getASTTranslationUnit(tu,
-					ILanguage.AST_SKIP_IF_NO_BUILD_INFO);
-			CustomASTVisitor astvisitor = CustomASTVisitor.getInstance();
-			astvisitor.getEnviroment();
-			astvisitor.setMode(CustomASTVisitor.MODE_SELECTION_TO_NODE);
-			astvisitor.setTextSelection(currentTextSelection);
-			ast.accept(astvisitor);
-		} catch (CoreException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		if(part.getSite().getPage().getActiveEditor() != null)
+			System.out.println("EntryEditor.selectionChanged: active editor: " + part.getSite().getPage().getActiveEditor().getClass().getName());
+		System.out.println("------------------->>>>>>>>");
+
+		if(part instanceof IEditorPart) {
+			EntryEditor editorPart = (EntryEditor) CDCEditor.getActiveEntryEditor();
+			if (editorPart != null) {
+				if (selection instanceof TextSelection) {
+					currentTextSelection = (TextSelection)selection;					
+					
+					IEditorPart editor = CDCEditor.getActiveCEditorChild(editorPart);
+					IFile inputFile = ((FileEditorInput) editor.getEditorInput()).getFile();
+					try {
+						TranslationUnit tu = (TranslationUnit) CCorePlugin.getDefault().getCoreModel().create(inputFile);
+						IASTTranslationUnit ast = tu.getLanguage().getASTTranslationUnit(tu,
+								ILanguage.AST_SKIP_IF_NO_BUILD_INFO);
+						CustomASTVisitor astvisitor = CustomASTVisitor.getInstance();
+						astvisitor.getEnviroment();
+						astvisitor.setMode(CustomASTVisitor.MODE_SELECTION_TO_NODE);
+						astvisitor.setTextSelection(currentTextSelection);
+						ast.accept(astvisitor);
+					} catch (CoreException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
 		}
-		
-		
-//		IEditorReference[] editors = part.getSite().getPage().getEditorReferences();
-//		editors[0].getName();
-//		
-//		IViewReference[] views = part.getSite().getPage().getViewReferences();
-//		views[0].getTitle();
 		
 //		IViewReference outlineView = views[6];
 //		IViewPart ov = outlineView.getView(true);
 //		ContentOutline contentOutline = (ContentOutline)ov;
-	}
-	
-	private void createWorkbenchListener() {
-		getSite().getPage().addSelectionListener(this);
-		//selectionChanged(getSite().getPart(), getSite().getPage().getSelection());
 	}
 
 	public void selectTextInTextEditor(MapEntry mapEntry) {
@@ -374,8 +376,8 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 			return null;
 		}
 		String pdftext = acrobatInterface.getSelectedText();
-		// String formattedText = pdftext.replace('\n', ' ').replace('\t', ' ');
-		if (pdftext == null || pdftext.equals("")) {
+		pdftext = pdftext.replace('\n', ' ').replace('\t', ' ');
+		if(pdftext == null || pdftext.equals("")) {
 			MessageDialog.openError(null, "Alert", "Warning:\nYou have not selected any text in your PDF file.\nNo reference has been saved.");
 			return null;
 		}

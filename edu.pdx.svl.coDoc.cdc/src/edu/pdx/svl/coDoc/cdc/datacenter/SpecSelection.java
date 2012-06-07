@@ -60,4 +60,7 @@ public class SpecSelection {
 	public String getPDFText() {
 		return pdftext;
 	}
+	public String toString() {
+		return page+"/"+left+"/"+top+"/"+right+"/"+bottom+"/"+pdftext;
+	}
 }

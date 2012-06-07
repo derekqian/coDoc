@@ -289,7 +289,6 @@ public class CDCEditor implements IEditorLauncher
 	private static IPath path = null;
 	private static IPath cdcfilepath = null;
 	private static String projectname = null;
-	public static IWorkbenchPart workbenchPart;
 	public static FileEditorInput activeFileEditorInput = null;
 
 	public CDCEditor() {

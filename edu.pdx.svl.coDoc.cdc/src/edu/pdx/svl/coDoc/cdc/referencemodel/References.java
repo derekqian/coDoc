@@ -55,7 +55,7 @@ public class References {
 	
 	public SourceFileReference findActiveSourceFileReference() {
 		SourceFileReference matchingSourceFile = null;
-		IEditorPart editorPart = CDCEditor.workbenchPart.getSite().getPage().getActiveEditor();
+		IEditorPart editorPart = CDCEditor.getActiveEntryEditor();
 		String editorFileName = editorPart.getEditorInput().getName();
 		
 		for (Reference r : projects) {
@@ -77,7 +77,7 @@ public class References {
 		ProjectReference matchingProject = null;
 		SourceFileReference matchingSourceFile = null;
 		
-		IEditorPart editorPart = CDCEditor.workbenchPart.getSite().getPage().getActiveEditor();
+		IEditorPart editorPart = CDCEditor.getActiveEntryEditor();
 		String editorFileName = editorPart.getEditorInput().getName();
 		
 		for (Reference r : projects) {
