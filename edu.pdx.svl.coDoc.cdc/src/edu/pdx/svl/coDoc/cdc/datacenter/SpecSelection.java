@@ -3,7 +3,7 @@
  * absolute:///home/derek/testproj/code.example.c
  */
 
-package edu.pdx.svl.coDoc.cdc.editor;
+package edu.pdx.svl.coDoc.cdc.datacenter;
 
 import java.util.Vector;
 

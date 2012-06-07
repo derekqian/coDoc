@@ -16,7 +16,8 @@ public class Help {
 		IWorkbenchBrowserSupport browserSupport = PlatformUI.getWorkbench().getBrowserSupport();
 		URL webUrl;
 		try {
-			webUrl = new URL("http://svl.cs.pdx.edu/");
+			webUrl = new URL("http://web.cecs.pdx.edu/~dejun/coDoc/coDoc.html");
+			// webUrl = new URL("http://svl.cs.pdx.edu/");
 		} catch (MalformedURLException e) {
 			System.out.println("bad url: " + e.toString());
 			return;

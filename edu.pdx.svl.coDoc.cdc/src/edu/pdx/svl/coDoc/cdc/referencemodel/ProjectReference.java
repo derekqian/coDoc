@@ -14,7 +14,6 @@ public class ProjectReference extends Reference {
 	public ProjectReference() {
 		projectName = "Default Project Name";
 		projectDirectory = "C:\\someDirectory";
-		pdfFile = PDFManager.INSTANCE.getCurrentPdfFile();
 	}
 	
 	@Override

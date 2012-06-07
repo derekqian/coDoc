@@ -10,7 +10,7 @@ import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.layout.GridData;
 
-import edu.pdx.svl.coDoc.cdc.editor.MapEntry;
+import edu.pdx.svl.coDoc.cdc.datacenter.MapEntry;
 import edu.pdx.svl.coDoc.cdc.referencemodel.Reference;
 
 

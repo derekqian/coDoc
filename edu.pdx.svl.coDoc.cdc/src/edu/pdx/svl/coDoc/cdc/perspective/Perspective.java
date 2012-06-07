@@ -51,6 +51,7 @@ public class Perspective implements IPerspectiveFactory {
 		//addStandaloneView(String viewId, boolean showTitle, int relationship, float ratio, String refId)
 		//factory.addStandaloneView("topLeft", true, IPageLayout.LEFT, 0.20f, factory.getEditorArea());
 		IFolderLayout topLeft = factory.createFolder("topLeft", IPageLayout.LEFT, 0.20f, factory.getEditorArea());
+		topLeft.addView(IPageLayout.ID_PROJECT_EXPLORER);
 		topLeft.addView(IPageLayout.ID_RES_NAV);
 		//topLeft.addView("org.eclipse.jdt.junit.ResultView");
 		

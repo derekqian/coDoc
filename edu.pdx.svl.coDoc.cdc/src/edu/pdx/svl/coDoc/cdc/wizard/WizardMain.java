@@ -1,19 +1,24 @@
 package edu.pdx.svl.coDoc.cdc.wizard;
 
 
+import org.eclipse.jface.wizard.IWizard;
 import org.eclipse.jface.wizard.Wizard;
+import org.eclipse.jface.wizard.WizardDialog;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.core.runtime.*;
+import org.eclipse.ui.internal.wizards.datatransfer.WizardFileSystemResourceImportPage1;
 
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.CoreException;
 import java.io.*;
@@ -21,8 +26,12 @@ import java.io.*;
 import org.eclipse.ui.actions.WorkspaceModifyOperation;
 import org.eclipse.ui.dialogs.WizardNewProjectCreationPage;
 import org.eclipse.ui.ide.IDE;
+import org.eclipse.ui.wizards.datatransfer.FileSystemImportWizard;
 import org.eclipse.ui.wizards.newresource.BasicNewProjectResourceWizard;
 import org.eclipse.ui.wizards.newresource.BasicNewResourceWizard;
+
+import edu.pdx.svl.coDoc.cdc.XML.SimpleXML;
+import edu.pdx.svl.coDoc.cdc.datacenter.CDCModel;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -31,6 +40,8 @@ public class WizardMain extends Wizard implements INewWizard, IExecutableExtensi
 {
     private WelcomePage page1;
     private WizardNewProjectCreationPage page2;
+    private CodeImportPage page3;
+    private SpecImportPage page4;
 	private IConfigurationElement config;
     private IWorkbench workbench;
 	private IStructuredSelection selection;
@@ -68,6 +79,10 @@ public class WizardMain extends Wizard implements INewWizard, IExecutableExtensi
         page2.setTitle("Create a new coDoc project");
         page2.setDescription("Create a new coDoc project.");
         addPage(page2);
+        //page3 = new CodeImportPage();
+        //addPage(page3);
+        //page4 = new SpecImportPage();
+        //addPage(page4);
     }
 
     /** 
@@ -133,6 +148,9 @@ public class WizardMain extends Wizard implements INewWizard, IExecutableExtensi
 		// plugin.xml: finalPerspective="coDoc.perspectives.Perspective"
 		BasicNewProjectResourceWizard.updatePerspective(config);
 		BasicNewResourceWizard.selectAndReveal(project, workbench.getActiveWorkbenchWindow());
+		
+		//page3.finish();
+		//page4.finish();
 
 		return true;
     }
@@ -162,13 +180,26 @@ public class WizardMain extends Wizard implements INewWizard, IExecutableExtensi
 			addFileToProject(container, new Path("readme.txt"), openContentStream(), monitor);
 			/* Add an cdc file */
 			InputStream resourceStream1 = this.getClass().getResourceAsStream("templates/cdc-template.resource");
-			addFileToProject(container, new Path("template.cdc"), resourceStream1, monitor);
+			String cdcFilename = "."+proj.getName()+".cdc";
+			final IFile file1 = container.getFile(new Path(cdcFilename));
+			if (file1.exists()) 
+			{
+				file1.setContents(resourceStream1, true, true, monitor);
+			} 
+			else 
+			{
+				file1.create(resourceStream1, true, monitor);
+			}
 			resourceStream1.close();
+			
+    		CDCModel cdcModel = new CDCModel();
+    		String filepath = proj.getLocation().toString()+File.separatorChar+cdcFilename;
+    		SimpleXML.writeCDCModel(cdcModel, filepath);
 			
 			/* Add the style folder and the site.css file to it */
 			final IFolder specFolder = container.getFolder(new Path("spec"));
 			specFolder.create(true, true, monitor);
-			InputStream resourceStream2 = this.getClass().getResourceAsStream("templates/pdf-sample.resource");
+			/* InputStream resourceStream2 = this.getClass().getResourceAsStream("templates/pdf-sample.resource");
 			final IFile file2 = container.getFile(new Path(specFolder.getName() + IPath.SEPARATOR + "sample.pdf"));
 			if (file2.exists()) 
 			{
@@ -178,16 +209,16 @@ public class WizardMain extends Wizard implements INewWizard, IExecutableExtensi
 			{
 				file2.create(resourceStream2, true, monitor);
 			}
-			resourceStream2.close();
+			resourceStream2.close(); */
 			
 			/*
 			 * Add the code folder.
 			 */
 			IFolder codeFolder = container.getFolder(new Path("code"));
 			codeFolder.create(true, true, monitor);
-			InputStream resourceStream3 = this.getClass().getResourceAsStream("templates/c-sample.resource");
+			/* InputStream resourceStream3 = this.getClass().getResourceAsStream("templates/c-sample.resource");
 			addFileToProject(container, new Path(codeFolder.getName() + IPath.SEPARATOR + "sample.c"), resourceStream3, monitor);
-			resourceStream3.close();
+			resourceStream3.close(); */
 
 			monitor.worked(1);
 			monitor.setTaskName("Opening file for editing...");
@@ -198,7 +229,7 @@ public class WizardMain extends Wizard implements INewWizard, IExecutableExtensi
 					IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 					try 
 					{
-						IDE.openEditor(page, file2, true);
+						IDE.openEditor(page, file1, true);
 					} 
 					catch (PartInitException e) 
 					{

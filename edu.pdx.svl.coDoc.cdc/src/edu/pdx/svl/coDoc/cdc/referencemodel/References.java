@@ -20,16 +20,12 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.TextSelection;
 
-import edu.pdx.svl.coDoc.cdc.referencemodel.Reference;
 import edu.pdx.svl.coDoc.cdc.Global;
 import edu.pdx.svl.coDoc.cdc.XML.SimpleXML;
 import edu.pdx.svl.coDoc.cdc.editor.CDCEditor;
 import edu.pdx.svl.coDoc.cdc.editor.EntryEditor;
 import edu.pdx.svl.coDoc.cdc.editor.IReferenceExplorer;
 import edu.pdx.svl.coDoc.cdc.preferences.PreferenceValues;
-import edu.pdx.svl.coDoc.cdc.referencemodel.ProjectReference;
-import edu.pdx.svl.coDoc.cdc.referencemodel.SourceFileReference;
-import edu.pdx.svl.coDoc.cdc.referencemodel.TextSelectionReference;
 import edu.pdx.svl.coDoc.cdc.view.ConfirmationWindow;
 
 
@@ -42,32 +38,6 @@ public class References {
 	public References() {
 		projects = new Vector<Reference>();
 //		createSampleData();
-	}
-	
-	
-	public void deleteReference(Reference refToDelete) {
-		deleteReferenceRecursive(this.projects, refToDelete);
-		SimpleXML.write(this);
-		deleteProjectReference(refToDelete);
-	}
-
-	private void deleteReferenceRecursive(Vector<Reference>refs, Reference refToDelete) {
-		for (Reference r: refs) {
-			if (r == refToDelete) {
-				refs.remove(r);
-				return;
-			}
-			deleteReferenceRecursive(r.getChildrenList(), refToDelete);
-		}
-	}
-	
-	//takes care of getting rid of XML file if we are deleting a project reference
-	//this only happens if the reference we are trying to delete is a project reference
-	private void deleteProjectReference(Reference refToDelete) {
-		if (refToDelete instanceof ProjectReference) {
-			ProjectReference pr = (ProjectReference)refToDelete;
-			SimpleXML.delete(pr);
-		}
 	}
 	
 	public Vector<Reference> getProjects() {
@@ -425,19 +395,6 @@ public class References {
 		}
 	}
 	
-	public void resourceDeltaRemoveProject(IPath projToDel) {
-		String projectToDelete = workspacePath + projToDel.toFile().getPath() + "\\";
-		
-		for (Reference r : projects) {
-			ProjectReference project = (ProjectReference)r;
-			String projectDirectory = project.getProjectDirectory();
-			if (projectDirectory.equals(projectToDelete)) {
-				deleteReference(project);
-				return;
-			}
-		}
-	}
-	
 	public void resourceDeltaMoveFile(IPath oldF, IPath newF) {
 		File oldFile = oldF.toFile();
 		File newFile = newF.toFile();
@@ -501,22 +458,6 @@ public class References {
 						SimpleXML.write(this);
 						return;
 					}
-				}
-			}
-		}
-	}
-	
-	public void resourceDeltaRemoveFile(IPath fileToDel) {
-		String fileToDelete = workspacePath + fileToDel.toFile().getPath();
-		
-		for (Reference proj : projects) {
-			Vector<Reference> files = proj.getChildrenList();
-			for (Reference f : files) {
-				SourceFileReference sfr = (SourceFileReference)f;
-				String sfrPath = sfr.getFilePath();
-				if (sfrPath.equals(fileToDelete)) {
-					deleteReference(sfr);
-					return;
 				}
 			}
 		}

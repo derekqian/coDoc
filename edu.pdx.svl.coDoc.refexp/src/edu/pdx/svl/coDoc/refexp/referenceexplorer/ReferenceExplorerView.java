@@ -3,22 +3,30 @@ package edu.pdx.svl.coDoc.refexp.referenceexplorer;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
-import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IPageLayout;
+import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPartReference;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PlatformUI;
 
+import java.io.File;
 import java.util.Iterator;
 import java.util.Vector;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
@@ -26,21 +34,24 @@ import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.ui.*;
 import org.eclipse.ui.part.FileEditorInput;
-import org.eclipse.ui.part.MultiEditor;
 import org.eclipse.ui.part.ViewPart;
+import org.eclipse.ui.views.navigator.ResourceNavigator;
+import org.eclipse.ui.navigator.resources.ProjectExplorer;
 
 
-import edu.pdx.svl.coDoc.cdc.Global;
-import edu.pdx.svl.coDoc.cdc.XML.SimpleXML;
-import edu.pdx.svl.coDoc.cdc.preferences.PreferencesView;
+import edu.pdx.svl.coDoc.cdc.preferences.PreferenceValues;
 import edu.pdx.svl.coDoc.cdc.referencemodel.*;
+import edu.pdx.svl.coDoc.cdc.view.ConfirmationWindow;
+import edu.pdx.svl.coDoc.cdc.XML.SimpleXML;
+import edu.pdx.svl.coDoc.cdc.datacenter.CDCCachedFile;
+import edu.pdx.svl.coDoc.cdc.datacenter.CDCDataCenter;
+import edu.pdx.svl.coDoc.cdc.datacenter.CDCModel;
+import edu.pdx.svl.coDoc.cdc.datacenter.CodeSelection;
+import edu.pdx.svl.coDoc.cdc.datacenter.MapEntry;
+import edu.pdx.svl.coDoc.cdc.datacenter.SpecSelection;
 import edu.pdx.svl.coDoc.cdc.editor.CDCEditor;
-import edu.pdx.svl.coDoc.cdc.editor.CDCModel;
 import edu.pdx.svl.coDoc.cdc.editor.EntryEditor;
 import edu.pdx.svl.coDoc.cdc.editor.IReferenceExplorer;
-import edu.pdx.svl.coDoc.cdc.editor.MapEntry;
-import edu.pdx.svl.coDoc.cdc.view.EditView;
-import edu.pdx.svl.coDoc.poppler.editor.PDFEditor;
 import edu.pdx.svl.coDoc.refexp.referenceexplorer.edit.EditComment;
 import edu.pdx.svl.coDoc.refexp.referenceexplorer.provider.*;
 import edu.pdx.svl.coDoc.refexp.referenceexplorer.provider.LabelProvider;
@@ -48,8 +59,8 @@ import edu.pdx.svl.coDoc.refexp.view.Help;
 
 public class ReferenceExplorerView extends ViewPart implements ISelectionListener, Listener, IPartListener2, IResourceChangeListener, IReferenceExplorer {
 	public static final String ID = "edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView";
-	private CDCModel cdcModel = null;
 	Composite parent;
+	private String projectname = null;
 	private final int NUM_HORIZONTAL_ELEMENTS = 5; // max num elements in a row
 	Text searchText;
 	String searchTextStr;
@@ -57,11 +68,40 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 	Button checkButton;
 	private static TableViewer tableViewer = null;
 	private static TreeViewer treeViewer = null;
-	//IWorkbenchPart workbenchPart;
-	String activeEditorFileName;
-	Button selectPDFButton;
-	Button openActivePDF;
-	PreferencesView preferencesView;
+	
+	public void sniff() {
+		System.out.println("ReferenceExplorerView.sniff()");
+		projectname = null;
+		IWorkbenchPart part = CDCEditor.getActivePart();
+		if(part instanceof IEditorPart) {
+			EntryEditor editorPart = (EntryEditor) CDCEditor.getActiveEntryEditor();
+			if (editorPart != null) {
+				projectname = editorPart.getProjectName();
+			}
+		} else if(part instanceof IViewPart) {
+			IViewPart view = CDCEditor.findVisibleView(IPageLayout.ID_PROJECT_EXPLORER);
+			if(view==null) {
+				view = CDCEditor.findVisibleView(IPageLayout.ID_RES_NAV);
+			}
+			if(view!=null) {
+				ISelectionProvider selProv = view.getViewSite().getSelectionProvider();
+				ISelection selection = selProv.getSelection();
+				if(selection != null) {
+				    if(selection instanceof IStructuredSelection) {
+				        for(Iterator it = ((IStructuredSelection) selection).iterator(); it.hasNext();) {
+				            Object element = it.next();
+			            	if(element instanceof IResource) {
+			            		IResource res = (IResource) element;
+				            	if(CDCEditor.isCDCProject(res.getProject().getName())) {
+					            	projectname = res.getProject().getName();
+				            	}
+				            }
+				        }
+				    }
+				}
+			}
+		}
+	}
 	
 	@Override
 	public void createPartControl(Composite parent) {
@@ -71,16 +111,15 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		createSearchBarAndButtons(parent);
 		createTableViewer(parent);
 		//createTreeViewer(parent);
+		
+		sniff();
+		
 		getSite().getWorkbenchWindow().getPartService().addPartListener(this);
-		createWorkbenchListener();
-		createResourceChangeListener();
+		getSite().getPage().addSelectionListener(this);
+		selectionChanged(getSite().getPart(), getSite().getPage().getSelection());
+		ResourcesPlugin.getWorkspace().addResourceChangeListener(this);
 		
 		refresh();
-	}
-
-	@Override
-	public void setInput(CDCModel cdcModel) {
-		this.cdcModel = cdcModel;
 	}
 
 	/**
@@ -96,7 +135,11 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		}
 	}
 	
-	public EntryEditor getEntryEditor() {
+	public String getProjectName() {
+		return projectname;
+	}
+	
+	public EntryEditor getActiveEntryEditor() {
 		return (EntryEditor) CDCEditor.getActiveEntryEditor();
 	}
 
@@ -110,7 +153,6 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		// setup buttons
 		createSearchTypeComboBox(parent);
 		createHelpButton(parent);
-		createAllSourcesCheckBox(parent);
 	}
 
 	private void createSearchBar(Composite parent) {
@@ -121,18 +163,14 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		searchText.addKeyListener(new KeyListener() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-			}
-			
-			@Override
-			public void keyPressed(KeyEvent e) {
-//				int code = e.keyCode;
-//				System.out.println(code);
-				
 				//the enter/return key has the key code of 13
 				if (e.keyCode == 13 || e.keyCode == 16777296) {
 					searchTextStr = searchText.getText();
 					displayListOfTextSelectionReferencesForSearchString();
 				}
+			}
+			@Override
+			public void keyPressed(KeyEvent e) {
 			}
 		});
 	}
@@ -154,19 +192,6 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 			}
 		});
 	}
-	
-	private void createAllSourcesCheckBox(Composite parent) {
-		checkButton = new Button(parent, SWT.CHECK);
-		checkButton.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				refresh();
-			}
-		});
-		checkButton.setText("All Sources");
-		checkButton.setSelection(true);
-		checkButton.setToolTipText("When checked, all saved references are shown.\nWhen unchecked, only references for the currently\nactive source file are shown.");
-	}
 
 	private void createHelpButton(Composite parent) {
 		Button ok = new Button(parent, SWT.PUSH);
@@ -181,21 +206,13 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 	public void refresh() {
 		searchText.setText("");
 		
-		if(cdcModel == null) {
-			//return;
-		}
 		if(tableViewer != null) {
-			tableViewer.setInput(cdcModel);
+			tableViewer.setInput(CDCDataCenter.getInstance().getMapEntries(projectname));
 			TableContentProvider tcp = (TableContentProvider)tableViewer.getContentProvider();
-			if (checkButton.getSelection() == true) {
-				//tcp.allSources = true;
-			} else {
-				//tcp.allSources = false;
-			}
 			tableViewer.refresh();
 		}
 		if(treeViewer != null) {
-			treeViewer.setInput(cdcModel);
+			treeViewer.setInput(CDCDataCenter.getInstance().getMapEntries(projectname));
 			TreeContentProvider tcp = (TreeContentProvider)treeViewer.getContentProvider();
 			if (checkButton.getSelection() == true) {
 				tcp.allSources = true;
@@ -233,9 +250,14 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		tableViewer.setContentProvider(new TableContentProvider());
 		tableViewer.setLabelProvider(new TableLabelProvider());
 
+		/*table.addListener (SWT.MeasureItem, new Listener () {
+			public void handleEvent (Event event) {
+				event.height = 10;
+			}
+		});*/
 		table.addListener (SWT.Selection, new Listener () {
 			public void handleEvent (Event event) {
-				EntryEditor editor = getEntryEditor();
+				EntryEditor editor = getActiveEntryEditor();
 				if(editor == null) return;
 				ISelection selection = tableViewer.getSelection();
 				if (selection != null && selection instanceof IStructuredSelection) {
@@ -256,7 +278,13 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 					IStructuredSelection sel = (IStructuredSelection) selection;
 					for (Iterator<MapEntry> iterator = sel.iterator(); iterator.hasNext();) {
 						MapEntry mp = iterator.next();
-						MessageDialog.openInformation(null, "Info", "Double clicked");
+						String codeFilename = mp.getCodefilename();
+						String specFilename = mp.getSpecfilename();
+						IPath codepath = new Path(codeFilename);
+						codepath = codepath.removeFirstSegments(1); // remove "project:"
+						IPath specpath = new Path(specFilename);
+						specpath = specpath.removeFirstSegments(1); // remove "project:"
+					    CDCEditor.open(projectname, codepath, specpath);	  
 					}
 				}
 				setFocus();
@@ -266,10 +294,10 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		// Layout the viewer
 		GridData gridData = new GridData();
 		gridData.verticalAlignment = GridData.FILL;
+		gridData.horizontalAlignment = GridData.FILL;
 		gridData.horizontalSpan = 6;
 		gridData.grabExcessHorizontalSpace = true;
 		gridData.grabExcessVerticalSpace = true;
-		gridData.horizontalAlignment = GridData.FILL;
 		tableViewer.getControl().setLayoutData(gridData);
 	}
 
@@ -361,7 +389,7 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 
 		tree.addListener (SWT.Selection, new Listener () {
 			public void handleEvent (Event event) {
-				EntryEditor editor = getEntryEditor();
+				EntryEditor editor = getActiveEntryEditor();
 				ISelection selection = treeViewer.getSelection();
 				if (selection != null && selection instanceof IStructuredSelection) {
 					IStructuredSelection sel = (IStructuredSelection) selection;
@@ -379,12 +407,6 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 					IStructuredSelection sel = (IStructuredSelection) selection;
 					for (Iterator<Reference> iterator = sel.iterator(); iterator.hasNext();) {
 						Reference ref = iterator.next();
-						PDFFile pdfFile = ref.getPdfFile();
-						if (pdfFile != null) {
-							PDFManager.INSTANCE.openFileInAcrobatForced(pdfFile);
-							//PDFSelection pdfs = ref.getPdfSelection();
-							//pdfs.selectTextInAcrobat();
-						}
 					}
 				}
 				setFocus();
@@ -438,31 +460,46 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		for(int i=0; i<ef.length; i++) {
 			System.out.println("ReferenceExplorerView.selectionChanged: editors: " + ef[i].getEditor(false).getClass().getName());
 		}
-		System.out.println("ReferenceExplorerView.selectionChanged: active editor: " + part.getSite().getPage().getActiveEditor().getClass().getName());
+		if(part.getSite().getPage().getActiveEditor() != null)
+			System.out.println("ReferenceExplorerView.selectionChanged: active editor: " + part.getSite().getPage().getActiveEditor().getClass().getName());
 		System.out.println("------------------->>>>>>>>");
-
-		if(part instanceof EntryEditor) {
-			IEditorPart editorPart = part.getSite().getPage().getActiveEditor();
+		
+		if(part instanceof ProjectExplorer || part instanceof ResourceNavigator) {
+		    if(selection instanceof IStructuredSelection) {
+		        for(Iterator it = ((IStructuredSelection) selection).iterator(); it.hasNext();) {
+		            Object element = it.next();
+		            /* if (element instanceof IFile) {
+		                IFile file = (IFile) element;
+	                	projectname = file.getProject().getName();
+		            } else if(element instanceof IFolder) {
+		            	IFolder folder = (IFolder) element;
+		            	projectname = folder.getProject().getName();
+		            } else if(element instanceof IProject) {
+		            	IProject project = (IProject) element;
+		            	projectname = project.getName();
+		            } */
+	            	if(element instanceof IResource) {
+	            		IResource res = (IResource) element;
+	            		IProject proj = res.getProject();
+		            	if(proj.isOpen() && CDCEditor.isCDCProject(proj.getName())) {
+			            	projectname = res.getProject().getName();
+		            	} else {
+		            		projectname = null;
+		            	}
+		            } else {
+		            	projectname = null;
+		            }
+		        }
+		    }
+		} else if(part instanceof IEditorPart) {
+			EntryEditor editorPart = (EntryEditor) CDCEditor.getActiveEntryEditor();
 			if (editorPart != null) {
-				IEditorInput iEditorInput = editorPart.getEditorInput();
-				FileEditorInput fei = (FileEditorInput)iEditorInput;
-				FileEditorInput oldFei = CDCEditor.activeFileEditorInput;
-				CDCEditor.activeFileEditorInput = fei;
-				
-				if (checkButton.getSelection() == false && fei != oldFei) {
-					searchText.setText("");
-					treeViewer.setInput(((EntryEditor) CDCEditor.getActiveEntryEditor()).getDocument());
-					TreeContentProvider tcp = (TreeContentProvider)treeViewer.getContentProvider();
-					if (checkButton.getSelection() == true) {
-						tcp.allSources = true;
-					} else {
-						tcp.allSources = false;
-					}
-					treeViewer.refresh();
-					treeViewer.expandToLevel(4);
-				}
+				projectname = editorPart.getProjectName();
+			} else {
+				projectname = null;
 			}
 		}
+	    refresh();
 	
 //		IEditorReference[] editors = part.getSite().getPage().getEditorReferences();
 //		editors[0].getName();
@@ -474,62 +511,79 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 //		IViewPart ov = outlineView.getView(true);
 //		ContentOutline contentOutline = (ContentOutline)ov;
 	}
-	
-	private void createWorkbenchListener() {
-		getSite().getPage().addSelectionListener(this);
-		selectionChanged(getSite().getPart(), getSite().getPage().getSelection());
-	}
-	
-	private void createResourceChangeListener() {
-		IWorkspace workspace = ResourcesPlugin.getWorkspace();
-		IResourceChangeListener listener = this;
-		workspace.addResourceChangeListener(listener);
+
+	@Override
+	public void partActivated(IWorkbenchPartReference partRef) {
+		System.out.println("partActivated!");
+		System.out.println(partRef.getPart(false).getClass().getName());
+		sniff();
+		refresh();
 	}
 
 	@Override
-	public void partActivated(IWorkbenchPartReference arg0) {
-	}
-
-	@Override
-	public void partBroughtToTop(IWorkbenchPartReference arg0) {
+	public void partBroughtToTop(IWorkbenchPartReference partRef) {
+		System.out.println("partBroughtToTop!");
+		System.out.println(partRef.getPart(false).getClass().getName());
+		sniff();
+		refresh();
 	}
 
 	@Override
 	public void partClosed(IWorkbenchPartReference partRef) {
+		System.out.println("partClosed!");
+		System.out.println(partRef.getPart(false).getClass().getName());
+		sniff();
 		refresh();
-		return;
 	}
 
 	@Override
-	public void partDeactivated(IWorkbenchPartReference arg0) {
+	public void partDeactivated(IWorkbenchPartReference partRef) {
+		System.out.println("partDeactivated!");
+		System.out.println(partRef.getPart(false).getClass().getName());
+		sniff();
+		refresh();
 	}
 
 	@Override
-	public void partHidden(IWorkbenchPartReference arg0) {
+	public void partHidden(IWorkbenchPartReference partRef) {
+		System.out.println("partHidden!");
+		System.out.println(partRef.getPart(false).getClass().getName());
+		sniff();
+		refresh();
 	}
 
 	@Override
-	public void partInputChanged(IWorkbenchPartReference arg0) {
+	public void partInputChanged(IWorkbenchPartReference partRef) {
+		System.out.println("partInputChanged!");
+		System.out.println(partRef.getPart(false).getClass().getName());
+		sniff();
+		refresh();
 	}
 
 	@Override
 	public void partOpened(IWorkbenchPartReference partRef) {
-		/*EntryEditor editorPart = (EntryEditor) partRef.getPart(false);
-		try {
+		System.out.println("partOpened!");
+		System.out.println(partRef.getPart(false).getClass().getName());
+		sniff();
+		/*try {
 			Thread.sleep(1000);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
-		}
-		refresh();*/
+		}*/
+		refresh();
 	}
 
 	@Override
-	public void partVisible(IWorkbenchPartReference arg0) {
+	public void partVisible(IWorkbenchPartReference partRef) {
+		System.out.println("partVisible!");
+		System.out.println(partRef.getPart(false).getClass().getName());
+		sniff();
+		refresh();
 	}
 	
 	@Override
 	public void resourceChanged(IResourceChangeEvent event) {
-//		System.out.println("Resource Changed!");
+		System.out.println("Resource Changed!");
 		
 		//some possible constants that a flag or kind could be...
 //		int added = IResourceDelta.ADDED;
@@ -544,8 +598,6 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 //		int removedPhantom = IResourceDelta.REMOVED_PHANTOM;
 //		int replaced = IResourceDelta.REPLACED;
 		
-		References references = null;if(references==null)return;//((EntryEditor) CDCEditor.getActiveEntryEditor()).getDocument();
-		
 		IResourceDelta workspaceIrd = event.getDelta(); //workspace
 		if (workspaceIrd == null) return;
 		
@@ -558,13 +610,12 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 			if (projectIrdKind == IResourceDelta.REMOVED && projectIrdFlag == IResourceDelta.MOVED_TO) {
 				IPath projectFullPath = projectIrd.getFullPath();
 				IPath projectMovedToPath = projectIrd.getMovedToPath();
-				references.resourceDeltaMoveProject(projectFullPath, projectMovedToPath);
 				break;
 			}
 			//project is removed
 			else if (projectIrdKind == IResourceDelta.REMOVED && projectIrdFlag == IResourceDelta.NO_CHANGE) {
 				IPath projectFullPath = projectIrd.getFullPath();
-				references.resourceDeltaRemoveProject(projectFullPath);
+				//references.resourceDeltaRemoveProject(projectFullPath);
 				break;
 			}
 			//new project imported, we need to scan to see if there are saved references
@@ -582,12 +633,11 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 				if (fileIrdKind == IResourceDelta.REMOVED && fileIrdFlag == IResourceDelta.MOVED_TO) {
 					IPath fileIrdFullPath = fileIrd.getFullPath();
 					IPath fileIrdMovedToPath = fileIrd.getMovedToPath();
-					references.resourceDeltaMoveFile(fileIrdFullPath, fileIrdMovedToPath);
 				}
 				//file removed
 				else if (fileIrdKind == IResourceDelta.REMOVED && fileIrdFlag == IResourceDelta.NO_CHANGE) {
 					IPath fileIrdFullPath = fileIrd.getFullPath();
-					references.resourceDeltaRemoveFile(fileIrdFullPath);
+					//references.resourceDeltaRemoveFile(fileIrdFullPath);
 				}
 			}
 		}
@@ -595,7 +645,7 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 	}
 	
 	public void displayListOfTextSelectionReferencesForSelectionInActiveEditor() {
-		EntryEditor editor = getEntryEditor();
+		EntryEditor editor = getActiveEntryEditor();
 		References references = null;//((EntryEditor) CDCEditor.getActiveEntryEditor()).getDocument();
 		TextSelectionReference currentTextSelection = null; //editor.getCurrentTextSelectionReference();
 		Vector<Reference> matches = references.findReferencesContainingTextSelectionInActiveEditor(currentTextSelection);

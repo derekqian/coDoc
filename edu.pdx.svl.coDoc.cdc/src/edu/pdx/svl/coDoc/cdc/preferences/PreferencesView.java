@@ -22,7 +22,6 @@ import org.eclipse.swt.layout.GridLayout;
 import edu.pdx.svl.coDoc.cdc.Global;
 import edu.pdx.svl.coDoc.cdc.preferences.PreferenceValues;
 import edu.pdx.svl.coDoc.cdc.referencemodel.PDFFile;
-import edu.pdx.svl.coDoc.cdc.referencemodel.PDFManager;
 import edu.pdx.svl.coDoc.cdc.view.FileChooser;
 
 
@@ -58,8 +57,7 @@ public class PreferencesView extends Dialog {
 		lblCurrentlyActivePdf.setText("Currently Active PDF");
 		
 		currentlyActivePDFTxtBox = new Text(container, SWT.BORDER);
-		PDFFile pdfFile = PDFManager.INSTANCE.getCurrentPdfFile();
-		String activeFilePath = pdfFile.description();
+		String activeFilePath = "Need revise.";
 		currentlyActivePDFTxtBox.setText(activeFilePath);
 		currentlyActivePDFTxtBox.setToolTipText("Press the Select PDF Button,\n or type a PDF file path and press enter");
 		currentlyActivePDFTxtBox.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -90,14 +88,13 @@ public class PreferencesView extends Dialog {
 		new Label(container, SWT.NONE);
 
 		selectPDFButton.setToolTipText("Current PDF:\n" + 
-				PDFManager.INSTANCE.getCurrentPdfFile().description());
+				":).pdf");
 		
 		selectPDFButton.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				File f = FileChooser.getFile();
-				PDFManager.INSTANCE.openFileInAcrobat(f);
 				selectPDFButton.setToolTipText("Current PDF:\n" +
-						PDFManager.INSTANCE.getCurrentPdfFile().description());
+						":).pdf");
 				currentlyActivePDFTxtBox.setText(f.getPath());
 			}
 		});

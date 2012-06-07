@@ -34,11 +34,11 @@ import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 import edu.pdx.svl.coDoc.cdc.Global;
+import edu.pdx.svl.coDoc.cdc.datacenter.CDCModel;
+import edu.pdx.svl.coDoc.cdc.datacenter.MapEntry;
 import edu.pdx.svl.coDoc.cdc.editor.CDCEditor;
-import edu.pdx.svl.coDoc.cdc.editor.CDCModel;
 import edu.pdx.svl.coDoc.cdc.editor.EntryEditor;
 import edu.pdx.svl.coDoc.cdc.editor.IReferenceExplorer;
-import edu.pdx.svl.coDoc.cdc.editor.MapEntry;
 import edu.pdx.svl.coDoc.cdc.referencemodel.Reference;
 import edu.pdx.svl.coDoc.cdc.referencemodel.References;
 import edu.pdx.svl.coDoc.cdc.view.EditView;
@@ -55,28 +55,8 @@ public class EditReference extends AbstractHandler {
 	
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
-		boolean refNotSelected = true;
 		// IEditorPart e = HandlerUtil.getActiveEditor(event);
-		EntryEditor editor = (EntryEditor) CDCEditor.getActiveEntryEditor();
-		IReferenceExplorer view = (IReferenceExplorer)editor.getSite().getPage().findView("edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView");
-		ISelection selection = view.getSelection();
-		
-		if (selection != null && selection instanceof IStructuredSelection) {
-			CDCModel cdcModel = ((EntryEditor) CDCEditor.getActiveEntryEditor()).getDocument();
-			IStructuredSelection sel = (IStructuredSelection) selection;
-			
-			for (Iterator<MapEntry> iterator = sel.iterator(); iterator.hasNext();) {
-				MapEntry refToEdit = iterator.next();
-				refNotSelected = false;
-				(new EditView(new Shell(), refToEdit)).open();
-			}
-			view.setInput(cdcModel);
-			view.refresh();
-			
-		}
-		if (refNotSelected == true) {
-			MessageDialog.openError(null, "Alert",  "You must select a reference to be able to edit it!");
-		}
+		CDCEditor.editReference();
 		return null;
 	}
 }

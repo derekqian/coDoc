@@ -35,7 +35,6 @@ import edu.pdx.svl.coDoc.cdc.editor.CDCEditor;
 import edu.pdx.svl.coDoc.cdc.editor.EntryEditor;
 import edu.pdx.svl.coDoc.cdc.editor.IReferenceExplorer;
 import edu.pdx.svl.coDoc.cdc.preferences.PreferencesView;
-import edu.pdx.svl.coDoc.cdc.referencemodel.PDFManager;
 import edu.pdx.svl.coDoc.cdc.referencemodel.Reference;
 import edu.pdx.svl.coDoc.cdc.referencemodel.References;
 import edu.pdx.svl.coDoc.cdc.view.EditView;

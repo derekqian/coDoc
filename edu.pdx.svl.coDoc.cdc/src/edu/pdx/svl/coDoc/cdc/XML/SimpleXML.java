@@ -12,8 +12,8 @@ import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.core.Persister;
 
 import edu.pdx.svl.coDoc.cdc.Global;
+import edu.pdx.svl.coDoc.cdc.datacenter.CDCModel;
 import edu.pdx.svl.coDoc.cdc.editor.CDCEditor;
-import edu.pdx.svl.coDoc.cdc.editor.CDCModel;
 import edu.pdx.svl.coDoc.cdc.preferences.PreferenceValues;
 import edu.pdx.svl.coDoc.cdc.referencemodel.ProjectReference;
 import edu.pdx.svl.coDoc.cdc.referencemodel.Reference;

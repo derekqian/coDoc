@@ -3,7 +3,7 @@
  * absolute:///home/derek/testproj/code.example.c
  */
 
-package edu.pdx.svl.coDoc.cdc.editor;
+package edu.pdx.svl.coDoc.cdc.datacenter;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -13,6 +13,7 @@ import java.util.Vector;
 import org.simpleframework.xml.Element;
 import org.simpleframework.xml.ElementList;
 import org.simpleframework.xml.Root;
+
 
 class Head {
 	@Element
@@ -222,7 +223,7 @@ public class CDCModel {
 		Properties props=System.getProperties();
 		body.maps.deleteMapEntry(codefilename, codeselpath, specfilename, specselpath, comment);
 		date = new Date();
-		hist.deleteOperation(ft.format(date)+"#"+props.getProperty("os.name")+"#"+props.getProperty("user.name")+"#del#mapentry#"+codefilename+"#"+codeselpath+"#"+specfilename+"#"+specselpath+"#"+comment);
+		hist.addOperation(ft.format(date)+"#"+props.getProperty("os.name")+"#"+props.getProperty("user.name")+"#del#mapentry#"+codefilename+"#"+codeselpath+"#"+specfilename+"#"+specselpath+"#"+comment);
 	}
 	
 	public Vector<MapEntry> getMapEntries() {

@@ -261,38 +261,17 @@
             </separator>
          </menu>
          <action
-               class="edu.pdx.svl.coDoc.cdc.actions.AddReference"
-               enablesFor="1"
-               id="edu.pdx.svl.coDoc.cdc.actions.AddReference"
-               label="Add Reference"
+               class="edu.pdx.svl.coDoc.cdc.actions.Open"
+               enablesFor="2"
+               id="edu.pdx.svl.coDoc.cdc.actions.Open"
+               label="Open"
                menubarPath="edu.pdx.svl.coDoc.menu/group1">
          </action>
          <action
-               class="edu.pdx.svl.coDoc.cdc.actions.DeleteReference"
-               enablesFor="1"
-               id="edu.pdx.svl.coDoc.cdc.actions.DeleteReference"
-               label="Delete Reference"
-               menubarPath="edu.pdx.svl.coDoc.menu/group1">
-         </action>
-         <action
-               class="edu.pdx.svl.coDoc.cdc.actions.SelectPDF"
-               enablesFor="1"
-               id="edu.pdx.svl.coDoc.cdc.actions.SelectPDF"
-               label="Select PDF"
-               menubarPath="edu.pdx.svl.coDoc.menu/group1">
-         </action>
-         <action
-               class="edu.pdx.svl.coDoc.cdc.actions.ViewReferencesForSelection"
-               enablesFor="1"
-               id="edu.pdx.svl.coDoc.cdc.actions.ViewReferencesForSelection"
-               label="View References For Selection"
-               menubarPath="edu.pdx.svl.coDoc.menu/group1">
-         </action>
-         <action
-               class="edu.pdx.svl.coDoc.cdc.actions.Preferences"
-               enablesFor="1"
-               id="edu.pdx.svl.coDoc.cdc.actions.Preferences"
-               label="Preferences"
+               class="edu.pdx.svl.coDoc.cdc.actions.Help"
+               enablesFor="*"
+               id="edu.pdx.svl.coDoc.cdc.actions.Help"
+               label="Help"
                menubarPath="edu.pdx.svl.coDoc.menu/group2">
          </action>
       </objectContribution>

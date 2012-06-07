@@ -26,7 +26,6 @@ public abstract class Reference {
 	 * By default a new reference is linked to the currently selected PDF File.
 	 */
 	public Reference() {
-		pdfFile = PDFManager.INSTANCE.getCurrentPdfFile();
 	}
 
 	

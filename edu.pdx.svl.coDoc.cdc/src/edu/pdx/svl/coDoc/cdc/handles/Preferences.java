@@ -20,6 +20,9 @@ import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.wizard.IWizard;
+import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
@@ -32,6 +35,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.ui.texteditor.ITextEditor;
+import org.eclipse.ui.wizards.datatransfer.FileSystemImportWizard;
 
 import edu.pdx.svl.coDoc.cdc.Global;
 import edu.pdx.svl.coDoc.cdc.editor.EntryEditor;
@@ -52,9 +56,10 @@ public class Preferences extends AbstractHandler {
 	
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
+		IWorkbench workbench = PlatformUI.getWorkbench();
+		
 		//PreferencesView preferencesView = new PreferencesView();
 		//preferencesView.open();
-		IWorkbench workbench = PlatformUI.getWorkbench();
 		IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
 		IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
 		//IWorkbenchPage workbenchPage = getEditorSite().getPage();

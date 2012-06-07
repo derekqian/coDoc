@@ -125,7 +125,7 @@ public class ConfirmationWindow extends Dialog {
 
 	public void okButtonPressed(MouseEvent evt) {
 		String comTxt = commentStyledText.getText();
-		((EntryEditor) CDCEditor.getActiveEntryEditor()).addReference(comTxt);
+		CDCEditor.addReference(comTxt);
 	}
 	
 	/**

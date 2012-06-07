@@ -8,19 +8,23 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringBufferInputStream;
+import java.util.Iterator;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
@@ -50,6 +54,14 @@ import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.part.MultiEditor;
 
 import edu.pdx.svl.coDoc.cdc.XML.SimpleXML;
+import edu.pdx.svl.coDoc.cdc.datacenter.CDCDataCenter;
+import edu.pdx.svl.coDoc.cdc.datacenter.CDCModel;
+import edu.pdx.svl.coDoc.cdc.datacenter.CodeSelection;
+import edu.pdx.svl.coDoc.cdc.datacenter.MapEntry;
+import edu.pdx.svl.coDoc.cdc.datacenter.SpecSelection;
+import edu.pdx.svl.coDoc.cdc.preferences.PreferenceValues;
+import edu.pdx.svl.coDoc.cdc.view.ConfirmationWindow;
+import edu.pdx.svl.coDoc.cdc.view.EditView;
 import edu.pdx.svl.coDoc.cdt.internal.ui.editor.CEditor;
 import edu.pdx.svl.coDoc.poppler.editor.PDFEditor;
 
@@ -276,6 +288,7 @@ public class CDCEditor implements IEditorLauncher
 	private static IEditorPart entryeditor = null;
 	private static IPath path = null;
 	private static IPath cdcfilepath = null;
+	private static String projectname = null;
 	public static IWorkbenchPart workbenchPart;
 	public static FileEditorInput activeFileEditorInput = null;
 
@@ -333,6 +346,35 @@ public class CDCEditor implements IEditorLauncher
 		}
 	}
 	
+	public static String proj2cdcName(IProject proj) {
+		assert(proj!=null);
+		return proj.getLocation().toString()+File.separator+"."+proj.getName()+".cdc";
+	}
+	
+	public static boolean isCDCProject(String projectname) {
+		boolean res = false;
+		IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
+		IProject[] projs = workspaceRoot.getProjects();
+		for(IProject proj : projs) {
+			if(proj.getName().equals(projectname)) {
+				String filename = proj2cdcName(proj);
+				File tempFile = new File(filename);
+				if(tempFile.exists()) {
+					res = true;
+					break;
+				}
+			}
+		}
+		return res;
+	}
+	
+	public static IWorkbenchPart getActivePart() {
+		IWorkbench workbench = PlatformUI.getWorkbench();
+		IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
+		IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
+		return workbenchPage.getActivePart();
+	}
+	
 	public static IViewPart findView(String viewname) {
 		IWorkbench workbench = PlatformUI.getWorkbench();
 		IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
@@ -344,6 +386,21 @@ public class CDCEditor implements IEditorLauncher
 		} else {
 			return null;
 		}
+	}
+	
+	public static IViewPart findVisibleView(String viewname) {
+		IViewPart view = null;
+		IWorkbench workbench = PlatformUI.getWorkbench();
+		IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
+		IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
+		// return workbenchPage.findView(viewname);
+		IViewReference viewref = workbenchPage.findViewReference(viewname);
+		if(viewref != null) {
+			if(workbenchPage.isPartVisible(viewref.getView(false))) {
+				view = viewref.getView(false);
+			}
+		}
+		return view;
 	}
 	
 	// get the opened entryeditor for the input cdc file. if no editor found for this cdc file, return null.
@@ -358,6 +415,26 @@ public class CDCEditor implements IEditorLauncher
 		IEditorReference[] editorrefs = workbenchPage.findEditors(null,"edu.pdx.svl.coDoc.cdc.editor.EntryEditor",IWorkbenchPage.MATCH_ID);
 		for(IEditorReference er : editorrefs) {
 			if(((EntryEditor) er.getEditor(false)).getCDCFilepath().equals(path)) {
+				// already open
+				editor = er.getEditor(false);
+				workbenchPage.bringToTop(editor);
+				workbenchPage.activate(editor);
+			}
+		}
+
+		return editor;
+	}
+	
+	public static IEditorPart getOpenedEntryEditorTop(String projectname) {
+		IEditorPart editor = null;
+		IWorkbench workbench = PlatformUI.getWorkbench();
+		IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
+		IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
+		//IWorkbenchPage workbenchPage = getEditorSite().getPage();
+		//IEditorReference[] editorrefs = workbenchPage.getEditorReferences();
+		IEditorReference[] editorrefs = workbenchPage.findEditors(null,"edu.pdx.svl.coDoc.cdc.editor.EntryEditor",IWorkbenchPage.MATCH_ID);
+		for(IEditorReference er : editorrefs) {
+			if(((EntryEditor) er.getEditor(false)).getProjectName().equals(path)) {
 				// already open
 				editor = er.getEditor(false);
 				workbenchPage.bringToTop(editor);
@@ -422,7 +499,7 @@ public class CDCEditor implements IEditorLauncher
 		return editor;
 	}
 	
-	public IEditorPart openEntryEditor(IPath codepath, IPath specpath) {
+	public static IEditorPart openEntryEditor(IPath codepath, IPath specpath) {
 		EntryEditorInput entryEditorInput = null;
 		IEditorPart editor = null;
 		
@@ -453,8 +530,9 @@ public class CDCEditor implements IEditorLauncher
 			IEditorInput editorInput[] = {specEditorInput};
 			entryEditorInput = new EntryEditorInput(editorID, editorInput);
 		} else {
-			entryEditorInput = null;
-			assert(false);
+			String editorID[] = {"edu.pdx.svl.coDoc.cdt.ui.editor.CEditor","edu.pdx.svl.coDoc.poppler.editor.PDFEditor"};
+			IEditorInput editorInput[] = {new TempCodeEditorInput(),new TempPdfEditorInput()};
+			entryEditorInput = new EntryEditorInput(editorID, editorInput);
 		}
 		
 		try 
@@ -486,6 +564,9 @@ public class CDCEditor implements IEditorLauncher
 		IWorkspace workspace = ResourcesPlugin.getWorkspace();
 		IWorkspaceRoot workspaceroot = workspace.getRoot();
 		IPath workspacerootpath = workspaceroot.getLocation();
+		
+		IFile pathfile = (IFile) workspaceroot.getFile(path.makeRelativeTo(workspacerootpath));
+		projectname = pathfile.getProject().getName();
 		
 		if(path.getFileExtension().equals("cdc")) {
 			cdcfilepath = path;
@@ -595,6 +676,117 @@ public class CDCEditor implements IEditorLauncher
 	
 	public static IPath getLatestPath() {
 		return cdcfilepath;
+	}
+	
+	// codepath and specpath are relative to project path
+	public static void open(String projname, IPath codepath, IPath specpath) {
+		projectname = projname;
+		
+		IWorkspace workspace = ResourcesPlugin.getWorkspace();
+		IWorkspaceRoot workspaceroot = workspace.getRoot();
+		CDCDataCenter.getInstance().setLastOpenedCodeFilename(projectname, "project:///"+codepath.toString());
+		CDCDataCenter.getInstance().setLastOpenedSpecFilename(projectname, "project:///"+specpath.toString());
+		IEditorPart editor = getOpenedEntryEditorTop(projectname);
+		if(editor == null) {
+			entryeditor = openEntryEditor(codepath, specpath);
+		} else {
+			IFile codefile = (IFile) workspaceroot.getFile(codepath);
+			final FileEditorInput codeEditorInput = new FileEditorInput(codefile);
+			IFile specfile = (IFile) workspaceroot.getFile(specpath);
+			final FileEditorInput specEditorInput = new FileEditorInput(specfile);
+			
+			String editorID[] = {"edu.pdx.svl.coDoc.cdt.ui.editor.CEditor","edu.pdx.svl.coDoc.poppler.editor.PDFEditor"};
+			IEditorInput editorInput[] = {codeEditorInput,specEditorInput};
+			EntryEditorInput entryEditorInput = new EntryEditorInput(editorID, editorInput);
+
+			IWorkbench workbench = PlatformUI.getWorkbench();
+			IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
+			IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
+			workbenchPage.reuseEditor((IReusableEditor) editor, entryEditorInput);
+			entryeditor = editor;
+		}
+	}
+	
+	public static String getLatestProjectName() {
+		return projectname;
+	}
+
+	public static void addReference() {
+		if (PreferenceValues.getInstance().isUseConfirmationWindow() == true) {
+			ConfirmationWindow cw = new ConfirmationWindow();
+			cw.open();
+		} else {
+			addReference("");
+		}
+		
+	}
+	public static void addReference(String comment) {
+		IWorkspace workspace = ResourcesPlugin.getWorkspace();
+		IWorkspaceRoot workspaceroot = workspace.getRoot();
+		IPath workspacerootpath = workspaceroot.getLocation();
+		EntryEditor editor = (EntryEditor) getActiveEntryEditor();
+		if(editor!=null) {
+			String codefilename = "project:///"+editor.getCodeFilepath().makeRelativeTo(workspacerootpath);
+			CodeSelection codeselpath = editor.getSelectionInTextEditor();
+			String specfilename = "project:///"+editor.getSpecFilepath().makeRelativeTo(workspacerootpath);
+			SpecSelection specselpath = editor.getSelectionInAcrobat();
+			CDCDataCenter.getInstance().addMapEntry(editor.getProjectName(),codefilename, codeselpath, specfilename, specselpath, comment);
+		} else {
+			MessageDialog.openError(null, "Error",  "Editor not open!");
+		}
+		
+		IReferenceExplorer view = (IReferenceExplorer)CDCEditor.findView("edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView");
+		view.refresh();
+		
+		try {
+			ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor() );
+		} catch (CoreException e) {
+			System.out.println("Could not refresh the Project Explorer");
+			e.printStackTrace();
+		}
+	}
+	public static void deleteReference() {
+		IReferenceExplorer view = (IReferenceExplorer)CDCEditor.findView("edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView");
+		ISelection selection = view.getSelection();
+		
+		if (selection != null && selection instanceof IStructuredSelection) {
+			IStructuredSelection sel = (IStructuredSelection) selection;
+			
+			for (Iterator<MapEntry> iterator = sel.iterator(); iterator.hasNext();) {
+				MapEntry mapEntry = iterator.next();
+				CDCDataCenter.getInstance().deleteMapEntry(view.getProjectName(),mapEntry.getCodefilename(), mapEntry.getCodeselpath(), mapEntry.getSpecfilename(), mapEntry.getSpecselpath(), mapEntry.getComment());
+				
+			}
+			view.refresh();
+		}
+		
+		try {
+			ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor() );
+		} catch (CoreException e) {
+			System.out.println("Could not refresh the Project Explorer");
+			e.printStackTrace();
+		}
+	}
+	public static void editReference() {
+		boolean refNotSelected = true;
+		EntryEditor editor = (EntryEditor) CDCEditor.getActiveEntryEditor();
+		IReferenceExplorer view = (IReferenceExplorer)editor.getSite().getPage().findView("edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView");
+		ISelection selection = view.getSelection();
+		
+		if (selection != null && selection instanceof IStructuredSelection) {
+			IStructuredSelection sel = (IStructuredSelection) selection;
+			
+			for (Iterator<MapEntry> iterator = sel.iterator(); iterator.hasNext();) {
+				MapEntry refToEdit = iterator.next();
+				refNotSelected = false;
+				(new EditView(new Shell(), refToEdit)).open();
+			}
+			view.refresh();
+			
+		}
+		if (refNotSelected == true) {
+			MessageDialog.openError(null, "Alert",  "You must select a reference to be able to edit it!");
+		}
 	}
 	
 	public static void main(String[] args) {

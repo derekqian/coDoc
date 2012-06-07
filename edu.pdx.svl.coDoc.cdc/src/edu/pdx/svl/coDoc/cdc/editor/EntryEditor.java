@@ -2,8 +2,6 @@ package edu.pdx.svl.coDoc.cdc.editor;
 
 import java.io.File;
 import java.util.Iterator;
-import java.util.Vector;
-
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IFile;
@@ -16,6 +14,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.resource.ColorRegistry;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionProvider;
@@ -26,42 +25,53 @@ import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ViewForm;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IEditorSite;
-import org.eclipse.ui.IPartListener;
+import org.eclipse.ui.IPartListener2;
 import org.eclipse.ui.IPropertyListener;
 import org.eclipse.ui.IReusableEditor;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IViewPart;
-import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.contexts.IContextActivation;
 import org.eclipse.ui.contexts.IContextService;
 import org.eclipse.ui.ide.IDE;
+import org.eclipse.ui.internal.EditorSite;
+import org.eclipse.ui.internal.IWorkbenchThemeConstants;
+import org.eclipse.ui.internal.PartService;
+import org.eclipse.ui.internal.PartSite;
+import org.eclipse.ui.internal.WorkbenchPage;
+import org.eclipse.ui.internal.WorkbenchWindow;
+import org.eclipse.ui.part.AbstractMultiEditor;
 import org.eclipse.ui.part.EditorPart;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.part.MultiEditor;
+import org.eclipse.ui.part.MultiEditorInput;
+import org.eclipse.ui.themes.ITheme;
 
 import edu.pdx.svl.coDoc.cdc.XML.SimpleXML;
+import edu.pdx.svl.coDoc.cdc.datacenter.CDCDataCenter;
+import edu.pdx.svl.coDoc.cdc.datacenter.CDCModel;
+import edu.pdx.svl.coDoc.cdc.datacenter.CodeSelection;
+import edu.pdx.svl.coDoc.cdc.datacenter.MapEntry;
+import edu.pdx.svl.coDoc.cdc.datacenter.SpecSelection;
 import edu.pdx.svl.coDoc.cdc.preferences.PreferenceValues;
-import edu.pdx.svl.coDoc.cdc.referencemodel.PDFManager;
-import edu.pdx.svl.coDoc.cdc.referencemodel.ProjectReference;
-import edu.pdx.svl.coDoc.cdc.referencemodel.Reference;
 import edu.pdx.svl.coDoc.cdc.referencemodel.References;
-import edu.pdx.svl.coDoc.cdc.referencemodel.SourceFileReference;
-import edu.pdx.svl.coDoc.cdc.referencemodel.TextSelectionReference;
 import edu.pdx.svl.coDoc.cdc.view.ConfirmationWindow;
 import edu.pdx.svl.coDoc.cdt.core.CCorePlugin;
 import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTTranslationUnit;
@@ -74,17 +84,16 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 {
 	private static final String CONTEXT_ID = "edu.pdx.svl.coDoc.cdc.editor.EntryEditor.contextid";
 	private Composite container;
+	private SashForm sashForm;
 	private CLabel innerEditorTitle[];
 	public References references;
-	private IViewPart refview;
 	private IPath cdcFilepath;
+	private String projectname = null;
 	private IPath codeFilepath = null;
 	private IPath specFilepath = null;
-	public CDCModel cdcModel;
 	
 	public void setInput(IEditorInput input) {
 		super.setInput(input);
-		cdcModel = SimpleXML.readCDCModel(cdcFilepath.toString());
 		IEditorInput[] editorinputs = ((EntryEditorInput) input).getInput();
 		IPath path = ((FileEditorInput) editorinputs[0]).getPath();
 		if(!path.getFileExtension().equals("pdf")) {
@@ -101,46 +110,33 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException
 	{
 		System.out.println("EntryEditor.init\n");
-		IPath path = CDCEditor.getLatestPath();
-		if(path.getFileExtension().equals("cdc")) {
-			cdcFilepath = path;
-		}
-		setPartName(cdcFilepath.lastSegment());
+		projectname = CDCEditor.getLatestProjectName();
+		setPartName(projectname);
 		setSite(site);
 		setInput(input);
 		
 		createWorkbenchListener();
-		
-		IReferenceExplorer refview = (IReferenceExplorer)CDCEditor.findView("edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView");
-		if(refview != null) {
-			refview.setInput(cdcModel);
-			refview.refresh();
-		}
-	}
-	
-	public void dispose() {
-		//super.dispose();
-		IReferenceExplorer refview = (IReferenceExplorer)CDCEditor.findView("edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView");
-		if(refview != null) {
-			refview.setInput(null);
-			refview.refresh();
-		}
 	}
 	
 	public IPath getCDCFilepath() {
 		return cdcFilepath;
 	}
-	
-	public CDCModel getDocument() {
-		return cdcModel;
+	public IPath getCodeFilepath() {
+		return codeFilepath;
+	}
+	public IPath getSpecFilepath() {
+		return specFilepath;
+	}
+	public String getProjectName() {
+		return projectname;
 	}
 	
 	public void createPartControl(Composite parent)
 	{
 		System.out.println("EntryEditor.createPartControl\n");
-		container = new Composite(parent, SWT.BORDER);
-		container.setLayout(new FillLayout());
-		SashForm sashForm = new SashForm(container, SWT.HORIZONTAL);
+		//container = new Composite(parent, SWT.BORDER);
+		//container.setLayout(new FillLayout());
+		sashForm = new SashForm(parent, SWT.HORIZONTAL);
 		IEditorPart innerEditors[] = getInnerEditors();
 		for (int i = 0; i < innerEditors.length; i++) 
 		{
@@ -174,7 +170,8 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 	private void initKeyBindingContext() {
 		final IContextService service = (IContextService)getSite().getService(IContextService.class);
 
-		container.addFocusListener(new FocusListener() {
+		//container.addFocusListener(new FocusListener() {
+		sashForm.addFocusListener(new FocusListener() {
 			IContextActivation currentContext = null;
 			public void focusGained(FocusEvent e) {
 				if (currentContext == null)
@@ -190,9 +187,7 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 		});
 	}	
 
-	/**
-	 * Draw the gradient for the specified editor.
-	 */
+	// Draw the gradient for the specified editor.
 	@Override
 	protected void drawGradient(IEditorPart innerEditor, Gradient g) 
 	{
@@ -204,9 +199,7 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 		label.setBackground(g.bgColors, g.bgPercents);
 	}
 	
-	/*
-	 * Create the label for each inner editor.
-	 */
+	// Create the label for each inner editor.
 	protected void createInnerEditorTitle(int index, ViewForm parent) 
 	{
 		CLabel titleLabel = new CLabel(parent, SWT.SHADOW_NONE);
@@ -219,10 +212,7 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 		innerEditorTitle[index] = titleLabel;
 	}
 	
-	/*
-	 * Update the tab for an editor. This is typically called by a site when the
-	 * tab title changes.
-	 */
+	// Update the tab for an editor. This is typically called by a site when the tab title changes.
 	public void updateInnerEditorTitle(IEditorPart editor, CLabel label) 
 	{
 		if ((label == null) || label.isDisposed())
@@ -238,9 +228,6 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 		label.setToolTipText(editor.getTitleToolTip());
 	}
 
-	/*
-	 * 
-	 */
 	protected int getIndex(IEditorPart editor) 
 	{
 		IEditorPart innerEditors[] = getInnerEditors();
@@ -268,11 +255,9 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 	}
 	public void setFocus()
 	{
-		IEditorPart innerEditors[] = getInnerEditors();
-		IWorkbench workbench = PlatformUI.getWorkbench();
-		IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
-		IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
-		workbenchPage.activate(innerEditors[0]);
+		//super.setFocus();
+		sashForm.setFocus();
+		//container.setFocus();
 		System.out.println("get focus");
 	}
 	
@@ -419,39 +404,5 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 
 		SpecSelection sel = mapEntry.getSpecselpath();
 		acrobatInterface.selectText(sel.getPage(), sel.getTop(), sel.getBottom(), sel.getLeft(), sel.getRight());
-	}
-
-	public void addReference() {
-		if (PreferenceValues.getInstance().isUseConfirmationWindow() == true) {
-			ConfirmationWindow cw = new ConfirmationWindow();
-			cw.open();
-		} else {
-			EntryEditor editor = (EntryEditor)CDCEditor.getActiveEntryEditor();
-			addReference("");
-		}
-		
-	}
-	public void addReference(String comment) {
-		IWorkspace workspace = ResourcesPlugin.getWorkspace();
-		IWorkspaceRoot workspaceroot = workspace.getRoot();
-		IPath workspacerootpath = workspaceroot.getLocation();
-		String codefilename = "project:///"+codeFilepath.makeRelativeTo(workspacerootpath);
-		CodeSelection codeselpath = getSelectionInTextEditor();
-		String specfilename = "project:///"+specFilepath.makeRelativeTo(workspacerootpath);
-		SpecSelection specselpath = getSelectionInAcrobat();
-		cdcModel.addMapEntry(codefilename, codeselpath, specfilename, specselpath, comment);
-		
-		IReferenceExplorer view = (IReferenceExplorer)CDCEditor.findView("edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView");
-		view.refresh();
-		
-		String filepath = cdcFilepath.toString();
-		SimpleXML.writeCDCModel(cdcModel, filepath);
-		
-		try {
-			ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor() );
-		} catch (CoreException e) {
-			System.out.println("Could not refresh the Project Explorer");
-			e.printStackTrace();
-		}
 	}
 }

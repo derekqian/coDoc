@@ -5,7 +5,6 @@ import org.simpleframework.xml.Root;
 
 import edu.pdx.svl.coDoc.cdc.XML.SimpleXML;
 import edu.pdx.svl.coDoc.cdc.referencemodel.PDFFile;
-import edu.pdx.svl.coDoc.cdc.referencemodel.PDFManager;
 
 @Root
 public class PreferenceValues {

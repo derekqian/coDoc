@@ -37,7 +37,6 @@ public class EditComment extends EditingSupport {
 	protected void setValue(Object element, Object value) {
 		((Reference) element).setComment(String.valueOf(value));
 		viewer.refresh();
-		SimpleXML.writeCDCModel(((EntryEditor) CDCEditor.getActiveEntryEditor()).getDocument(), "/derek/a.cdc");
 	}
 
 }

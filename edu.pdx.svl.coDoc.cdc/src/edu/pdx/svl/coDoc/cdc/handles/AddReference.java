@@ -30,7 +30,7 @@ public class AddReference extends AbstractHandler {
 	
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
-		((EntryEditor) CDCEditor.getActiveEntryEditor()).addReference();
+		CDCEditor.addReference();
 
 		return null;
 	}

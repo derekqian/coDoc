@@ -4,7 +4,7 @@ import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.swt.graphics.Image;
 
-import edu.pdx.svl.coDoc.cdc.editor.MapEntry;
+import edu.pdx.svl.coDoc.cdc.datacenter.MapEntry;
 
 
 public class TableLabelProvider implements ITableLabelProvider {

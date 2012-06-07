@@ -6,17 +6,16 @@ import java.util.Vector;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
-import edu.pdx.svl.coDoc.cdc.editor.CDCModel;
-import edu.pdx.svl.coDoc.cdc.editor.MapEntry;
+import edu.pdx.svl.coDoc.cdc.datacenter.CDCModel;
+import edu.pdx.svl.coDoc.cdc.datacenter.MapEntry;
 
 
 
 public class TableContentProvider implements IStructuredContentProvider {
 	@Override
 	public Object[] getElements(Object element) {
-		if(element instanceof CDCModel) {
-			CDCModel cdcModel = (CDCModel) element;
-			Vector<MapEntry> mapEntries = cdcModel.getMapEntries();
+		if(element instanceof Vector) {
+			Vector<MapEntry> mapEntries = (Vector<MapEntry>) element;
 			return mapEntries.toArray();
 		} else {
 			return null;
