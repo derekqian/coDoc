@@ -1,5 +1,7 @@
 package edu.pdx.svl.coDoc.cdc.editor;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.ITextOperationTarget;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.TextAttribute;
@@ -15,6 +17,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.MultiEditor;
 
+import edu.pdx.svl.coDoc.cdt.core.CCorePlugin;
 import edu.pdx.svl.coDoc.cdt.core.dom.ast.ASTVisitor;
 import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTDeclSpecifier;
 import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTDeclaration;
@@ -32,7 +35,9 @@ import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTStatement;
 import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTTranslationUnit;
 import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTTypeId;
 import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTEnumerationSpecifier.IASTEnumerator;
+import edu.pdx.svl.coDoc.cdt.core.model.ILanguage;
 import edu.pdx.svl.coDoc.cdt.internal.core.dom.parser.ASTNode;
+import edu.pdx.svl.coDoc.cdt.internal.core.model.TranslationUnit;
 
 public class CustomASTVisitor extends ASTVisitor {
 
@@ -62,8 +67,6 @@ public class CustomASTVisitor extends ASTVisitor {
 	private int mode = MODE_UNDEFINE;
 	
 	private TextSelection currentTextSelection = null;
-	private ITextOperationTarget target = null;
-	private ITextViewer viewer = null;
 	private TextSelection currentSyntaxSelection = null;
 	
 	public static CustomASTVisitor getInstance() {
@@ -73,35 +76,39 @@ public class CustomASTVisitor extends ASTVisitor {
 		return instance;
 	}
 	
-	public void getEnviroment() {
-		IEditorPart cEditor = null;
-		IWorkbench workbench = PlatformUI.getWorkbench();
-		IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
-		IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
-		if(workbenchPage == null) return;
-		IEditorReference[] editorrefs = workbenchPage.findEditors(null,"edu.pdx.svl.coDoc.cdc.editor.EntryEditor",IWorkbenchPage.MATCH_ID);
-		if(editorrefs.length != 0)
-		{
-			MultiEditor editor = (MultiEditor) editorrefs[0].getEditor(false);
-			
-			IEditorPart[] editors = editor.getInnerEditors();
-			for(int i=0; i<editors.length; i++)
-			{
-				System.out.println(editors[i].getClass().getName());
-				if(editors[i].getClass().getName().equals("edu.pdx.svl.coDoc.cdt.internal.ui.editor.CEditor"))
-				{
-					cEditor = editors[i];
-				}
-			}
+	public String selection2Node(IFile file, TextSelection selection) {
+		try {
+			TranslationUnit tu = (TranslationUnit) CCorePlugin.getDefault().getCoreModel().create(file);
+			IASTTranslationUnit ast = tu.getLanguage().getASTTranslationUnit(tu, ILanguage.AST_SKIP_IF_NO_BUILD_INFO);
+			setMode(CustomASTVisitor.MODE_SELECTION_TO_NODE);
+			setTextSelection(selection);
+			ast.accept(this);
+		} catch (CoreException e) {
+			e.printStackTrace();
 		}
-		target = (ITextOperationTarget)cEditor.getAdapter(ITextOperationTarget.class);
-		if (target instanceof ITextViewer) {
-	        viewer = (ITextViewer)target;
-	    } 
+		return getSelectedASTNode();
+	}
+	
+	public TextSelection node2Selection(IFile file, String node) {
+		try {
+			TranslationUnit tu = (TranslationUnit) CCorePlugin.getDefault().getCoreModel().create(file);
+			IASTTranslationUnit ast = tu.getLanguage().getASTTranslationUnit(tu, ILanguage.AST_SKIP_IF_NO_BUILD_INFO);
+			setMode(CustomASTVisitor.MODE_NODE_TO_SELECTION);
+			setSelectedASTNode(node);
+			ast.accept(this);
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
+		
+		//ISelectionProvider selProv = workbenchPart.getSite().getSelectionProvider();
+		return getTextSelection();
 	}
 	
 	public void setMode(int mode) {
 		this.mode = mode;
+		if(mode != MODE_SELECTION_TO_NODE) {
+			currentTextSelection = null;
+		}
 	}
 	
 	public void setTextSelection(TextSelection currentTextSelection) {
@@ -134,30 +141,21 @@ public class CustomASTVisitor extends ASTVisitor {
 	}
 
 	public int visit(IASTName name) {
-		if(viewer == null) return PROCESS_CONTINUE;
 		if(mode == MODE_SELECTION_TO_NODE) {
 			if(name.getParent().getParent() instanceof IASTFunctionDefinition) {
 				IASTFunctionDefinition declaration = (IASTFunctionDefinition)name.getParent().getParent();
 				currentSyntaxSelection = new TextSelection(((ASTNode)declaration).getOffset(),((ASTNode)declaration).getLength());
 				// select double clicked token
 				if(currentTextSelection.getLength() == 0) {
-					viewer.invalidateTextPresentation();
+					((EntryEditor) CDCEditor.getActiveEntryEditor()).selectTextInTextEditor(null);
 				} else if((currentTextSelection.getOffset() >= currentSyntaxSelection.getOffset())
-						&&(currentTextSelection.getOffset()+currentTextSelection.getLength() < currentSyntaxSelection.getOffset()+currentSyntaxSelection.getLength())) {
-					viewer.invalidateTextPresentation();
-					//viewer.setTextColor(new Color(null, 255, 0, 0), currentSyntaxSelection.getOffset(), currentSyntaxSelection.getLength(), true);
-					TextPresentation presentation = new TextPresentation();
-					TextAttribute attr = new TextAttribute(new Color(null, 0, 0, 0),
-						      new Color(null, 128, 128, 128), TextAttribute.STRIKETHROUGH);
-					presentation.addStyleRange(new StyleRange(currentSyntaxSelection.getOffset(), currentSyntaxSelection.getLength(), attr.getForeground(),
-						      attr.getBackground()));
-					viewer.changeTextPresentation(presentation, true);
-					//viewer.setSelectedRange(currentSyntaxSelection.getOffset(), currentSyntaxSelection.getLength());
-					
-					results = name.getRawSignature();
+						&&(currentTextSelection.getOffset()+currentTextSelection.getLength() <= currentSyntaxSelection.getOffset()+currentSyntaxSelection.getLength())) {
+					((EntryEditor) CDCEditor.getActiveEntryEditor()).selectTextInTextEditor(currentSyntaxSelection);
+					results = Integer.toHexString((name.getRawSignature().hashCode()));
 					for(IASTNode node = name; node != null; node = node.getParent()) {
 						results += "\\"+getNameOfClass(node);
 					}
+					currentTextSelection = new TextSelection(currentSyntaxSelection.getOffset(),currentSyntaxSelection.getLength());
 					System.out.println(results);
 				}
 			} else if(name.getParent().getParent() instanceof IASTSimpleDeclaration) {
@@ -171,7 +169,7 @@ public class CustomASTVisitor extends ASTVisitor {
 			String str = results;
 			int index = str.indexOf('\\');
 			String piece = str.substring(0, index);
-			if(piece.equals(name.getRawSignature())) {
+			if(piece.equals(Integer.toHexString(name.getRawSignature().hashCode()))) {
 				for(node = name; node != null; node = node.getParent()) {
 					str = str.substring(index+1);
 					index = str.indexOf('\\');
@@ -234,29 +232,21 @@ public class CustomASTVisitor extends ASTVisitor {
 	}
 
 	public int visit(IASTStatement statement) {
-		if(viewer == null) return PROCESS_CONTINUE;
 		if(mode == MODE_SELECTION_TO_NODE) {
 			if(statement.getParent().getParent() instanceof IASTFunctionDefinition) {
 				currentSyntaxSelection = new TextSelection(((ASTNode)statement).getOffset(),((ASTNode)statement).getLength());
 				// select double clicked token
 				if(currentTextSelection.getLength() == 0) {
-					viewer.invalidateTextPresentation();
+					((EntryEditor) CDCEditor.getActiveEntryEditor()).selectTextInTextEditor(null);
 				} else if((currentTextSelection.getOffset() >= currentSyntaxSelection.getOffset())
-						&&(currentTextSelection.getOffset()+currentTextSelection.getLength() < currentSyntaxSelection.getOffset()+currentSyntaxSelection.getLength())) {
-					viewer.invalidateTextPresentation();
-					//viewer.setTextColor(new Color(null, 255, 0, 0), currentSyntaxSelection.getOffset(), currentSyntaxSelection.getLength(), true);
-					TextPresentation presentation = new TextPresentation();
-					TextAttribute attr = new TextAttribute(new Color(null, 0, 0, 0),
-						      new Color(null, 128, 128, 128), TextAttribute.STRIKETHROUGH);
-					presentation.addStyleRange(new StyleRange(currentSyntaxSelection.getOffset(), currentSyntaxSelection.getLength(), attr.getForeground(),
-						      attr.getBackground()));
-					viewer.changeTextPresentation(presentation, true);
-					//viewer.setSelectedRange(currentSyntaxSelection.getOffset(), currentSyntaxSelection.getLength());
-					
-					results = statement.getRawSignature();
+						&&(currentTextSelection.getOffset()+currentTextSelection.getLength() <= currentSyntaxSelection.getOffset()+currentSyntaxSelection.getLength())) {
+					((EntryEditor) CDCEditor.getActiveEntryEditor()).selectTextInTextEditor(currentSyntaxSelection);
+					results = Integer.toHexString(statement.getRawSignature().hashCode());
 					for(IASTNode node = statement; node != null; node = node.getParent()) {
 						results += "\\"+getNameOfClass(node);
 					}
+					currentTextSelection = new TextSelection(currentSyntaxSelection.getOffset(),currentSyntaxSelection.getLength());
+					System.out.println(statement.getRawSignature());
 					System.out.println(results);
 				}
 			} else if(statement.getParent().getParent() instanceof IASTSimpleDeclaration) {
@@ -270,7 +260,7 @@ public class CustomASTVisitor extends ASTVisitor {
 			String str = results;
 			int index = str.indexOf('\\');
 			String piece = str.substring(0, index);
-			if(piece.equals(statement.getRawSignature())) {
+			if(piece.equals(Integer.toHexString(statement.getRawSignature().hashCode()))) {
 				for(node = statement; node != null; node = node.getParent()) {
 					str = str.substring(index+1);
 					index = str.indexOf('\\');

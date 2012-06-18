@@ -105,13 +105,34 @@ public class CDCDataCenter {
 		}
 	}
 	
-	public Vector<MapEntry> getMapEntries(String projname) {
+	public Vector<MapEntry> getAllMapEntries(String projname) {
 		CDCCachedFile f = getCDCCachedFile(projname);
 		if(f!=null) {
 			return f.getMapEntries();
 		} else {
 			return null;
 		}
+	}
+	
+	public Vector<MapEntry> getMapEntries(String projname, MapSelectionFilter filter) {
+		Vector<MapEntry> entry = new Vector<MapEntry>();
+		for(MapEntry me : getCDCCachedFile(projname).getMapEntries()) {
+			switch(filter.getSelector()) {
+			case MapSelectionFilter.CODEFILE:
+				if(me.getCodefilename().equals(filter.getCodeFileName())) {
+					entry.add(me);
+				}
+				break;
+			case MapSelectionFilter.PDFFILE:
+				if(me.getSpecfilename().equals(filter.getPdfFileName())) {
+					entry.add(me);
+				}
+				break;
+			case MapSelectionFilter.PDFFILEPAGE:
+				break;
+			}
+		}
+		return entry;
 	}
 	
 	public void setLastOpenedCodeFilename(String projname, String codeFilename) {

@@ -204,15 +204,17 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 	}
 	
 	public void refresh() {
-		searchText.setText("");
+		if(searchText != null) {
+			searchText.setText("");			
+		}
 		
 		if(tableViewer != null) {
-			tableViewer.setInput(CDCDataCenter.getInstance().getMapEntries(projectname));
+			tableViewer.setInput(CDCDataCenter.getInstance().getAllMapEntries(projectname));
 			TableContentProvider tcp = (TableContentProvider)tableViewer.getContentProvider();
 			tableViewer.refresh();
 		}
 		if(treeViewer != null) {
-			treeViewer.setInput(CDCDataCenter.getInstance().getMapEntries(projectname));
+			treeViewer.setInput(CDCDataCenter.getInstance().getAllMapEntries(projectname));
 			TreeContentProvider tcp = (TreeContentProvider)treeViewer.getContentProvider();
 			if (checkButton.getSelection() == true) {
 				tcp.allSources = true;
@@ -221,6 +223,29 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 			}
 			treeViewer.refresh();
 			treeViewer.expandToLevel(4);
+		}
+	}
+	
+	private void highlightSelection(MapEntry mp) {
+		EntryEditor editor = getActiveEntryEditor();
+		if(editor == null) return;
+		if(editor.getProjectName().equals(projectname)) {
+			String codeFilename1 = mp.getCodefilename();
+			IPath codepath2 = editor.getCodeFilepath();
+			String codefilename2 = (codepath2.isAbsolute()?"project://":"project:///")+codepath2;
+			if(codeFilename1.equals(codefilename2)) {
+				editor.highlightCodeAnchor(mp);
+			} else {
+				editor.highlightCodeAnchor(null);				
+			}
+			String specFilename1 = mp.getSpecfilename();
+			IPath specpath2 = editor.getSpecFilepath();
+			String specfilename2 = (specpath2.isAbsolute()?"project://":"project:///")+specpath2;
+			if(specFilename1.equals(specfilename2)) {
+				editor.selectTextInAcrobat(mp.getSpecselpath());								
+			} else {
+				editor.selectTextInAcrobat(null);								
+			}
 		}
 	}
 
@@ -257,17 +282,14 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		});*/
 		table.addListener (SWT.Selection, new Listener () {
 			public void handleEvent (Event event) {
-				EntryEditor editor = getActiveEntryEditor();
-				if(editor == null) return;
 				ISelection selection = tableViewer.getSelection();
 				if (selection != null && selection instanceof IStructuredSelection) {
 					IStructuredSelection sel = (IStructuredSelection) selection;
 					for (Iterator<MapEntry> iterator = sel.iterator(); iterator.hasNext();) {
 						MapEntry mp = iterator.next();
-						editor.selectTextInAcrobat(mp);
-						editor.selectTextInTextEditor(mp);
+						highlightSelection(mp);
 					}
-				}
+				}					
 			}
 		});
 		table.addMouseListener(new MouseAdapter() {
@@ -285,6 +307,7 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 						IPath specpath = new Path(specFilename);
 						specpath = specpath.removeFirstSegments(1); // remove "project:"
 					    CDCEditor.open(projectname, codepath, specpath);	  
+						highlightSelection(mp);
 					}
 				}
 				setFocus();
@@ -390,12 +413,14 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		tree.addListener (SWT.Selection, new Listener () {
 			public void handleEvent (Event event) {
 				EntryEditor editor = getActiveEntryEditor();
-				ISelection selection = treeViewer.getSelection();
-				if (selection != null && selection instanceof IStructuredSelection) {
-					IStructuredSelection sel = (IStructuredSelection) selection;
-					for (Iterator<Reference> iterator = sel.iterator(); iterator.hasNext();) {
-						Reference ref = iterator.next();
-					}
+				if(editor.getProjectName().equals(projectname)) {
+					ISelection selection = treeViewer.getSelection();
+					if (selection != null && selection instanceof IStructuredSelection) {
+						IStructuredSelection sel = (IStructuredSelection) selection;
+						for (Iterator<Reference> iterator = sel.iterator(); iterator.hasNext();) {
+							Reference ref = iterator.next();
+						}
+					}					
 				}
 			}
 		});
@@ -516,69 +541,69 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 	public void partActivated(IWorkbenchPartReference partRef) {
 		System.out.println("partActivated!");
 		System.out.println(partRef.getPart(false).getClass().getName());
-		sniff();
-		refresh();
+		//sniff();
+		//refresh();
 	}
 
 	@Override
 	public void partBroughtToTop(IWorkbenchPartReference partRef) {
 		System.out.println("partBroughtToTop!");
 		System.out.println(partRef.getPart(false).getClass().getName());
-		sniff();
-		refresh();
+		//sniff();
+		//refresh();
 	}
 
 	@Override
 	public void partClosed(IWorkbenchPartReference partRef) {
 		System.out.println("partClosed!");
 		System.out.println(partRef.getPart(false).getClass().getName());
-		sniff();
-		refresh();
+		//sniff();
+		//refresh();
 	}
 
 	@Override
 	public void partDeactivated(IWorkbenchPartReference partRef) {
 		System.out.println("partDeactivated!");
 		System.out.println(partRef.getPart(false).getClass().getName());
-		sniff();
-		refresh();
+		//sniff();
+		//refresh();
 	}
 
 	@Override
 	public void partHidden(IWorkbenchPartReference partRef) {
 		System.out.println("partHidden!");
 		System.out.println(partRef.getPart(false).getClass().getName());
-		sniff();
-		refresh();
+		//sniff();
+		//refresh();
 	}
 
 	@Override
 	public void partInputChanged(IWorkbenchPartReference partRef) {
 		System.out.println("partInputChanged!");
 		System.out.println(partRef.getPart(false).getClass().getName());
-		sniff();
-		refresh();
+		//sniff();
+		//refresh();
 	}
 
 	@Override
 	public void partOpened(IWorkbenchPartReference partRef) {
 		System.out.println("partOpened!");
 		System.out.println(partRef.getPart(false).getClass().getName());
-		sniff();
+		//sniff();
 		/*try {
 			Thread.sleep(1000);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}*/
-		refresh();
+		//refresh();
 	}
 
 	@Override
 	public void partVisible(IWorkbenchPartReference partRef) {
 		System.out.println("partVisible!");
 		System.out.println(partRef.getPart(false).getClass().getName());
-		sniff();
-		refresh();
+		//sniff();
+		//refresh();
 	}
 	
 	@Override
@@ -641,7 +666,7 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 				}
 			}
 		}
-		refresh();
+		//refresh();
 	}
 	
 	public void displayListOfTextSelectionReferencesForSelectionInActiveEditor() {

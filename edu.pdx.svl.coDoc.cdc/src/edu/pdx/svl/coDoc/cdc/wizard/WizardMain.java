@@ -103,7 +103,7 @@ public class WizardMain extends Wizard implements INewWizard, IExecutableExtensi
 		IWorkspace workspace = ResourcesPlugin.getWorkspace();
 
 		final IProjectDescription desc = workspace.newProjectDescription(projectHandle.getName());
-
+		desc.setNatureIds(new String[] {"edu.pdx.svl.coDoc.cdt.core.cnature"});
 		desc.setLocationURI(projectURI);
 
 		/*
@@ -227,13 +227,7 @@ public class WizardMain extends Wizard implements INewWizard, IExecutableExtensi
 				public void run() 
 				{
 					IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-					try 
-					{
-						IDE.openEditor(page, file1, true);
-					} 
-					catch (PartInitException e) 
-					{
-					}
+					// IDE.openEditor(page, file1, true);
 				}
 			});
 			monitor.worked(1);

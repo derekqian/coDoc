@@ -71,9 +71,21 @@ public class Open implements IObjectActionDelegate {
 	                	break;
 	                }
 	                if(file.getFileExtension().equals("pdf")) {
-	                	specpath = file.getRawLocation().makeRelativeTo(workspacerootpath);
+	                	specpath = file.getRawLocation();
+	                	if(specpath.toString().startsWith("PARENT-")) {
+	                		specpath = file.getFullPath();
+	                		String temppath = specpath.toString();
+	                		specpath = new Path(temppath.substring(1));
+	                	} else {
+		                	specpath = specpath.makeRelativeTo(workspacerootpath);
+	                	}
 	                } else {
-	                	codepath = file.getRawLocation().makeRelativeTo(workspacerootpath);
+	                	codepath = file.getRawLocation();
+	                	if(codepath.toString().startsWith("PARENT-")) {
+	                		codepath = file.getFullPath();
+	                	} else {
+		                	codepath = codepath.makeRelativeTo(workspacerootpath);	                		
+	                	}
 	                }
 	            }
 	        }

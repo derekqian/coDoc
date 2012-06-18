@@ -32,14 +32,14 @@
       </category>
       <command
             categoryId="edu.pdx.svl.coDoc.commands.category"
-            defaultHandler="edu.pdx.svl.coDoc.handlers.ForwardSearchHandler"
+            defaultHandler="edu.pdx.svl.coDoc.poppler.handler.ForwardSearchHandler"
             description="Toggles a forward search in all open pdf documents"
             id="PDFViewer.command.forwardSearchAction"
             name="Forward search">
       </command>
       <command
             categoryId="edu.pdx.svl.coDoc.commands.category"
-            defaultHandler="edu.pdx.svl.coDoc.handlers.ZoomHandler"
+            defaultHandler="edu.pdx.svl.coDoc.poppler.handler.ZoomHandler"
             description="Set the zoom level"
             id="PDFViewer.command.Zoom"
             name="Zoom">
@@ -53,7 +53,7 @@
       <!--id is used in ToggleLinkHighlightHandler.java: "Command command = service.getCommand(COMMAND_ID);"-->
       <command
             categoryId="edu.pdx.svl.coDoc.commands.category"
-            defaultHandler="edu.pdx.svl.coDoc.handlers.ToggleLinkHighlightHandler"
+            defaultHandler="edu.pdx.svl.coDoc.poppler.handler.ToggleLinkHighlightHandler"
             id="PDFViewer.command.ToggleLinkHighlight"
             name="Toggle highlight">
          <state

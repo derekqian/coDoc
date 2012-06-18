@@ -29,6 +29,16 @@
 	     </selection>
        </wizard>
    </extension>
+   
+   <extension
+         point="org.eclipse.ui.perspectives">
+      <perspective
+            name="coDoc"
+            icon="icons/coDoc.png"
+            class="edu.pdx.svl.coDoc.cdc.perspective.Perspective"
+            id="edu.pdx.svl.coDoc.cdc.perspective.Perspective">
+      </perspective>
+   </extension>
 
    <extension
          point="org.eclipse.ui.editors">
@@ -139,22 +149,10 @@
          <command
                commandId="edu.pdx.svl.coDoc.cdc.commands.AddReference"
                style="push">
-            <visibleWhen
-                  checkEnabled="false">
-              <reference
-                    definitionId="edu.pdx.svl.coDoc.cdt.definitions.isEntryEditorActive">
-              </reference>
-            </visibleWhen>
          </command>
          <command
                commandId="edu.pdx.svl.coDoc.cdc.commands.DeleteReference"
                style="push">
-            <visibleWhen
-                  checkEnabled="false">
-              <reference
-                    definitionId="edu.pdx.svl.coDoc.cdt.definitions.isEntryEditorActive">
-              </reference>
-            </visibleWhen>
          </command>
          <command
                commandId="edu.pdx.svl.coDoc.cdc.commands.EditReference"
@@ -238,15 +236,6 @@
       </menuContribution>
    </extension>
    <extension
-         point="org.eclipse.ui.perspectives">
-      <perspective
-            name="coDoc"
-            icon="icons/coDoc.png"
-            class="edu.pdx.svl.coDoc.cdc.perspective.Perspective"
-            id="edu.pdx.svl.coDoc.cdc.perspective.Perspective">
-      </perspective>
-   </extension>
-   <extension
          point="org.eclipse.ui.popupMenus">
       <objectContribution
             adaptable="true"
@@ -292,13 +281,9 @@
    </extension>
    <extension
          point="org.eclipse.core.expressions.definitions">
-      <definition
-            id="edu.pdx.svl.coDoc.cdt.definitions.isEntryEditorActive">
-         <with
-               variable="activePart">
-            <instanceof
-                  value="edu.pdx.svl.coDoc.cdc.editor.EntryEditor">
-            </instanceof>
+      <definition id="edu.pdx.svl.coDoc.cdt.definitions.isEntryEditorActive">
+         <with variable="activeEditorId">
+            <equals value="edu.pdx.svl.coDoc.cdc.editor.EntryEditor"></equals>
          </with>
       </definition>
    </extension>

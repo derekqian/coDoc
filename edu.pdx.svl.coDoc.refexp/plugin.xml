@@ -36,31 +36,5 @@
          </view>
       </perspectiveExtension>
    </extension>
-   <extension
-         point="org.eclipse.ui.popupMenus">
-      <objectContribution
-            adaptable="true"
-            id="edu.pdx.svl.coDoc.contextMenu"
-            objectClass="org.eclipse.core.resources.IFile">
-         <menu
-               id="edu.pdx.svl.coDoc.menu"
-               label="coDoc"
-               path="additions">
-            <groupMarker
-                  name="coDoc.groupMarker1">
-            </groupMarker>
-            <groupMarker
-                  name="coDoc.groupMarker2">
-            </groupMarker>
-         </menu>
-         <action
-               class="edu.pdx.svl.coDoc.refexp.popup.actions.Help"
-               enablesFor="1"
-               id="edu.pdx.svl.coDoc.refexp.popup.actions.Help"
-               label="Help"
-               menubarPath="edu.pdx.svl.coDoc.menu/group2">
-         </action>
-      </objectContribution>
-   </extension>
 
 </plugin>

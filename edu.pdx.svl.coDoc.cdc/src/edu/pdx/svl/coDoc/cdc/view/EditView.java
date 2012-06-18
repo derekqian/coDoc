@@ -10,7 +10,10 @@ import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.layout.GridData;
 
+import edu.pdx.svl.coDoc.cdc.datacenter.CDCDataCenter;
 import edu.pdx.svl.coDoc.cdc.datacenter.MapEntry;
+import edu.pdx.svl.coDoc.cdc.editor.CDCEditor;
+import edu.pdx.svl.coDoc.cdc.editor.IReferenceExplorer;
 import edu.pdx.svl.coDoc.cdc.referencemodel.Reference;
 
 
@@ -61,7 +64,15 @@ public class EditView extends Dialog {
 			@Override
 			public void mouseUp(MouseEvent e) {
 				String txt = commentText.getText();
-				refToEdit.setComment(txt);
+				IReferenceExplorer view = (IReferenceExplorer)CDCEditor.findView("edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView");
+				MapEntry newMap = new MapEntry();
+				newMap.setCodefilename(refToEdit.getCodefilename());
+				newMap.setCodeselpath(refToEdit.getCodeselpath());
+				newMap.setSpecfilename(refToEdit.getSpecfilename());
+				newMap.setSpecselpath(refToEdit.getSpecselpath());
+				newMap.setComment(txt);
+				CDCDataCenter.getInstance().deleteMapEntry(view.getProjectName(),refToEdit.getCodefilename(), refToEdit.getCodeselpath(), refToEdit.getSpecfilename(), refToEdit.getSpecselpath(), refToEdit.getComment());
+				CDCDataCenter.getInstance().addMapEntry(view.getProjectName(),newMap.getCodefilename(), newMap.getCodeselpath(), newMap.getSpecfilename(), newMap.getSpecselpath(), newMap.getComment());
 			}
 		});
 		createButton(parent, IDialogConstants.CANCEL_ID,
