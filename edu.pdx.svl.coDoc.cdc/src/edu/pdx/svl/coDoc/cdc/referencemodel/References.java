@@ -26,7 +26,6 @@ import edu.pdx.svl.coDoc.cdc.editor.CDCEditor;
 import edu.pdx.svl.coDoc.cdc.editor.EntryEditor;
 import edu.pdx.svl.coDoc.cdc.editor.IReferenceExplorer;
 import edu.pdx.svl.coDoc.cdc.preferences.PreferenceValues;
-import edu.pdx.svl.coDoc.cdc.view.ConfirmationWindow;
 
 
 

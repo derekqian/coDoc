@@ -9,6 +9,7 @@ import org.eclipse.jface.text.TextPresentation;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbench;
@@ -17,27 +18,32 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.MultiEditor;
 
-import edu.pdx.svl.coDoc.cdt.core.CCorePlugin;
-import edu.pdx.svl.coDoc.cdt.core.dom.ast.ASTVisitor;
-import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTDeclSpecifier;
-import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTDeclaration;
-import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTDeclarator;
-import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTExpression;
-import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTForStatement;
-import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTFunctionDefinition;
-import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTInitializer;
-import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTName;
-import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTNode;
-import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTParameterDeclaration;
-import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTProblem;
-import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTSimpleDeclaration;
-import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTStatement;
-import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTTranslationUnit;
-import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTTypeId;
-import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTEnumerationSpecifier.IASTEnumerator;
-import edu.pdx.svl.coDoc.cdt.core.model.ILanguage;
-import edu.pdx.svl.coDoc.cdt.internal.core.dom.parser.ASTNode;
-import edu.pdx.svl.coDoc.cdt.internal.core.model.TranslationUnit;
+import org.eclipse.cdt.core.CCorePlugin;
+import org.eclipse.cdt.core.dom.ast.ASTVisitor;
+import org.eclipse.cdt.core.dom.ast.IASTDeclSpecifier;
+import org.eclipse.cdt.core.dom.ast.IASTDeclaration;
+import org.eclipse.cdt.core.dom.ast.IASTDeclarator;
+import org.eclipse.cdt.core.dom.ast.IASTEnumerationSpecifier.IASTEnumerator;
+import org.eclipse.cdt.core.dom.ast.IASTExpression;
+import org.eclipse.cdt.core.dom.ast.IASTForStatement;
+import org.eclipse.cdt.core.dom.ast.IASTFunctionDefinition;
+import org.eclipse.cdt.core.dom.ast.IASTInitializer;
+import org.eclipse.cdt.core.dom.ast.IASTName;
+import org.eclipse.cdt.core.dom.ast.IASTNode;
+import org.eclipse.cdt.core.dom.ast.IASTParameterDeclaration;
+import org.eclipse.cdt.core.dom.ast.IASTProblem;
+import org.eclipse.cdt.core.dom.ast.IASTSimpleDeclaration;
+import org.eclipse.cdt.core.dom.ast.IASTStatement;
+import org.eclipse.cdt.core.dom.ast.IASTTranslationUnit;
+import org.eclipse.cdt.core.dom.ast.IASTTypeId;
+import org.eclipse.cdt.core.index.IIndex;
+import org.eclipse.cdt.core.model.CoreModel;
+import org.eclipse.cdt.core.model.ICElement;
+import org.eclipse.cdt.core.model.ILanguage;
+import org.eclipse.cdt.core.model.ITranslationUnit;
+import org.eclipse.cdt.internal.core.dom.parser.ASTNode;
+import org.eclipse.cdt.internal.ui.editor.CEditor;
+import org.eclipse.cdt.ui.CDTUITools;
 
 public class CustomASTVisitor extends ASTVisitor {
 
@@ -76,30 +82,37 @@ public class CustomASTVisitor extends ASTVisitor {
 		return instance;
 	}
 	
-	public String selection2Node(IFile file, TextSelection selection) {
+	public String selection2Node(IEditorPart editor, TextSelection selection) {
 		try {
-			TranslationUnit tu = (TranslationUnit) CCorePlugin.getDefault().getCoreModel().create(file);
-			IASTTranslationUnit ast = tu.getLanguage().getASTTranslationUnit(tu, ILanguage.AST_SKIP_IF_NO_BUILD_INFO);
+			assert(editor instanceof CEditor);
 			setMode(CustomASTVisitor.MODE_SELECTION_TO_NODE);
 			setTextSelection(selection);
+			ICElement inputElement = ((CEditor)editor).getInputCElement();
+			assert(inputElement instanceof ITranslationUnit);
+			ITranslationUnit tu= (ITranslationUnit) inputElement;
+			IASTTranslationUnit ast= tu.getAST();
 			ast.accept(this);
+
 		} catch (CoreException e) {
 			e.printStackTrace();
 		}
 		return getSelectedASTNode();
 	}
 	
-	public TextSelection node2Selection(IFile file, String node) {
+	public TextSelection node2Selection(IEditorPart editor, String node) {
 		try {
-			TranslationUnit tu = (TranslationUnit) CCorePlugin.getDefault().getCoreModel().create(file);
-			IASTTranslationUnit ast = tu.getLanguage().getASTTranslationUnit(tu, ILanguage.AST_SKIP_IF_NO_BUILD_INFO);
+			assert(editor instanceof CEditor);
 			setMode(CustomASTVisitor.MODE_NODE_TO_SELECTION);
 			setSelectedASTNode(node);
+			ICElement inputElement = ((CEditor)editor).getInputCElement();
+			assert(inputElement instanceof ITranslationUnit);
+			ITranslationUnit tu= (ITranslationUnit) inputElement;
+			IASTTranslationUnit ast= tu.getAST();
 			ast.accept(this);
+
 		} catch (CoreException e) {
 			e.printStackTrace();
 		}
-		
 		//ISelectionProvider selProv = workbenchPart.getSite().getSelectionProvider();
 		return getTextSelection();
 	}

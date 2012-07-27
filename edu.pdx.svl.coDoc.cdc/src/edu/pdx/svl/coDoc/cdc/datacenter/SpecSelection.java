@@ -5,10 +5,7 @@
 
 package edu.pdx.svl.coDoc.cdc.datacenter;
 
-import java.util.Vector;
-
 import org.simpleframework.xml.Element;
-import org.simpleframework.xml.ElementList;
 
 public class SpecSelection {
 	@Element
@@ -55,11 +52,27 @@ public class SpecSelection {
 		return right;
 	}
 	public void setPDFText(String pdftext) {
-		this.pdftext = pdftext;
+		if(pdftext != null) {
+			this.pdftext = pdftext;			
+		}
 	}
 	public String getPDFText() {
-		return pdftext;
+		return pdftext.equals(" ")?null:pdftext;
 	}
+	@Override
+	public boolean equals(Object o) {
+		if(o instanceof SpecSelection) {
+			SpecSelection sel = (SpecSelection) o;
+			return (sel.getPage()==page) && (sel.getLeft()==left)
+			                             && (sel.getRight()==right)
+			                             && (sel.getTop()==top)
+			                             && (sel.getBottom()==bottom)
+			                             && pdftext.equals(sel.getPDFText());
+		} else {
+			return false;
+		}
+	}
+	@Override
 	public String toString() {
 		return page+"/"+left+"/"+top+"/"+right+"/"+bottom+"/"+pdftext;
 	}

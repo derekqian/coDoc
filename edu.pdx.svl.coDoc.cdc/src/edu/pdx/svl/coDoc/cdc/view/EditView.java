@@ -11,22 +11,22 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.layout.GridData;
 
 import edu.pdx.svl.coDoc.cdc.datacenter.CDCDataCenter;
-import edu.pdx.svl.coDoc.cdc.datacenter.MapEntry;
+import edu.pdx.svl.coDoc.cdc.datacenter.LinkEntry;
 import edu.pdx.svl.coDoc.cdc.editor.CDCEditor;
 import edu.pdx.svl.coDoc.cdc.editor.IReferenceExplorer;
-import edu.pdx.svl.coDoc.cdc.referencemodel.Reference;
 
 
 public class EditView extends Dialog {
 
 	StyledText commentText;
-	MapEntry refToEdit;
+	LinkEntry refToEdit;
+	private String newComTxt = null;
 	
 	/**
 	 * Create the dialog.
 	 * @param parentShell
 	 */
-	public EditView(Shell parentShell, MapEntry ref) {
+	public EditView(Shell parentShell, LinkEntry ref) {
 		super(parentShell);
 		refToEdit = ref;
 	}
@@ -44,9 +44,9 @@ public class EditView extends Dialog {
 		
 		commentText = new StyledText(container, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
 		commentText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		String commentFromRef = refToEdit.getComment();
+		String commentFromRef = refToEdit.comment;
 		if (commentFromRef != null) {
-			commentText.setText(refToEdit.getComment());
+			commentText.setText(commentFromRef);
 		}
 
 		return container;
@@ -63,20 +63,15 @@ public class EditView extends Dialog {
 		button.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseUp(MouseEvent e) {
-				String txt = commentText.getText();
-				IReferenceExplorer view = (IReferenceExplorer)CDCEditor.findView("edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView");
-				MapEntry newMap = new MapEntry();
-				newMap.setCodefilename(refToEdit.getCodefilename());
-				newMap.setCodeselpath(refToEdit.getCodeselpath());
-				newMap.setSpecfilename(refToEdit.getSpecfilename());
-				newMap.setSpecselpath(refToEdit.getSpecselpath());
-				newMap.setComment(txt);
-				CDCDataCenter.getInstance().deleteMapEntry(view.getProjectName(),refToEdit.getCodefilename(), refToEdit.getCodeselpath(), refToEdit.getSpecfilename(), refToEdit.getSpecselpath(), refToEdit.getComment());
-				CDCDataCenter.getInstance().addMapEntry(view.getProjectName(),newMap.getCodefilename(), newMap.getCodeselpath(), newMap.getSpecfilename(), newMap.getSpecselpath(), newMap.getComment());
+				newComTxt = commentText.getText();
 			}
 		});
 		createButton(parent, IDialogConstants.CANCEL_ID,
 				IDialogConstants.CANCEL_LABEL, false);
+	}
+	
+	public String getNewCommentText() {
+		return newComTxt;
 	}
 
 	/**

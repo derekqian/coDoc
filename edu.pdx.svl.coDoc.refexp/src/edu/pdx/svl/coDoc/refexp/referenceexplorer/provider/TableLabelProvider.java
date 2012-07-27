@@ -4,7 +4,8 @@ import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.swt.graphics.Image;
 
-import edu.pdx.svl.coDoc.cdc.datacenter.MapEntry;
+import edu.pdx.svl.coDoc.cdc.datacenter.EntryNode;
+import edu.pdx.svl.coDoc.cdc.datacenter.LinkEntry;
 
 
 public class TableLabelProvider implements ITableLabelProvider {
@@ -12,28 +13,29 @@ public class TableLabelProvider implements ITableLabelProvider {
 	public String getColumnText(Object element, int col) {
 		String text = "";
 		String temp;
-		if(element instanceof MapEntry) {
-			MapEntry mp = (MapEntry) element;
+		if(element instanceof EntryNode) {
+			EntryNode node = (EntryNode) element;
+			LinkEntry mp = (LinkEntry) node.getData();
 			switch(col) {
 			case 0: // source file
-				temp = mp.getCodefilename();
+				temp = mp.codefilename;
 				text = temp.substring(temp.lastIndexOf('/')+1);
 				break;
 			case 1: // code
-				text = mp.getCodeselpath().getCodeText();
+				text = mp.codeselpath.getSyntaxCodeText();
 				break;
 			case 2: // PDF file
-				temp = mp.getSpecfilename();
+				temp = mp.specfilename;
 				text = temp.substring(temp.lastIndexOf('/')+1);
 				break;
 			case 3: // page
-				text = String.valueOf(mp.getSpecselpath().getPage());
+				text = String.valueOf(mp.specselpath.getPage());
 				break;
 			case 4: // spec text
-				text = mp.getSpecselpath().getPDFText();
+				text = mp.specselpath.getPDFText();
 				break;
 			case 5: // comment
-				text = mp.getComment();
+				text = mp.comment;
 				break;
 			default:
 				break;

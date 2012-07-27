@@ -1,14 +1,10 @@
 package edu.pdx.svl.coDoc.cdc.datacenter;
 
-import java.util.Vector;
 import edu.pdx.svl.coDoc.cdc.XML.SimpleXML;
-
-
 
 public class CDCCachedFile {
 	private String fileName;
 	private CDCModel cdcModel;
-
 	
 	public CDCCachedFile() {
 		fileName = null;
@@ -39,9 +35,11 @@ public class CDCCachedFile {
 		cdcModel.addCodeFileEntry(filename);
 		flush();
 	}
-	
-	public void deleteCodeFileEntry(String filename) {
-		cdcModel.deleteCodeFileEntry(filename);
+	public String getCodeFilename(String uuid) {
+		return cdcModel.getCodeFilename(uuid);
+	}
+	public void deleteCodeFileEntry(String uuid) {
+		cdcModel.deleteCodeFileEntry(uuid);
 		flush();
 	}
 	
@@ -49,24 +47,40 @@ public class CDCCachedFile {
 		cdcModel.addSpecFileEntry(filename);
 		flush();
 	}
-	
-	public void deleteSpecFileEntry(String filename) {
-		cdcModel.deleteSpecFileEntry(filename);
+	public String getSpecFilename(String uuid) {
+		return cdcModel.getSpecFilename(uuid);
+	}
+	public void deleteSpecFileEntry(String uuid) {
+		cdcModel.deleteSpecFileEntry(uuid);
 		flush();
 	}
 	
-	public void addMapEntry(String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
-		cdcModel.addMapEntry(codefilename, codeselpath, specfilename, specselpath, comment);
+	public FolderMapTreeNode getMapIdTree() {
+		return cdcModel.getMapIdTree();
+	}
+	
+	public void addFolderEntry(String parentfolderuuid, String foldername) {
+		cdcModel.addFolderEntry(parentfolderuuid, foldername);
+		flush();
+	}
+	public FolderEntry getFolderEntry(String uuid) {
+		return cdcModel.getFolderEntry(uuid);
+	}
+	public void deleteFolderEntry(String uuid) {
+		cdcModel.deleteFolderEntry(uuid);
 		flush();
 	}
 	
-	public void deleteMapEntry(String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
-		cdcModel.deleteMapEntry(codefilename, codeselpath, specfilename, specselpath, comment);
+	public void addMapEntry(String parentfolderuuid, String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
+		cdcModel.addMapEntry(parentfolderuuid, codefilename, codeselpath, specfilename, specselpath, comment);
 		flush();
 	}
-	
-	public Vector<MapEntry> getMapEntries() {
-		return cdcModel.getMapEntries();
+	public MapEntry getMapEntry(String uuid) {
+		return cdcModel.getMapEntry(uuid);
+	}
+	public void deleteMapEntry(String uuid) {
+		cdcModel.deleteMapEntry(uuid);
+		flush();
 	}
 	
 	public void setLastOpenedCodeFilename(String codeFilename) {

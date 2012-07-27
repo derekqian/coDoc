@@ -28,20 +28,27 @@ import edu.pdx.svl.coDoc.cdc.referencemodel.TextSelectionReference;
 import edu.pdx.svl.coDoc.cdc.Global;
 
 
-public class ConfirmationWindow extends Dialog {
+public class AddLinkDialog extends Dialog {
 	
 	StyledText commentStyledText;
+	String categorypath;
+	String codetext;
+	String spectext;
+	String comTxt = null;
 	
-	public ConfirmationWindow() {
-		this(new Shell());
+	public AddLinkDialog(String categorypath, String codetext, String spectext) {
+		this(new Shell(), categorypath, codetext, spectext);
 	}
 	
 	/**
 	 * Create the dialog.
 	 * @param parentShell
 	 */
-	public ConfirmationWindow(Shell parentShell) {
+	public AddLinkDialog(Shell parentShell, String categorypath, String codetext, String spectext) {
 		super(parentShell);
+		this.categorypath = categorypath;
+		this.codetext = codetext;
+		this.spectext = spectext;
 	}
 	
 	/**
@@ -54,8 +61,12 @@ public class ConfirmationWindow extends Dialog {
 //		container.setLayout(new GridLayout(1, false));
 		container.setLayout(null);
 		
+		Label lblCategory = new Label(container, SWT.NONE);
+		lblCategory.setBounds(5, 5, 100, 20);
+		lblCategory.setText("Category: " + categorypath);
+		
 		Label lblCode = new Label(container, SWT.NONE);
-		lblCode.setBounds(5, 5, 100, 15);
+		lblCode.setBounds(5, 35, 100, 20);
 		lblCode.setText("Code:");
 		
 		
@@ -64,16 +75,15 @@ public class ConfirmationWindow extends Dialog {
 		codeText.setDoubleClickEnabled(false);
 		codeText.setEditable(false);
 //		codeText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		codeText.setBounds(5, 25, 584, 148);
+		codeText.setBounds(5, 55, 584, 130);
 		
-		String codetext = ((EntryEditor) CDCEditor.getActiveEntryEditor()).getSelectionInTextEditor().getCodeText();
 		if (codetext != null) {
 			codeText.setText(codetext);
 		}
 		
 		
 		Label lblSpecification = new Label(container, SWT.NONE);
-		lblSpecification.setBounds(5, 178, 100, 15);
+		lblSpecification.setBounds(5, 195, 100, 20);
 		lblSpecification.setText("Specification:");
 		
 		TextViewer specTextViewer = new TextViewer(container, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
@@ -81,9 +91,8 @@ public class ConfirmationWindow extends Dialog {
 		specStyledText.setDoubleClickEnabled(false);
 		specStyledText.setEditable(false);
 //		specStyledText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		specStyledText.setBounds(5, 198, 584, 148);
+		specStyledText.setBounds(5, 215, 584, 130);
 		
-		String spectext = ((EntryEditor) CDCEditor.getActiveEntryEditor()).getSelectionInAcrobat().getPDFText();
 		if (spectext != null) {
 			specStyledText.setText(spectext);
 		} else {
@@ -93,13 +102,13 @@ public class ConfirmationWindow extends Dialog {
 		}
 		
 		Label lblComment = new Label(container, SWT.NONE);
-		lblComment.setBounds(5, 351, 100, 15);
+		lblComment.setBounds(5, 355, 100, 20);
 		lblComment.setText("Comments:");
 		
 		TextViewer commentTextViewer = new TextViewer(container, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
 		commentStyledText = commentTextViewer.getTextWidget();
 //		commentStyledText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		commentStyledText.setBounds(5, 371, 584, 150);
+		commentStyledText.setBounds(5, 375, 584, 130);
 
 		return container;
 	}
@@ -115,7 +124,7 @@ public class ConfirmationWindow extends Dialog {
 		
 		button.addMouseListener(new MouseAdapter() {
 			public void mouseUp(MouseEvent evt) {
-				okButtonPressed(evt);
+				comTxt = commentStyledText.getText();
 			}
 		});
 		
@@ -123,9 +132,8 @@ public class ConfirmationWindow extends Dialog {
 				IDialogConstants.CANCEL_LABEL, false);
 	}
 
-	public void okButtonPressed(MouseEvent evt) {
-		String comTxt = commentStyledText.getText();
-		CDCEditor.addReference(comTxt);
+	public String getCommentText() {
+		return comTxt;
 	}
 	
 	/**

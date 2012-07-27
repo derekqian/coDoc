@@ -2,6 +2,7 @@ package edu.pdx.svl.coDoc.cdc.datacenter;
 
 import java.io.File;
 import java.util.Hashtable;
+import java.util.Stack;
 import java.util.Vector;
 
 import org.eclipse.core.resources.IProject;
@@ -12,9 +13,10 @@ import edu.pdx.svl.coDoc.cdc.editor.CDCEditor;
 
 
 public class CDCDataCenter {
-	private static CDCDataCenter instance = null;
-	
+	private static CDCDataCenter instance = null;	
 	private Hashtable<String, CDCCachedFile> projects;
+	// eclipse TreeViewer has a bug, use invisible root as a workaround.
+	private EntryNode invisibleroot = new EntryNode(null);
 
 	public static CDCDataCenter getInstance() {
 		if(instance == null) {
@@ -70,10 +72,10 @@ public class CDCDataCenter {
 		}
 	}
 	
-	public void deleteCodeFileEntry(String projname, String filename) {
+	public void deleteCodeFileEntry(String projname, String uuid) {
 		CDCCachedFile f = getCDCCachedFile(projname);
 		if(f!=null) {
-			f.deleteCodeFileEntry(filename);
+			f.deleteCodeFileEntry(uuid);
 		}
 	}
 	
@@ -84,55 +86,71 @@ public class CDCDataCenter {
 		}
 	}
 	
-	public void deleteSpecFileEntry(String projname, String filename) {
+	public void deleteSpecFileEntry(String projname, String uuid) {
 		CDCCachedFile f = getCDCCachedFile(projname);
 		if(f!=null) {
-			f.deleteSpecFileEntry(filename);
+			f.deleteSpecFileEntry(uuid);
 		}
 	}
 	
-	public void addMapEntry(String projname, String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
+	public void addCategoryEntry(String projname, String parentfolderuuid, String foldername) {
 		CDCCachedFile f = getCDCCachedFile(projname);
 		if(f!=null) {
-			f.addMapEntry(codefilename, codeselpath, specfilename, specselpath, comment);
+			f.addFolderEntry(parentfolderuuid, foldername);
 		}
 	}
 	
-	public void deleteMapEntry(String projname, String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
+	public CategoryEntry getCategoryEntry(String projname, String uuid) {
+		CDCCachedFile f = getCDCCachedFile(projname);
+		FolderEntry entry = null;
+		if(f!=null) {
+			entry = f.getFolderEntry(uuid);
+		}
+		if(entry != null) {
+			return new CategoryEntry(uuid, entry.getTime(), entry.getOS(), ((FolderEntry) entry).getFoldername(), entry.getCreater(), entry.getFolderpath());
+		}
+		return null;
+	}
+	
+	public void deleteCategoryEntry(String projname, String uuid) {
 		CDCCachedFile f = getCDCCachedFile(projname);
 		if(f!=null) {
-			f.deleteMapEntry(codefilename, codeselpath, specfilename, specselpath, comment);
+			f.deleteFolderEntry(uuid);
 		}
 	}
 	
-	public Vector<MapEntry> getAllMapEntries(String projname) {
+	/*public void addLinkEntry(String projname, String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
+		CDCCachedFile f = getCDCCachedFile(projname);
+		String parentfolderuuid = f.getMapIdTree().getData();
+		if(f!=null) {
+			f.addMapEntry(parentfolderuuid, codefilename, codeselpath, specfilename, specselpath, comment);
+		}
+	}*/
+	
+	public void addLinkEntry(String projname, String parentfolderuuid, String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
 		CDCCachedFile f = getCDCCachedFile(projname);
 		if(f!=null) {
-			return f.getMapEntries();
-		} else {
-			return null;
+			f.addMapEntry(parentfolderuuid, codefilename, codeselpath, specfilename, specselpath, comment);
 		}
 	}
 	
-	public Vector<MapEntry> getMapEntries(String projname, MapSelectionFilter filter) {
-		Vector<MapEntry> entry = new Vector<MapEntry>();
-		for(MapEntry me : getCDCCachedFile(projname).getMapEntries()) {
-			switch(filter.getSelector()) {
-			case MapSelectionFilter.CODEFILE:
-				if(me.getCodefilename().equals(filter.getCodeFileName())) {
-					entry.add(me);
-				}
-				break;
-			case MapSelectionFilter.PDFFILE:
-				if(me.getSpecfilename().equals(filter.getPdfFileName())) {
-					entry.add(me);
-				}
-				break;
-			case MapSelectionFilter.PDFFILEPAGE:
-				break;
-			}
+	public LinkEntry getLinkEntry(String projname, String uuid) {
+		CDCCachedFile f = getCDCCachedFile(projname);
+		MapEntry entry = null;
+		if(f!=null) {
+			entry = f.getMapEntry(uuid);
 		}
-		return entry;
+		if(entry != null) {
+			return new LinkEntry(uuid, entry.getTime(), entry.getOS(), entry.getCreater(), f.getCodeFilename(entry.getCodefileUUID()), entry.getCodeselpath(), f.getSpecFilename(entry.getSpecfileUUID()), entry.getSpecselpath(), entry.getComment());
+		}
+		return null;
+	}
+	
+	public void deleteLinkEntry(String projname, String uuid) {
+		CDCCachedFile f = getCDCCachedFile(projname);
+		if(f!=null) {
+			f.deleteMapEntry(uuid);
+		}
 	}
 	
 	public void setLastOpenedCodeFilename(String projname, String codeFilename) {
@@ -163,5 +181,80 @@ public class CDCDataCenter {
 		} else {
 			return null;
 		}
+	}
+	
+	/**
+	 * 
+	 * @param projname
+	 * @param filter
+	 * @return The list of uuids of maps.
+	 */
+	public EntryNode getLinkTable(String projname, MapSelectionFilter filter) {
+		invisibleroot.clearChildren();
+		if(projname==null) {
+			return invisibleroot;
+		}
+		CDCCachedFile f = getCDCCachedFile(projname);
+		Stack<FolderMapTreeNode> stack = new Stack<FolderMapTreeNode>();
+		stack.push(f.getMapIdTree());
+		while(!stack.empty()) {
+			FolderMapTreeNode node = stack.pop();
+			String uuid = node.getData();
+			if(getCategoryEntry(projname, uuid) != null) {
+				// this is a folder
+				FolderMapTreeNode[] children = node.getChildren();
+				for(int i=children.length-1; i>=0; i--) {
+					stack.push(children[i]);
+				}
+			} else {
+				// this is a map
+				MapEntry entry = f.getMapEntry(uuid);
+				EntryNode en = new EntryNode(new LinkEntry(uuid, entry.getTime(), entry.getOS(), entry.getCreater(), f.getCodeFilename(entry.getCodefileUUID()), entry.getCodeselpath(), f.getSpecFilename(entry.getSpecfileUUID()), entry.getSpecselpath(), entry.getComment()));
+				invisibleroot.addChildZ(en);
+				en.setParent(invisibleroot);
+			}
+		}
+		return invisibleroot;
+	}
+	
+	public EntryNode getLinkTree(String projname, MapSelectionFilter filter) {
+		invisibleroot.clearChildren();
+		if(projname==null) {
+			return null;
+		}
+		CDCCachedFile f = getCDCCachedFile(projname);
+		Stack<FolderMapTreeNode> stack = new Stack<FolderMapTreeNode>();
+		stack.push(f.getMapIdTree());
+		Stack<EntryNode> stackdes = new Stack<EntryNode>();
+		String uuid = f.getMapIdTree().getData();
+		FolderMapEntry entry = f.getFolderEntry(uuid);
+		EntryNode childdes = new EntryNode(new CategoryEntry(uuid, entry.getTime(), entry.getOS(), entry.getCreater(), ((FolderEntry) entry).getFoldername(), ((FolderEntry) entry).getFolderpath()));
+		stackdes.push(childdes);
+		invisibleroot.addChildA(childdes);
+		childdes.setParent(invisibleroot);
+		while(!stack.empty()) {
+			FolderMapTreeNode node = stack.pop();
+			EntryNode parentdes = stackdes.pop();
+			uuid = node.getData();
+			if(getCategoryEntry(projname, uuid) != null) {
+				// this is a folder
+				FolderMapTreeNode[] children = node.getChildren();
+				for(int i=children.length-1; i>=0; i--) {
+					stack.push(children[i]);
+					uuid = children[i].getData();
+					entry = f.getFolderEntry(uuid);
+					if(entry != null) {
+						childdes = new EntryNode(new CategoryEntry(uuid, entry.getTime(), entry.getOS(), entry.getCreater(), ((FolderEntry) entry).getFoldername(), ((FolderEntry) entry).getFolderpath()));
+					} else {
+						entry = f.getMapEntry(uuid);
+						childdes = new EntryNode(new LinkEntry(uuid, entry.getTime(), entry.getOS(), entry.getCreater(), f.getCodeFilename(((MapEntry) entry).getCodefileUUID()), ((MapEntry) entry).getCodeselpath(), f.getSpecFilename(((MapEntry) entry).getSpecfileUUID()), ((MapEntry) entry).getSpecselpath(), ((MapEntry) entry).getComment()));
+					}
+					stackdes.push(childdes);
+					parentdes.addChildA(childdes);
+					childdes.setParent(parentdes);
+				}
+			}
+		}
+		return invisibleroot;
 	}
 }

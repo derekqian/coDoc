@@ -2,8 +2,28 @@ package edu.pdx.svl.coDoc.cdc.editor;
 
 import java.io.File;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.Stack;
 import java.util.Vector;
 
+import org.eclipse.cdt.core.CCorePlugin;
+import org.eclipse.cdt.core.dom.ast.ASTVisitor;
+import org.eclipse.cdt.core.dom.ast.IASTComment;
+import org.eclipse.cdt.core.dom.ast.IASTFunctionDefinition;
+import org.eclipse.cdt.core.dom.ast.IASTNode;
+import org.eclipse.cdt.core.dom.ast.IASTPreprocessorStatement;
+import org.eclipse.cdt.core.dom.ast.IASTProblem;
+import org.eclipse.cdt.core.dom.ast.IASTSimpleDeclaration;
+import org.eclipse.cdt.core.dom.ast.IASTTranslationUnit;
+import org.eclipse.cdt.core.model.CoreModel;
+import org.eclipse.cdt.core.model.ICElement;
+import org.eclipse.cdt.core.model.ITranslationUnit;
+import org.eclipse.cdt.internal.core.dom.parser.ASTNode;
+import org.eclipse.cdt.internal.core.dom.parser.c.CASTTranslationUnit;
+import org.eclipse.cdt.internal.core.dom.parser.cpp.CPPASTTranslationUnit;
+import org.eclipse.cdt.internal.core.model.TranslationUnit;
+import org.eclipse.cdt.internal.ui.editor.CEditor;
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IFile;
@@ -15,10 +35,13 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ColorRegistry;
 import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.text.ITextOperationTarget;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.ITextViewerExtension2;
@@ -76,18 +99,14 @@ import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.themes.ITheme;
 
 import edu.pdx.svl.coDoc.cdc.XML.SimpleXML;
+import edu.pdx.svl.coDoc.cdc.datacenter.CDCCachedFile;
 import edu.pdx.svl.coDoc.cdc.datacenter.CDCDataCenter;
 import edu.pdx.svl.coDoc.cdc.datacenter.CDCModel;
 import edu.pdx.svl.coDoc.cdc.datacenter.CodeSelection;
-import edu.pdx.svl.coDoc.cdc.datacenter.MapEntry;
+import edu.pdx.svl.coDoc.cdc.datacenter.LinkEntry;
 import edu.pdx.svl.coDoc.cdc.datacenter.SpecSelection;
 import edu.pdx.svl.coDoc.cdc.preferences.PreferenceValues;
 import edu.pdx.svl.coDoc.cdc.referencemodel.References;
-import edu.pdx.svl.coDoc.cdc.view.ConfirmationWindow;
-import edu.pdx.svl.coDoc.cdt.core.CCorePlugin;
-import edu.pdx.svl.coDoc.cdt.core.dom.ast.IASTTranslationUnit;
-import edu.pdx.svl.coDoc.cdt.core.model.ILanguage;
-import edu.pdx.svl.coDoc.cdt.internal.core.model.TranslationUnit;
 import edu.pdx.svl.coDoc.poppler.editor.PDFEditor;
 import edu.pdx.svl.coDoc.poppler.editor.PDFPageViewer;
 
@@ -102,6 +121,8 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 	private String projectname = null;
 	private IPath codeFilepath = null;
 	private IPath specFilepath = null;
+	private MyASTNode myAST = null;
+	private String curcategoryid = null;
 	
 	public void setInput(IEditorInput input) {
 		super.setInput(input);
@@ -176,9 +197,27 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 							updateInnerEditorTitle((IEditorPart) source, innerEditorTitle[index]);
 				}
 			});
+			if(e instanceof CEditor) {
+				((CEditor)e).getDocumentProvider().getDocument(e.getEditorInput()).addDocumentListener(new IDocumentListener(){
+
+					@Override
+					public void documentAboutToBeChanged(DocumentEvent arg0) {
+					}
+
+					@Override
+					public void documentChanged(DocumentEvent arg0) {
+						myAST = buildMyAST();
+					}
+				});
+				myAST = buildMyAST();
+			}
 		}
 		
 		initKeyBindingContext();
+	}
+	
+	public MyASTNode getMyAST() {
+		return myAST;
 	}
 
 	private void initKeyBindingContext() {
@@ -255,6 +294,7 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 
 	public void doSave(IProgressMonitor monitor)
 	{
+		return;
 	}
 	public boolean isSaveAsAllowed()
 	{
@@ -262,6 +302,7 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 	}
 	public void doSaveAs()
 	{
+		return;
 	}
 	public boolean isDirty()
 	{
@@ -287,6 +328,92 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 		//selectionChanged(getSite().getPart(), getSite().getPage().getSelection());
 	}
 	
+	public String getCurCategoryId() {
+		return curcategoryid;
+	}
+	public void setCurCategoryId(String curcategoryid) {
+		this.curcategoryid = curcategoryid;
+	}
+	
+	public TextSelection adjustSelection(TextSelection selection) {
+		int i;
+		MyASTNode parent = myAST;
+		MyASTNode[] nodes = myAST.getChildren();
+		for(i=0; i<nodes.length; i++) {
+			//System.out.println(selection.getOffset() + "  <-->  " + (selection.getOffset()+selection.getLength()));
+			//System.out.println(((ASTNode) nodes[i].getData()).getFileLocation().getNodeOffset() + "  <-->  " + (((ASTNode) nodes[i].getData()).getFileLocation().getNodeOffset()+((ASTNode) nodes[i].getData()).getFileLocation().getNodeLength()));
+			if((((ASTNode) nodes[i].getData()).getFileLocation().getNodeOffset() <= selection.getOffset())
+			 &&((selection.getOffset()+selection.getLength()) <= (((ASTNode) nodes[i].getData()).getFileLocation().getNodeOffset()+((ASTNode) nodes[i].getData()).getFileLocation().getNodeLength()))) {
+				parent = nodes[i];
+				nodes = nodes[i].getChildren();
+				i = -1;
+				continue;
+			}
+		}
+		return new TextSelection(((ASTNode) parent.getData()).getFileLocation().getNodeOffset(), ((ASTNode) parent.getData()).getFileLocation().getNodeLength());
+	}
+	
+	public String selection2Node(TextSelection selection) {
+		int i;
+		String retstr = new String();
+		MyASTNode parent = myAST;
+		retstr += parent;
+		MyASTNode[] nodes = myAST.getChildren();
+		for(i=0; i<nodes.length; i++) {
+			//System.out.println(selection.getOffset() + "  <-->  " + (selection.getOffset()+selection.getLength()));
+			//System.out.println(((ASTNode) nodes[i].getData()).getFileLocation().getNodeOffset() + "  <-->  " + (((ASTNode) nodes[i].getData()).getFileLocation().getNodeOffset()+((ASTNode) nodes[i].getData()).getFileLocation().getNodeLength()));
+			if((((ASTNode) nodes[i].getData()).getFileLocation().getNodeOffset() <= selection.getOffset())
+			 &&((selection.getOffset()+selection.getLength()) <= (((ASTNode) nodes[i].getData()).getFileLocation().getNodeOffset()+((ASTNode) nodes[i].getData()).getFileLocation().getNodeLength()))) {
+				parent = nodes[i];
+				retstr = parent + "\\" + retstr;
+				nodes = nodes[i].getChildren();
+				i = -1;
+				continue;
+			}
+		}
+		//selectTextInTextEditor(new TextSelection(((ASTNode) parent.getData()).getOffset(), ((ASTNode) parent.getData()).getLength()));
+		retstr = Integer.toHexString(parent.getData().getRawSignature().hashCode()) + "\\" + retstr;
+		return retstr;
+		// return Integer.toString(selection.getOffset())+"\\"+Integer.toString(selection.getLength());
+	}
+	
+	public TextSelection node2Selection(String nodestr) {
+		Queue<MyASTNode> queue = new LinkedList<MyASTNode>();
+		queue.add(myAST);
+		while(!queue.isEmpty()) {
+			MyASTNode head = queue.remove();
+			MyASTNode node = head;
+			String str = nodestr;
+			int index = str.indexOf('\\');
+			String piece = str.substring(0, index);
+			System.out.println(Integer.toHexString(node.getData().getRawSignature().hashCode()));
+			if(piece.equals(Integer.toHexString(node.getData().getRawSignature().hashCode()))) {
+				for(; node != null; node = node.getParent()) {
+					str = str.substring(index+1);
+					index = str.indexOf('\\');
+					if(index == -1) {
+						piece = str;
+					} else {
+						piece = str.substring(0,index);
+					}
+					if(!piece.equals(node.toString())) {
+						break;
+					}
+				}
+			}
+			if(node == null) {
+				return new TextSelection(((ASTNode)head.getData()).getFileLocation().getNodeOffset(),((ASTNode)head.getData()).getFileLocation().getNodeLength());
+			}
+			if(head.hasChildren()) {
+				for(MyASTNode n : head.getChildren()) {
+					queue.add(n);
+				}
+			}
+		}
+		//ISelectionProvider selProv = workbenchPart.getSite().getSelectionProvider();
+		return null;
+	}
+	
 	private TextSelection currentTextSelection;
 	public CodeSelection getSelectionInTextEditor() {
 		if (currentTextSelection == null) {
@@ -299,12 +426,12 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 			return null;
 		}
 		CodeSelection selection = new CodeSelection();
-		selection.setCodeSelPath(CustomASTVisitor.getInstance().getSelectedASTNode());
+		selection.setSyntaxCodePath(selection2Node(currentTextSelection));
 		ITextEditor editor = (ITextEditor) CDCEditor.getActiveCEditorChild(this);
 		IDocument doc = editor.getDocumentProvider().getDocument(editor.getEditorInput());
-		TextSelection sel = CustomASTVisitor.getInstance().getTextSelection();
+		TextSelection sel = currentTextSelection;
 		try {
-			selection.setCodeText(doc.get(sel.getOffset(), sel.getLength()));
+			selection.setSyntaxCodeText(doc.get(sel.getOffset(), sel.getLength()));
 		} catch (BadLocationException e) {
 			e.printStackTrace();
 		}
@@ -320,7 +447,8 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 		
 		IEditorReference[] ef = part.getSite().getPage().getEditorReferences();
 		for(int i=0; i<ef.length; i++) {
-			System.out.println("EntryEditor.selectionChanged: editors: " + ef[i].getEditor(false).getClass().getName());
+			if(ef[i].getEditor(false) != null)
+				System.out.println("EntryEditor.selectionChanged: editors: " + ef[i].getEditor(false).getClass().getName());
 		}
 		if(part.getSite().getPage().getActiveEditor() != null)
 			System.out.println("EntryEditor.selectionChanged: active editor: " + part.getSite().getPage().getActiveEditor().getClass().getName());
@@ -330,12 +458,13 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 			EntryEditor editorPart = (EntryEditor) CDCEditor.getActiveEntryEditor();
 			if (editorPart != null) {
 				if (selection instanceof TextSelection) {
-					currentTextSelection = (TextSelection)selection;					
-					
-					IEditorPart editor = CDCEditor.getActiveCEditorChild(editorPart);
-					IFile inputFile = ((FileEditorInput) editor.getEditorInput()).getFile();
-					CustomASTVisitor astvisitor = CustomASTVisitor.getInstance();
-					astvisitor.selection2Node(inputFile, currentTextSelection);
+					if(((TextSelection) selection).getLength() == 0) {
+						currentTextSelection = null;
+						selectTextInTextEditor(null);						
+					} else {
+						currentTextSelection = adjustSelection((TextSelection) selection);
+						selectTextInTextEditor(currentTextSelection);						
+					}
 				}
 			}
 		}
@@ -389,19 +518,17 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 		}
 	}
 	
-	public void showCodeAnchors(Vector<MapEntry> mapEntries) {
+	public void showCodeAnchors(Vector<LinkEntry> mapEntries) {
 		if(mapEntries.isEmpty()) return;
 		IEditorPart cEditor = CDCEditor.getActiveCEditorChild(this);
 		ITextOperationTarget target = (ITextOperationTarget)cEditor.getAdapter(ITextOperationTarget.class);
 		if (target instanceof ITextViewer) {
 			Iterator it = mapEntries.iterator();
 			while(it.hasNext()) {
-				CodeSelection sel = ((MapEntry) it.next()).getCodeselpath();
+				CodeSelection sel = ((LinkEntry) it.next()).codeselpath;
 				if(sel!=null) {
-					String selectednode = sel.getCodeSelPath();
-					IFile inputFile = ((FileEditorInput) cEditor.getEditorInput()).getFile();
-					CustomASTVisitor astvisitor = CustomASTVisitor.getInstance();
-					TextSelection newSelection = astvisitor.node2Selection(inputFile, selectednode);
+					String selectednode = sel.getSyntaxCodePath();
+					TextSelection newSelection = node2Selection(selectednode);
 					if (newSelection!=null) {
 						//viewer.setTextColor(new Color(null, 255, 0, 0), currentSyntaxSelection.getOffset(), currentSyntaxSelection.getLength(), true);
 						//viewer.setSelectedRange(currentSyntaxSelection.getOffset(), currentSyntaxSelection.getLength());
@@ -422,10 +549,8 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 		ITextOperationTarget target = (ITextOperationTarget)cEditor.getAdapter(ITextOperationTarget.class);
 		for(CodeSelection sel : codesels) {
 			if(sel!=null) {
-				String selectednode = sel.getCodeSelPath();
-				IFile inputFile = ((FileEditorInput) cEditor.getEditorInput()).getFile();
-				CustomASTVisitor astvisitor = CustomASTVisitor.getInstance();
-				TextSelection newSelection = astvisitor.node2Selection(inputFile, selectednode);
+				String selectednode = sel.getSyntaxCodePath();
+				TextSelection newSelection = node2Selection(selectednode);
 				if (target instanceof ITextViewerExtension2) {
 					((ITextViewerExtension2) target).invalidateTextPresentation(newSelection.getOffset(), newSelection.getLength());
 			    } 			
@@ -439,18 +564,16 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 			((ITextViewer) target).invalidateTextPresentation();
 	    } 		
 	}
-	MapEntry oldMapCode = null;
-	public void highlightCodeAnchor(MapEntry me) {
+	LinkEntry oldMapCode = null;
+	public void highlightCodeAnchor(LinkEntry me) {
 		IEditorPart cEditor = CDCEditor.getActiveCEditorChild(this);
 		ITextOperationTarget target = (ITextOperationTarget)cEditor.getAdapter(ITextOperationTarget.class);
 		if (target instanceof ITextViewer) {
-			CustomASTVisitor astvisitor = CustomASTVisitor.getInstance();
 			if(oldMapCode!=null) {
-				CodeSelection sel = oldMapCode.getCodeselpath();
+				CodeSelection sel = oldMapCode.codeselpath;
 				if(sel!=null) {
-					String selectednode = sel.getCodeSelPath();
-					IFile inputFile = ((FileEditorInput) cEditor.getEditorInput()).getFile();
-					TextSelection newSelection = astvisitor.node2Selection(inputFile, selectednode);
+					String selectednode = sel.getSyntaxCodePath();
+					TextSelection newSelection = node2Selection(selectednode);
 					if (newSelection!=null) {
 						//viewer.setTextColor(new Color(null, 255, 0, 0), currentSyntaxSelection.getOffset(), currentSyntaxSelection.getLength(), true);
 						//viewer.setSelectedRange(currentSyntaxSelection.getOffset(), currentSyntaxSelection.getLength());
@@ -465,11 +588,10 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 			}
 			oldMapCode = me;
 			if(me!=null) {
-				CodeSelection sel = oldMapCode.getCodeselpath();
+				CodeSelection sel = oldMapCode.codeselpath;
 				if(sel!=null) {
-					String selectednode = sel.getCodeSelPath();
-					IFile inputFile = ((FileEditorInput) cEditor.getEditorInput()).getFile();
-					TextSelection newSelection = astvisitor.node2Selection(inputFile, selectednode);
+					String selectednode = sel.getSyntaxCodePath();
+					TextSelection newSelection = node2Selection(selectednode);
 					if (newSelection!=null) {
 						//viewer.setTextColor(new Color(null, 255, 0, 0), currentSyntaxSelection.getOffset(), currentSyntaxSelection.getLength(), true);
 						//viewer.setSelectedRange(currentSyntaxSelection.getOffset(), currentSyntaxSelection.getLength());
@@ -479,6 +601,7 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 						presentation.addStyleRange(new StyleRange(newSelection.getOffset(), newSelection.getLength(), attr.getForeground(),
 							      attr.getBackground()));
 						((ITextViewer) target).changeTextPresentation(presentation, false);
+						((CEditor) cEditor).getViewer().revealRange(newSelection.getOffset(), newSelection.getLength());			
 				    } 			
 				}						
 			}
@@ -525,5 +648,41 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 		} else {
 			acrobatInterface.selectText(-1, 0, 0, 0, 0);
 		}
+	}
+	
+	public MyASTNode buildMyAST() {
+		ITranslationUnit tu = null;
+		CEditor cEditor = (CEditor) CDCEditor.getActiveCEditorChild(this);
+		ICElement cElement = cEditor.getInputCElement();
+		if(cElement instanceof ITranslationUnit) {
+			tu = (ITranslationUnit) cElement;
+			return buildMyAST(tu);
+		} else {
+			return null;
+		}
+	}
+	
+	public MyASTNode buildMyAST(ITranslationUnit tu) {
+		IASTTranslationUnit aTu = null;
+		ASTVisitor astVisitor = null;
+		try {
+			aTu = tu.getAST();
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
+		if(aTu instanceof CPPASTTranslationUnit) {
+			astVisitor = new MyCPPASTVisitor(aTu);
+		} else if(aTu instanceof CASTTranslationUnit) {
+			astVisitor = new MyCASTVisitor(aTu);
+		}
+		aTu.accept(astVisitor);
+		//IASTProblem[] prob = aTu.getPreprocessorProblems();
+		//((IMyASTVisitor) astVisitor).addPreprocessorProblems(prob);
+		IASTComment[] comments = aTu.getComments();
+		((IMyASTVisitor) astVisitor).addComments(comments);
+		IASTPreprocessorStatement[] prepStatement = aTu.getAllPreprocessorStatements();
+		((IMyASTVisitor) astVisitor).addPreprocessorStatements(prepStatement);
+		((IMyASTVisitor) astVisitor).reformAST();
+		return ((IMyASTVisitor) astVisitor).getAST();
 	}
 }

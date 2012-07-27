@@ -1,11 +1,15 @@
 package edu.pdx.svl.coDoc.refexp.referenceexplorer;
 
+import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IPageLayout;
+import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.IWorkbenchPartReference;
+import org.eclipse.ui.PlatformUI;
 
 import java.io.File;
 import java.util.Iterator;
@@ -25,6 +29,13 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.ActionContributionItem;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IMenuCreator;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.*;
@@ -33,28 +44,31 @@ import org.eclipse.swt.events.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.ui.*;
+import org.eclipse.ui.part.DrillDownAdapter;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.views.navigator.ResourceNavigator;
+import org.eclipse.ui.actions.RetargetAction;
 import org.eclipse.ui.navigator.resources.ProjectExplorer;
 
 
 import edu.pdx.svl.coDoc.cdc.preferences.PreferenceValues;
 import edu.pdx.svl.coDoc.cdc.referencemodel.*;
-import edu.pdx.svl.coDoc.cdc.view.ConfirmationWindow;
 import edu.pdx.svl.coDoc.cdc.XML.SimpleXML;
+import edu.pdx.svl.coDoc.cdc.datacenter.BaseEntry;
 import edu.pdx.svl.coDoc.cdc.datacenter.CDCCachedFile;
 import edu.pdx.svl.coDoc.cdc.datacenter.CDCDataCenter;
 import edu.pdx.svl.coDoc.cdc.datacenter.CDCModel;
+import edu.pdx.svl.coDoc.cdc.datacenter.CategoryEntry;
 import edu.pdx.svl.coDoc.cdc.datacenter.CodeSelection;
-import edu.pdx.svl.coDoc.cdc.datacenter.MapEntry;
+import edu.pdx.svl.coDoc.cdc.datacenter.EntryNode;
+import edu.pdx.svl.coDoc.cdc.datacenter.LinkEntry;
 import edu.pdx.svl.coDoc.cdc.datacenter.SpecSelection;
 import edu.pdx.svl.coDoc.cdc.editor.CDCEditor;
 import edu.pdx.svl.coDoc.cdc.editor.EntryEditor;
 import edu.pdx.svl.coDoc.cdc.editor.IReferenceExplorer;
 import edu.pdx.svl.coDoc.refexp.referenceexplorer.edit.EditComment;
 import edu.pdx.svl.coDoc.refexp.referenceexplorer.provider.*;
-import edu.pdx.svl.coDoc.refexp.referenceexplorer.provider.LabelProvider;
 import edu.pdx.svl.coDoc.refexp.view.Help;
 
 public class ReferenceExplorerView extends ViewPart implements ISelectionListener, Listener, IPartListener2, IResourceChangeListener, IReferenceExplorer {
@@ -68,7 +82,21 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 	Button checkButton;
 	private static TableViewer tableViewer = null;
 	private static TreeViewer treeViewer = null;
-	
+
+	private DrillDownAdapter drillDownAdapter;
+	private Action action1;
+	private Action showCategoryAction;
+	private boolean showCategory = true;
+	private Action showUUIDAction;
+	private boolean showUUID = false;
+	private Action showTimeAction;
+	private boolean showTime = false;
+	private Action showOSAction;
+	private boolean showOS = false;
+	private Action showAuthorAction;
+	private boolean showAuthor = false;
+	private Action checkColumnAction;
+
 	public void sniff() {
 		System.out.println("ReferenceExplorerView.sniff()");
 		projectname = null;
@@ -109,9 +137,13 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		
 		//NH - I split the setup into several parts...
 		createSearchBarAndButtons(parent);
-		createTableViewer(parent);
-		//createTreeViewer(parent);
+		//createTableViewer(parent);
+		createTreeViewer(parent);
 		
+		makeActions();
+		//drillDownAdapter = new DrillDownAdapter(viewer);
+		contributeToActionBars();
+
 		sniff();
 		
 		getSite().getWorkbenchWindow().getPartService().addPartListener(this);
@@ -120,6 +152,124 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		ResourcesPlugin.getWorkspace().addResourceChangeListener(this);
 		
 		refresh();
+	}
+
+	private void contributeToActionBars() {
+		IActionBars bars = getViewSite().getActionBars();
+		fillLocalPullDown(bars.getMenuManager());
+		fillLocalToolBar(bars.getToolBarManager());
+	}
+
+	private void fillLocalPullDown(IMenuManager manager) {
+		manager.add(action1);
+		manager.add(new Separator());
+		manager.add(showCategoryAction);
+		manager.add(checkColumnAction);
+	}
+	
+	private void fillLocalToolBar(IToolBarManager manager) {
+		manager.add(action1);
+		manager.add(showCategoryAction);
+		manager.add(checkColumnAction);
+		manager.add(new Separator());
+		//drillDownAdapter.addNavigationActions(manager);
+	}
+
+	private final class chkColMenuCreator implements IMenuCreator {
+		private IAction[] actions;
+		public chkColMenuCreator(IAction[] actions) {
+			this.actions = actions;
+		}
+		@Override
+		public Menu getMenu(Control parent) {
+			Menu dropDownMenu = new Menu(parent);
+			for(IAction action : actions) {
+				ActionContributionItem contributionItem = new ActionContributionItem(action);
+				contributionItem.fill(dropDownMenu, -1);				
+			}
+			return dropDownMenu;
+		}
+		@Override
+		public Menu getMenu(Menu parent) {
+			Menu dropDownMenu = new Menu(parent);
+			for(IAction action : actions) {
+				ActionContributionItem contributionItem = new ActionContributionItem(action);
+				contributionItem.fill(dropDownMenu, -1);				
+			}
+			return dropDownMenu;
+		}
+		@Override
+		public void dispose() {
+		}
+	}
+	private void makeActions() {
+		action1 = new Action() {
+			public void run() {
+				showMessage("Action 1 executed");
+			}
+		};
+		action1.setText("Action 1");
+		action1.setToolTipText("Action 1 tooltip");
+		action1.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_OBJS_INFO_TSK));
+		
+		showCategoryAction = new Action("showCategory", IAction.AS_CHECK_BOX) {
+			public void run() {
+				showCategory = isChecked();
+				refresh();
+			}
+		};
+		showCategoryAction.setText("showCategory");
+		showCategoryAction.setChecked(true);
+		showCategoryAction.setToolTipText("showCategory");
+		showCategoryAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_DEF_VIEW));
+		
+		showUUIDAction = new Action("showUUIDAction", IAction.AS_CHECK_BOX) {
+			public void run() {
+			}
+		};
+		showUUIDAction.setText("showUUIDAction");
+		showUUIDAction.setToolTipText("showUUIDAction");
+		showTimeAction = new Action("showTimeAction", IAction.AS_CHECK_BOX) {
+			public void run() {
+				showUUID = isChecked();
+				if(showUUID) {
+					treeViewer.getTree().getColumn(1).setWidth(75);					
+				} else {
+					treeViewer.getTree().getColumn(1).setWidth(0);					
+				}
+			}
+		};
+		showTimeAction.setText("showTimeAction");
+		showTimeAction.setToolTipText("showTimeAction");
+		showOSAction = new Action("showOSAction", IAction.AS_CHECK_BOX) {
+			public void run() {
+				this.isChecked();
+				//showCategory = ;
+			}
+		};
+		showOSAction.setText("showOSAction");
+		showOSAction.setToolTipText("showOSAction");
+		showAuthorAction = new Action("showAuthorAction", IAction.AS_CHECK_BOX) {
+			public void run() {
+				this.isChecked();
+				showMessage("");
+			}
+		};
+		showAuthorAction.setText("showAuthorAction");
+		showAuthorAction.setToolTipText("showAuthorAction");
+		
+		checkColumnAction = new Action("checkColumn", IAction.AS_DROP_DOWN_MENU) {
+			public void run() {
+			}
+		};
+		checkColumnAction.setText("checkColumn");
+		checkColumnAction.setToolTipText("checkColumn");
+		checkColumnAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_OBJS_INFO_TSK));
+		checkColumnAction.setMenuCreator(new chkColMenuCreator(new IAction[]{showUUIDAction,showTimeAction,showOSAction,showAuthorAction}));
+	}
+	private void showMessage(String message) 
+	{
+		MessageDialog.openInformation(null, "Property View", message);
 	}
 
 	/**
@@ -153,6 +303,7 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		// setup buttons
 		createSearchTypeComboBox(parent);
 		createHelpButton(parent);
+		// createShowCategoryCheckBox(parent);
 	}
 
 	private void createSearchBar(Composite parent) {
@@ -203,34 +354,45 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		});
 	}
 	
+	private void createShowCategoryCheckBox(Composite parent) {
+		Button showCategoryButton = new Button(parent, SWT.CHECK);
+		showCategoryButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				showCategory = ((Button) e.widget).getSelection();
+				refresh();
+			}
+		});
+		showCategoryButton.setText("showCategory");
+		showCategoryButton.setSelection(true);
+		showCategoryButton.setToolTipText("When checked, the categories of the links will show.");
+	}
+	
 	public void refresh() {
 		if(searchText != null) {
 			searchText.setText("");			
 		}
 		
 		if(tableViewer != null) {
-			tableViewer.setInput(CDCDataCenter.getInstance().getAllMapEntries(projectname));
-			TableContentProvider tcp = (TableContentProvider)tableViewer.getContentProvider();
+			tableViewer.setInput(CDCDataCenter.getInstance().getLinkTable(projectname, null));
 			tableViewer.refresh();
 		}
 		if(treeViewer != null) {
-			treeViewer.setInput(CDCDataCenter.getInstance().getAllMapEntries(projectname));
-			TreeContentProvider tcp = (TreeContentProvider)treeViewer.getContentProvider();
-			if (checkButton.getSelection() == true) {
-				tcp.allSources = true;
+			if(showCategory) {
+				treeViewer.setInput(CDCDataCenter.getInstance().getLinkTree(projectname, null));				
 			} else {
-				tcp.allSources = false;
+				treeViewer.setInput(CDCDataCenter.getInstance().getLinkTable(projectname, null));				
 			}
 			treeViewer.refresh();
 			treeViewer.expandToLevel(4);
 		}
 	}
 	
-	private void highlightSelection(MapEntry mp) {
+	private void highlightSelection(LinkEntry mp) {
 		EntryEditor editor = getActiveEntryEditor();
 		if(editor == null) return;
 		if(editor.getProjectName().equals(projectname)) {
-			String codeFilename1 = mp.getCodefilename();
+			String codeFilename1 = mp.codefilename;
 			IPath codepath2 = editor.getCodeFilepath();
 			String codefilename2 = (codepath2.isAbsolute()?"project://":"project:///")+codepath2;
 			if(codeFilename1.equals(codefilename2)) {
@@ -238,11 +400,11 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 			} else {
 				editor.highlightCodeAnchor(null);				
 			}
-			String specFilename1 = mp.getSpecfilename();
+			String specFilename1 = mp.specfilename;
 			IPath specpath2 = editor.getSpecFilepath();
 			String specfilename2 = (specpath2.isAbsolute()?"project://":"project:///")+specpath2;
 			if(specFilename1.equals(specfilename2)) {
-				editor.selectTextInAcrobat(mp.getSpecselpath());								
+				editor.selectTextInAcrobat(mp.specselpath);								
 			} else {
 				editor.selectTextInAcrobat(null);								
 			}
@@ -285,8 +447,9 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 				ISelection selection = tableViewer.getSelection();
 				if (selection != null && selection instanceof IStructuredSelection) {
 					IStructuredSelection sel = (IStructuredSelection) selection;
-					for (Iterator<MapEntry> iterator = sel.iterator(); iterator.hasNext();) {
-						MapEntry mp = iterator.next();
+					for (Iterator<EntryNode> iterator = sel.iterator(); iterator.hasNext();) {
+						EntryNode node = iterator.next();
+						LinkEntry mp = (LinkEntry) node.getData();
 						highlightSelection(mp);
 					}
 				}					
@@ -298,15 +461,16 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 				ISelection selection = tableViewer.getSelection();
 				if (selection != null && selection instanceof IStructuredSelection) {
 					IStructuredSelection sel = (IStructuredSelection) selection;
-					for (Iterator<MapEntry> iterator = sel.iterator(); iterator.hasNext();) {
-						MapEntry mp = iterator.next();
-						String codeFilename = mp.getCodefilename();
-						String specFilename = mp.getSpecfilename();
+					for (Iterator<EntryNode> iterator = sel.iterator(); iterator.hasNext();) {
+						EntryNode node = iterator.next();
+						LinkEntry mp = (LinkEntry) node.getData();
+						String codeFilename = mp.codefilename;
+						String specFilename = mp.specfilename;
 						IPath codepath = new Path(codeFilename);
 						codepath = codepath.removeFirstSegments(1); // remove "project:"
 						IPath specpath = new Path(specFilename);
 						specpath = specpath.removeFirstSegments(1); // remove "project:"
-					    CDCEditor.open(projectname, codepath, specpath);	  
+					    CDCEditor.open(projectname, codepath, specpath);
 						highlightSelection(mp);
 					}
 				}
@@ -334,71 +498,160 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		tree.setLinesVisible(false);
 
 		TreeViewerColumn viewerColumn = createTreeViewerColumn(
-				"Source References", 300);
-		viewerColumn.setLabelProvider(new LabelProvider());
+				"Type", 100);
+		viewerColumn.setLabelProvider(new TreeLabelProvider());
 
-		viewerColumn = createTreeViewerColumn("Type", 90);
+		if(showUUID) {
+			viewerColumn = createTreeViewerColumn("id", 75);			
+		} else {
+			viewerColumn = createTreeViewerColumn("id", 0);						
+		}
 		viewerColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof Reference) {
-					return ((Reference)element).getType();
+				if (element instanceof EntryNode) {
+					BaseEntry entry = (BaseEntry) ((EntryNode) element).getData();
+					return entry.uuid;
 				} else {
 					return "";
 				}
 			}
 		});
 
-		viewerColumn = createTreeViewerColumn("Specification Text", 320);
+		if(showTime) {
+			viewerColumn = createTreeViewerColumn("time", 120);			
+		} else {
+			viewerColumn = createTreeViewerColumn("time", 0);						
+		}
 		viewerColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof Reference) {
-					Reference r = (Reference)element;
-					return ""; //r.pdfDescription();
+				if (element instanceof EntryNode) {
+					BaseEntry entry = (BaseEntry) ((EntryNode) element).getData();
+					return entry.time;
 				} else {
 					return "";
 				}
+			}
+		});
+
+		if(showOS) {
+			viewerColumn = createTreeViewerColumn("os", 50);			
+		} else {
+			viewerColumn = createTreeViewerColumn("os", 0);						
+		}
+		viewerColumn.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if (element instanceof EntryNode) {
+					BaseEntry entry = (BaseEntry) ((EntryNode) element).getData();
+					return entry.os;
+				} else {
+					return "";
+				}
+			}
+		});
+
+		if(showAuthor) {
+			viewerColumn = createTreeViewerColumn("author", 50);			
+		} else {
+			viewerColumn = createTreeViewerColumn("author", 0);						
+		}
+		viewerColumn.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if (element instanceof EntryNode) {
+					BaseEntry entry = (BaseEntry) ((EntryNode) element).getData();
+					return entry.creater;
+				} else {
+					return "";
+				}
+			}
+		});
+
+		viewerColumn = createTreeViewerColumn("Code file", 80);
+		viewerColumn.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if (element instanceof EntryNode) {
+					BaseEntry entry = (BaseEntry) ((EntryNode) element).getData();
+					if(entry instanceof LinkEntry) {
+						String temp = ((LinkEntry) entry).codefilename;
+						return temp.substring(temp.lastIndexOf('/')+1);
+					}
+				}
+				return "";
+			}
+		});
+
+		viewerColumn = createTreeViewerColumn("Code text", 250);
+		viewerColumn.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if (element instanceof EntryNode) {
+					BaseEntry entry = (BaseEntry) ((EntryNode) element).getData();
+					if(entry instanceof LinkEntry) {
+						return ((LinkEntry) entry).codeselpath.getSyntaxCodeText();						
+					}
+				}
+				return "";
 			}
 		});
 		
-		viewerColumn = createTreeViewerColumn("PDF File", 145);
+		viewerColumn = createTreeViewerColumn("PDF File", 100);
 		viewerColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof Reference) {
-					Reference r = (Reference)element;
-					PDFFile pdfFile = r.getPdfFile();
-					return pdfFile.getFileName();
-				} else {
-					return "";
+				if (element instanceof EntryNode) {
+					BaseEntry entry = (BaseEntry) ((EntryNode) element).getData();
+					if(entry instanceof LinkEntry) {
+						String temp = ((LinkEntry) entry).specfilename;
+						return temp.substring(temp.lastIndexOf('/')+1);
+					}
 				}
+				return "";
 			}
 		});
 
-		viewerColumn = createTreeViewerColumn("Page", 50);
+		viewerColumn = createTreeViewerColumn("Page", 30);
 		viewerColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof Reference) {
-					Reference r = (Reference)element;
-					return ""; //r.pdfPage();
-				} else {
-					return "";
+				if (element instanceof EntryNode) {
+					BaseEntry entry = (BaseEntry) ((EntryNode) element).getData();
+					if(entry instanceof LinkEntry) {
+						return Integer.toString(((LinkEntry) entry).specselpath.getPage());						
+					}
 				}
+				return "";
 			}
 		});
 
-		viewerColumn = createTreeViewerColumn("Comments", 263);
+		viewerColumn = createTreeViewerColumn("Spec Text", 250);
 		viewerColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof Reference) {
-					Reference r = (Reference)element;
-					return r.getComment();
-				} else {
-					return "";
+				if (element instanceof EntryNode) {
+					BaseEntry entry = (BaseEntry) ((EntryNode) element).getData();
+					if(entry instanceof LinkEntry) {
+						return ((LinkEntry) entry).specselpath.getPDFText();						
+					}
 				}
+				return "";
+			}
+		});
+
+		viewerColumn = createTreeViewerColumn("Comments", 200);
+		viewerColumn.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if (element instanceof EntryNode) {
+					BaseEntry entry = (BaseEntry) ((EntryNode) element).getData();
+					if(entry instanceof LinkEntry) {
+						return ((LinkEntry) entry).comment;						
+					}
+				}
+				return "";
 			}
 		});
 		viewerColumn.setEditingSupport(new EditComment(treeViewer));
@@ -412,16 +665,22 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 
 		tree.addListener (SWT.Selection, new Listener () {
 			public void handleEvent (Event event) {
-				EntryEditor editor = getActiveEntryEditor();
-				if(editor.getProjectName().equals(projectname)) {
-					ISelection selection = treeViewer.getSelection();
-					if (selection != null && selection instanceof IStructuredSelection) {
-						IStructuredSelection sel = (IStructuredSelection) selection;
-						for (Iterator<Reference> iterator = sel.iterator(); iterator.hasNext();) {
-							Reference ref = iterator.next();
+				ISelection selection = treeViewer.getSelection();
+				if (selection != null && selection instanceof IStructuredSelection) {
+					IStructuredSelection sel = (IStructuredSelection) selection;
+					for (Iterator<EntryNode> iterator = sel.iterator(); iterator.hasNext();) {
+						EntryNode node = iterator.next();
+						if(node.getData() instanceof CategoryEntry) {
+							CategoryEntry entry = (CategoryEntry) node.getData();
+							getActiveEntryEditor().setCurCategoryId(entry.uuid);
+						} else {
+							LinkEntry mp = (LinkEntry) node.getData();
+							highlightSelection(mp);							
+							CategoryEntry entry = (CategoryEntry) node.getParent().getData();
+							getActiveEntryEditor().setCurCategoryId(entry.uuid);
 						}
-					}					
-				}
+					}
+				}					
 			}
 		});
 		tree.addMouseListener(new MouseAdapter() {
@@ -430,8 +689,25 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 				ISelection selection = treeViewer.getSelection();
 				if (selection != null && selection instanceof IStructuredSelection) {
 					IStructuredSelection sel = (IStructuredSelection) selection;
-					for (Iterator<Reference> iterator = sel.iterator(); iterator.hasNext();) {
-						Reference ref = iterator.next();
+					for (Iterator<EntryNode> iterator = sel.iterator(); iterator.hasNext();) {
+						EntryNode node = iterator.next();
+						if(node.getData() instanceof CategoryEntry) {
+							CategoryEntry entry = (CategoryEntry) node.getData();
+							getActiveEntryEditor().setCurCategoryId(entry.uuid);
+						} else {
+							LinkEntry mp = (LinkEntry) node.getData();
+							String codeFilename = mp.codefilename;
+							String specFilename = mp.specfilename;
+							IPath codepath = new Path(codeFilename);
+							codepath = codepath.removeFirstSegments(1); // remove "project:"
+							IPath specpath = new Path(specFilename);
+							specpath = specpath.removeFirstSegments(1); // remove "project:"
+						    CDCEditor.open(projectname, codepath, specpath);
+							highlightSelection(mp);
+							
+							CategoryEntry entry = (CategoryEntry) node.getParent().getData();
+							getActiveEntryEditor().setCurCategoryId(entry.uuid);
+						}
 					}
 				}
 				setFocus();
@@ -483,7 +759,8 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		
 		IEditorReference[] ef = part.getSite().getPage().getEditorReferences();
 		for(int i=0; i<ef.length; i++) {
-			System.out.println("ReferenceExplorerView.selectionChanged: editors: " + ef[i].getEditor(false).getClass().getName());
+			if(ef[i].getEditor(false) != null)
+				System.out.println("ReferenceExplorerView.selectionChanged: editors: " + ef[i].getEditor(false).getClass().getName());
 		}
 		if(part.getSite().getPage().getActiveEditor() != null)
 			System.out.println("ReferenceExplorerView.selectionChanged: active editor: " + part.getSite().getPage().getActiveEditor().getClass().getName());

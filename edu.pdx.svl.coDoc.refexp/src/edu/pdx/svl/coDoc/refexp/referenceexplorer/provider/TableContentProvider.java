@@ -1,22 +1,19 @@
 package edu.pdx.svl.coDoc.refexp.referenceexplorer.provider;
 
 
-import java.util.Vector;
-
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
-import edu.pdx.svl.coDoc.cdc.datacenter.CDCModel;
-import edu.pdx.svl.coDoc.cdc.datacenter.MapEntry;
+import edu.pdx.svl.coDoc.cdc.datacenter.EntryNode;
 
 
 
 public class TableContentProvider implements IStructuredContentProvider {
 	@Override
-	public Object[] getElements(Object element) {
-		if(element instanceof Vector) {
-			Vector<MapEntry> mapEntries = (Vector<MapEntry>) element;
-			return mapEntries.toArray();
+	public Object[] getElements(Object inputElement) {
+		if (inputElement instanceof EntryNode) {
+			EntryNode node = (EntryNode) inputElement;
+			return node.getChildren();
 		} else {
 			return null;
 		}

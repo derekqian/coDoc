@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.views">
+      <category
+            name="coDoc"
+            id="edu.pdx.svl.coDoc.cdc.view.category">
+      </category>
+      <view
+            allowMultiple="false"
+            name="AST View"
+            icon="icons/ast.gif"
+            category="edu.pdx.svl.coDoc.cdc.view.category"
+            class="edu.pdx.svl.coDoc.astView.view.ASTView"
+            id="edu.pdx.svl.coDoc.astView.view.ASTView">
+      </view>
+   </extension>
+   <extension
+         point="org.eclipse.ui.views">
+      <category
+            name="coDoc"
+            id="edu.pdx.svl.coDoc.cdc.view.category">
+      </category>
+      <view
+            allowMultiple="false"
+            name="AST View"
+            icon="icons/sample.gif"
+            category="edu.pdx.svl.coDoc.cdc.view.category"
+            class="edu.pdx.svl.coDoc.astView.view.DOMAST"
+            id="edu.pdx.svl.coDoc.astView.view.DOMAST">
+      </view>
+   </extension>
+   <extension
+         point="org.eclipse.help.contexts">
+      <contexts
+            file="contexts.xml">
+      </contexts>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="org.eclipse.cdt.ui.CPerspective">
+         <view
+               id="edu.pdx.svl.coDoc.astView.view.ASTView"
+               minimized="false"
+               relationship="stack"
+               relative="org.eclipse.ui.console.ConsoleView"
+               visible="true">
+         </view>
+      </perspectiveExtension>
+   </extension>
+
+</plugin>

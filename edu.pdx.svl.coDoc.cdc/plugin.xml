@@ -266,20 +266,6 @@
       </objectContribution>
    </extension>
    <extension
-         point="org.eclipse.ui.views">
-      <category
-            name="coDoc"
-            id="edu.pdx.svl.coDoc.cdc.view.category">
-      </category>
-      <view
-            name="Property View"
-            icon="icons/propertyview.gif"
-            category="edu.pdx.svl.coDoc.cdc.view.category"
-            class="edu.pdx.svl.coDoc.cdc.view.PropertyView"
-            id="edu.pdx.svl.coDoc.cdc.view.PropertyView">
-      </view>
-   </extension>
-   <extension
          point="org.eclipse.core.expressions.definitions">
       <definition id="edu.pdx.svl.coDoc.cdt.definitions.isEntryEditorActive">
          <with variable="activeEditorId">

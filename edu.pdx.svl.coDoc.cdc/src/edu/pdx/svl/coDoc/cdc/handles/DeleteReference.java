@@ -31,7 +31,6 @@ import org.eclipse.ui.texteditor.ITextEditor;
 
 import edu.pdx.svl.coDoc.cdc.Global;
 import edu.pdx.svl.coDoc.cdc.datacenter.CDCModel;
-import edu.pdx.svl.coDoc.cdc.datacenter.MapEntry;
 import edu.pdx.svl.coDoc.cdc.editor.CDCEditor;
 import edu.pdx.svl.coDoc.cdc.editor.EntryEditor;
 import edu.pdx.svl.coDoc.cdc.editor.IReferenceExplorer;
