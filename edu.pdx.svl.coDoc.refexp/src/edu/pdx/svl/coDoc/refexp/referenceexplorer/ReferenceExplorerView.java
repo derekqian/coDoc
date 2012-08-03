@@ -7,16 +7,12 @@ import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.IViewPart;
-import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.PlatformUI;
 
-import java.io.File;
 import java.util.Iterator;
 import java.util.Vector;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
@@ -27,7 +23,6 @@ import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ActionContributionItem;
@@ -37,9 +32,16 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DragSourceEvent;
+import org.eclipse.swt.dnd.DragSourceListener;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.DropTargetListener;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.dnd.TransferData;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
@@ -53,8 +55,6 @@ import org.eclipse.ui.navigator.resources.ProjectExplorer;
 
 
 import edu.pdx.svl.coDoc.cdc.preferences.PreferenceValues;
-import edu.pdx.svl.coDoc.cdc.referencemodel.*;
-import edu.pdx.svl.coDoc.cdc.XML.SimpleXML;
 import edu.pdx.svl.coDoc.cdc.datacenter.BaseEntry;
 import edu.pdx.svl.coDoc.cdc.datacenter.CDCCachedFile;
 import edu.pdx.svl.coDoc.cdc.datacenter.CDCDataCenter;
@@ -63,6 +63,8 @@ import edu.pdx.svl.coDoc.cdc.datacenter.CategoryEntry;
 import edu.pdx.svl.coDoc.cdc.datacenter.CodeSelection;
 import edu.pdx.svl.coDoc.cdc.datacenter.EntryNode;
 import edu.pdx.svl.coDoc.cdc.datacenter.LinkEntry;
+import edu.pdx.svl.coDoc.cdc.datacenter.MapSelectionFilter;
+import edu.pdx.svl.coDoc.cdc.datacenter.MapSelectionSort;
 import edu.pdx.svl.coDoc.cdc.datacenter.SpecSelection;
 import edu.pdx.svl.coDoc.cdc.editor.CDCEditor;
 import edu.pdx.svl.coDoc.cdc.editor.EntryEditor;
@@ -90,12 +92,15 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 	private Action showUUIDAction;
 	private boolean showUUID = false;
 	private Action showTimeAction;
-	private boolean showTime = false;
+	private boolean showTime = true;
 	private Action showOSAction;
 	private boolean showOS = false;
 	private Action showAuthorAction;
 	private boolean showAuthor = false;
 	private Action checkColumnAction;
+	
+	private MapSelectionFilter filter = new MapSelectionFilter();
+	private MapSelectionSort sorter = new MapSelectionSort();
 
 	public void sniff() {
 		System.out.println("ReferenceExplorerView.sniff()");
@@ -151,6 +156,8 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		selectionChanged(getSite().getPart(), getSite().getPage().getSelection());
 		ResourcesPlugin.getWorkspace().addResourceChangeListener(this);
 		
+		filter.setSelector(MapSelectionFilter.ALLDATA);
+		filter.setSearchStr("");
 		refresh();
 	}
 
@@ -205,7 +212,12 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 	private void makeActions() {
 		action1 = new Action() {
 			public void run() {
-				showMessage("Action 1 executed");
+				ISelection selection = treeViewer.getSelection();
+				if(selection instanceof IStructuredSelection) {
+					IStructuredSelection sel = (IStructuredSelection) selection;
+					Object[] objs = sel.toArray();
+					treeViewer.setSelection(new StructuredSelection(objs[0]));
+				}
 			}
 		};
 		action1.setText("Action 1");
@@ -316,9 +328,10 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 			public void keyReleased(KeyEvent e) {
 				//the enter/return key has the key code of 13
 				if (e.keyCode == 13 || e.keyCode == 16777296) {
-					searchTextStr = searchText.getText();
-					displayListOfTextSelectionReferencesForSearchString();
 				}
+				searchTextStr = searchText.getText();
+				filter.setSearchStr(searchTextStr);
+				refresh();
 			}
 			@Override
 			public void keyPressed(KeyEvent e) {
@@ -328,14 +341,14 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 	
 	private void createSearchTypeComboBox(Composite parent) {
 		combo = new Combo (parent, SWT.READ_ONLY);
-		combo.setItems (new String [] {"All Data", "Source Text", "Source File", "Project", "PDF File", "PDF Text", "PDF Page", "Comments"});
+		combo.setItems (new String [] {"All Data", "Code File", "Code Text", "Spec File", "PDF Page", "Spec Text", "Comments"});
 		combo.setToolTipText("Search Categories.");
 		combo.select(0);
 		combo.addSelectionListener( new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				searchTextStr = searchText.getText();
-				displayListOfTextSelectionReferencesForSearchString();
+				filter.setSelector(combo.getSelectionIndex());
+				refresh();
 			}
 			
 			@Override
@@ -369,19 +382,22 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 	}
 	
 	public void refresh() {
-		if(searchText != null) {
-			searchText.setText("");			
-		}
-		
+		String cdcfilename = CDCEditor.projname2cdcName(projectname);
 		if(tableViewer != null) {
-			tableViewer.setInput(CDCDataCenter.getInstance().getLinkTable(projectname, null));
+			//tableViewer.setInput(CDCDataCenter.getInstance().getLinkTable(projectname, filter));
+			CDCDataCenter.getInstance().getLinkTable(cdcfilename, filter);
+			tableViewer.setInput(CDCDataCenter.getInstance().sortLinkTable(cdcfilename, sorter));
 			tableViewer.refresh();
 		}
 		if(treeViewer != null) {
 			if(showCategory) {
-				treeViewer.setInput(CDCDataCenter.getInstance().getLinkTree(projectname, null));				
+				//treeViewer.setInput(CDCDataCenter.getInstance().getLinkTree(projectname, filter));				
+				CDCDataCenter.getInstance().getLinkTree(cdcfilename, filter);				
+				treeViewer.setInput(CDCDataCenter.getInstance().sortLinkTree(cdcfilename, sorter));				
 			} else {
-				treeViewer.setInput(CDCDataCenter.getInstance().getLinkTable(projectname, null));				
+				//treeViewer.setInput(CDCDataCenter.getInstance().getLinkTable(projectname, filter));				
+				CDCDataCenter.getInstance().getLinkTable(cdcfilename, filter);
+				treeViewer.setInput(CDCDataCenter.getInstance().sortLinkTable(cdcfilename, sorter));
 			}
 			treeViewer.refresh();
 			treeViewer.expandToLevel(4);
@@ -536,9 +552,9 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		});
 
 		if(showOS) {
-			viewerColumn = createTreeViewerColumn("os", 50);			
+			viewerColumn = createTreeViewerColumn("os", 50);
 		} else {
-			viewerColumn = createTreeViewerColumn("os", 0);						
+			viewerColumn = createTreeViewerColumn("os", 0);
 		}
 		viewerColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
@@ -591,7 +607,7 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 				if (element instanceof EntryNode) {
 					BaseEntry entry = (BaseEntry) ((EntryNode) element).getData();
 					if(entry instanceof LinkEntry) {
-						return ((LinkEntry) entry).codeselpath.getSyntaxCodeText();						
+						return ((LinkEntry) entry).codeselpath.getSyntaxCodeText().replace('\n', ' ');						
 					}
 				}
 				return "";
@@ -634,7 +650,7 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 				if (element instanceof EntryNode) {
 					BaseEntry entry = (BaseEntry) ((EntryNode) element).getData();
 					if(entry instanceof LinkEntry) {
-						return ((LinkEntry) entry).specselpath.getPDFText();						
+						return ((LinkEntry) entry).specselpath.getPDFText().replace('\n', ' ');						
 					}
 				}
 				return "";
@@ -672,12 +688,18 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 						EntryNode node = iterator.next();
 						if(node.getData() instanceof CategoryEntry) {
 							CategoryEntry entry = (CategoryEntry) node.getData();
-							getActiveEntryEditor().setCurCategoryId(entry.uuid);
+							EntryEditor ed = getActiveEntryEditor();
+							if(ed != null) {
+								ed.setCurCategoryId(entry.uuid);
+							}							
 						} else {
 							LinkEntry mp = (LinkEntry) node.getData();
 							highlightSelection(mp);							
 							CategoryEntry entry = (CategoryEntry) node.getParent().getData();
-							getActiveEntryEditor().setCurCategoryId(entry.uuid);
+							EntryEditor ed = getActiveEntryEditor();
+							if(ed != null) {
+								ed.setCurCategoryId(entry.uuid);
+							}							
 						}
 					}
 				}					
@@ -693,7 +715,10 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 						EntryNode node = iterator.next();
 						if(node.getData() instanceof CategoryEntry) {
 							CategoryEntry entry = (CategoryEntry) node.getData();
-							getActiveEntryEditor().setCurCategoryId(entry.uuid);
+							EntryEditor ed = getActiveEntryEditor();
+							if(ed != null) {
+								ed.setCurCategoryId(entry.uuid);
+							}
 						} else {
 							LinkEntry mp = (LinkEntry) node.getData();
 							String codeFilename = mp.codefilename;
@@ -711,6 +736,111 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 					}
 				}
 				setFocus();
+			}
+		});
+		
+		int operations = DND.DROP_MOVE | DND.DROP_COPY;
+		Transfer[] transferTypes = new Transfer[]{TextTransfer.getInstance()};
+		treeViewer.addDragSupport(operations, transferTypes, new DragSourceListener() {
+			@Override
+			public void dragStart(DragSourceEvent event) {
+				System.out.println("dragStart");
+				// event.doit = false;
+			}			
+			@Override
+			public void dragSetData(DragSourceEvent event) {
+				System.out.println("dragSetData");
+				if (TextTransfer.getInstance().isSupportedType(event.dataType)) {
+					ISelection selection = treeViewer.getSelection();
+					if(selection!=null && selection instanceof IStructuredSelection) {
+						IStructuredSelection sel = (IStructuredSelection) selection;
+						Object[] objs = sel.toArray();
+						EntryNode node = (EntryNode) objs[0];
+						String uuids = ((BaseEntry) node.getData()).uuid;
+						for(int i=1; i<objs.length; i++) {
+							node = (EntryNode) objs[i];
+							uuids += "/";
+							uuids += ((BaseEntry) node.getData()).uuid;
+						}
+						event.data = uuids; 
+					}
+				}
+			}
+			@Override
+			public void dragFinished(DragSourceEvent event) {
+				System.out.println("dragFinished");
+				if(event.detail == DND.DROP_MOVE) {
+					// delete source
+				}
+			}
+		});
+		treeViewer.addDropSupport(operations, transferTypes, new ViewerDropAdapter(treeViewer) {
+			private CategoryEntry category = null;
+			@Override
+			public boolean validateDrop(Object target, int operation, TransferData transferType) {
+				if(target instanceof EntryNode) {
+					EntryNode node = (EntryNode) target;
+					if(node.getData() instanceof CategoryEntry) {
+						return true;
+					}
+				}
+				category = null;
+				return true;
+			}
+			@Override
+			public void drop(DropTargetEvent event) {
+				EntryNode node = null;
+				int location = determineLocation(event);
+				EntryNode target = (EntryNode) determineTarget(event);
+				if(target instanceof EntryNode) {
+					node = (EntryNode) target;
+					if(node.getData() instanceof CategoryEntry) {
+						switch (location){
+						case 3 :
+							// Dropped on the target
+							category = (CategoryEntry) node.getData();
+							break;
+						case 1 :
+							// Dropped before the target
+						case 2 :
+							// Dropped after the target
+						case 4 :
+							// Dropped into nothing
+							break;
+						}
+					}
+				}
+				if(category == null) {
+					MessageDialog.openError(null, "Invalid destination", "Drag the item onto a category please!");					
+				}
+				super.drop(event);
+			}
+			@Override
+			public boolean performDrop(Object data) {
+				if(data instanceof String) {
+					System.out.println("performDrop: "+data);
+					String cdcfilename = CDCEditor.projname2cdcName(projectname);
+					Vector<String> uuids = new Vector<String>();
+					String tempstr = (String) data;
+					while(tempstr.lastIndexOf('/') != -1) {
+						int index = tempstr.lastIndexOf('/');
+						String uuid = tempstr.substring(index+1);
+						uuids.add(0, uuid);
+						tempstr = tempstr.substring(0,index);
+					}
+					uuids.add(0, tempstr);
+					for(int i=0; i<uuids.size(); i++) {
+						if(CDCDataCenter.getInstance().parentOf(cdcfilename, category.uuid, uuids.get(i))) {
+							MessageDialog.openError(null, "Invalid destination", "Dragging an ancestor to a decendent!");
+							return true;
+						}
+					}
+					for(int i=0; i<uuids.size(); i++) {
+						CDCDataCenter.getInstance().moveEntry(cdcfilename, uuids.get(i), category.uuid);
+					}
+					refresh();
+				}
+				return true;
 			}
 		});
 
@@ -733,6 +863,32 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		column.setWidth(bound);
 		column.setResizable(true);
 		column.setMoveable(true);
+		column.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				sorter.setNeedsort();
+				if(column.getText().equals("Code file")) {
+					sorter.setKey(MapSelectionSort.CODEFILE);
+					sorter.toggleCodefilename();
+				} else if(column.getText().equals("Code text")) {
+					sorter.setKey(MapSelectionSort.CODETEXT);
+					sorter.toggleCodefiletext();
+				} else if(column.getText().equals("PDF File")) {
+					sorter.setKey(MapSelectionSort.SPECFILE);
+					sorter.toggleSpecfilename();
+				} else if(column.getText().equals("Page")) {
+					sorter.setKey(MapSelectionSort.PDFPAGE);
+					sorter.toggleSpecfilepage();
+				} else if(column.getText().equals("Spec Text")) {
+					sorter.setKey(MapSelectionSort.SPECTEXT);
+					sorter.toggleSpecfiletext();
+				} else if(column.getText().equals("Comments")) {
+					sorter.setKey(MapSelectionSort.COMMENT);
+					sorter.toggleComments();
+				}
+				refresh();
+			}
+		});
 		return viewerColumn;
 	}
 
@@ -944,74 +1100,5 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 			}
 		}
 		//refresh();
-	}
-	
-	public void displayListOfTextSelectionReferencesForSelectionInActiveEditor() {
-		EntryEditor editor = getActiveEntryEditor();
-		References references = null;//((EntryEditor) CDCEditor.getActiveEntryEditor()).getDocument();
-		TextSelectionReference currentTextSelection = null; //editor.getCurrentTextSelectionReference();
-		Vector<Reference> matches = references.findReferencesContainingTextSelectionInActiveEditor(currentTextSelection);
-		checkButton.setSelection(false);
-		treeViewer.setInput(matches);
-		treeViewer.refresh();
-	}
-
-	public void displayListOfTextSelectionReferencesForSearchString() {
-		if (searchTextStr == "") {
-			refresh();
-			return;
-		}
-		References references = null;//((EntryEditor) CDCEditor.getActiveEntryEditor()).getDocument();
-		Vector<Reference> matches = null;
-		
-		int comboSelection = combo.getSelectionIndex();
-		if (comboSelection == 0) {
-			if (checkButton.getSelection() == true ) {
-				matches = references.findAllReferences(searchTextStr);
-			} else {
-				matches = references.findAllReferencesForActiveSourceFile(searchTextStr);
-			}
-		} else if (comboSelection == 1) {
-			if (checkButton.getSelection() == true ) {
-				matches = references.findSourceTextReferences(searchTextStr);
-			} else {
-				matches = references.findSourceTextReferencesForActiveSourceFile(searchTextStr);
-			}
-		} else if (comboSelection == 2) {
-			matches = references.findSourceFileReferences(searchTextStr);
-			checkButton.setSelection(true);
-		} else if (comboSelection == 3) {
-			matches = references.findProjectReferences(searchTextStr);
-			checkButton.setSelection(true);
-		} else if (comboSelection == 4) {
-			if (checkButton.getSelection() == true ) {
-				matches = references.findPDFFileReferences(searchTextStr);
-			} else {
-				matches = references.findPDFFileReferencesForActiveSourceFile(searchTextStr);
-			}
-		} else if (comboSelection == 5) {
-			if (checkButton.getSelection() == true ) {
-				matches = references.findPDFTextReferences(searchTextStr);
-			} else {
-				matches = references.findPDFTextReferencesForActiveSourceFile(searchTextStr);
-			}
-		} else if (comboSelection == 6) {
-			if (checkButton.getSelection() == true ) {
-				matches = references.findPDFPageReferences(searchTextStr);
-			} else {
-				matches = references.findPDFPageReferencesForActiveSourceFile(searchTextStr);
-			}
-		} else {
-			if (checkButton.getSelection() == true ) {
-				matches = references.findCommentReferences(searchTextStr);
-			} else {
-				matches = references.findCommentReferencesForActiveSourceFile(searchTextStr);
-			}
-		}
-		
-//		checkButton.setSelection(false);
-		treeViewer.setInput(matches);
-		treeViewer.refresh();
-		treeViewer.setAutoExpandLevel(4);
 	}
 }

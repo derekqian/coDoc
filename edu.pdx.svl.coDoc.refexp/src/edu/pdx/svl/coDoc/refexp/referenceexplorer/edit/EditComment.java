@@ -3,11 +3,8 @@ package edu.pdx.svl.coDoc.refexp.referenceexplorer.edit;
 import org.eclipse.jface.viewers.*;
 
 
-import edu.pdx.svl.coDoc.cdc.Global;
-import edu.pdx.svl.coDoc.cdc.XML.SimpleXML;
-import edu.pdx.svl.coDoc.cdc.editor.CDCEditor;
-import edu.pdx.svl.coDoc.cdc.editor.EntryEditor;
-import edu.pdx.svl.coDoc.cdc.referencemodel.*;
+import edu.pdx.svl.coDoc.cdc.datacenter.EntryNode;
+import edu.pdx.svl.coDoc.cdc.datacenter.LinkEntry;
 
 public class EditComment extends EditingSupport {
 
@@ -30,12 +27,16 @@ public class EditComment extends EditingSupport {
 
 	@Override
 	protected Object getValue(Object element) {
-		return ((Reference) element).getComment();
+		EntryNode node = (EntryNode) element;
+		LinkEntry mp = (LinkEntry) node.getData();
+		return mp.comment;
 	}
 
 	@Override
 	protected void setValue(Object element, Object value) {
-		((Reference) element).setComment(String.valueOf(value));
+		EntryNode node = (EntryNode) element;
+		LinkEntry mp = (LinkEntry) node.getData();
+		mp.comment = String.valueOf(value);
 		viewer.refresh();
 	}
 

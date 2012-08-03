@@ -580,6 +580,9 @@ public class CDCModel {
 		String time = ft.format(date);
 		String creater = props.getProperty("user.name");
 		String os = props.getProperty("os.name");
+		addFolderEntry(time, os, creater, parentfolderuuid, foldername);
+	}
+	public void addFolderEntry(String time, String os, String creater, String parentfolderuuid, String foldername) {
 		FolderEntry folderentry = body.folders.getFolderEntry(parentfolderuuid);
 		String folderpath = folderentry.getFolderpath();
 		if(!folderentry.getFoldername().equals("/")) {
@@ -600,6 +603,11 @@ public class CDCModel {
 	}
 	
 	public void deleteFolderEntry(String uuid) {
+		Properties props=System.getProperties();
+		date = new Date();
+		deleteFolderEntry(ft.format(date), props.getProperty("os.name"), props.getProperty("user.name"), uuid);
+	}
+	public void deleteFolderEntry(String time, String os, String creater, String uuid) {
 		String foldername = body.folders.getFolderEntry(uuid).getFoldername();
 		if(foldername.equals("/")) {
 			return;
@@ -613,9 +621,7 @@ public class CDCModel {
 		// body.folders.deleteFolderEntry(uuid);
 		FolderMapTreeNode parent = getMapIdTreeNode(parentfolderuuid);
 		parent.removeChild(child);
-		Properties props=System.getProperties();
-		date = new Date();
-		hist.addOperation(ft.format(date)+"#"+props.getProperty("os.name")+"#"+props.getProperty("user.name")+"#del#folderentry#"+uuid+"#"+parentfolderuuid);
+		hist.addOperation(time+"#"+os+"#"+creater+"#del#folderentry#"+uuid+"#"+parentfolderuuid);
 	}
 	
 	public void addMapEntry(String parentfolderuuid, String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
@@ -624,6 +630,9 @@ public class CDCModel {
 		String time = ft.format(date);
 		String creater = props.getProperty("user.name");
 		String os = props.getProperty("os.name");
+		addMapEntry(time, os, creater, parentfolderuuid, codefilename, codeselpath, specfilename, specselpath, comment);
+	}
+	public void addMapEntry(String time, String os, String creater, String parentfolderuuid, String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
 		addCodeFileEntry(codefilename);
 		addSpecFileEntry(specfilename);
 		String codefileuuid = body.codefiles.getFileEntryId(codefilename);
@@ -643,14 +652,51 @@ public class CDCModel {
 	
 	public void deleteMapEntry(String uuid) {
 		Properties props=System.getProperties();
+		date = new Date();
+		deleteMapEntry(ft.format(date), props.getProperty("os.name"), props.getProperty("user.name"), uuid);
+	}
+	public void deleteMapEntry(String time, String os, String creater, String uuid) {
 		String parentfolderuuid = body.relations.getRelationEntry(uuid).getParentUUID();
 		body.relations.removeRelation(uuid);
 		// body.maps.deleteMapEntry(uuid);
 		FolderMapTreeNode child = getMapIdTreeNode(uuid);
 		FolderMapTreeNode parent = getMapIdTreeNode(parentfolderuuid);
 		parent.removeChild(child);
+		hist.addOperation(time+"#"+os+"#"+creater+"#del#mapentry#"+uuid+"#"+parentfolderuuid);
+	}
+	
+	public boolean parentOf(String childuuid, String parentuuid) {
+		FolderMapTreeNode child = getMapIdTreeNode(childuuid);
+		FolderMapTreeNode parent = child.getParent();
+		while(parent != null) {
+			if(parent.getData().equals(parentuuid)) {
+				return true;
+			}
+			parent = parent.getParent();
+		}
+		return false;
+	}
+	
+	public void moveEntry(String sourceuuid, String destuuid) {
+		Properties props=System.getProperties();
 		date = new Date();
-		hist.addOperation(ft.format(date)+"#"+props.getProperty("os.name")+"#"+props.getProperty("user.name")+"#del#mapentry#"+uuid+"#"+parentfolderuuid);
+		moveEntry(ft.format(date), props.getProperty("os.name"), props.getProperty("user.name"), sourceuuid, destuuid);
+	}
+	public void moveEntry(String time, String os, String creater, String sourceuuid, String destuuid) {
+		String parentfolderuuid = body.relations.getRelationEntry(sourceuuid).getParentUUID();
+		if(destuuid.equals(parentfolderuuid)) {
+			return;
+		}
+		body.relations.removeRelation(sourceuuid);
+		// body.maps.deleteMapEntry(uuid);
+		FolderMapTreeNode child = getMapIdTreeNode(sourceuuid);
+		FolderMapTreeNode parent = getMapIdTreeNode(parentfolderuuid);
+		parent.removeChild(child);
+		body.relations.addRelation(sourceuuid, destuuid);
+		parent = getMapIdTreeNode(destuuid);
+		child.setParent(parent);
+		parent.addChild(child);
+		hist.addOperation(time+"#"+os+"#"+creater+"#mov#entry#"+sourceuuid+"#"+destuuid);
 	}
 	
 	public void setLastOpenedCodeFilename(String codeFilename) {

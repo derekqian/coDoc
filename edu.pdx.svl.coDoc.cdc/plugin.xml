@@ -70,6 +70,12 @@
       </category>
       <command
             categoryId="edu.pdx.svl.coDoc.cdc.commands.category"
+            description="Add categories."
+            id="edu.pdx.svl.coDoc.cdc.commands.AddCategory"
+            name="Add Category">
+      </command>
+      <command
+            categoryId="edu.pdx.svl.coDoc.cdc.commands.category"
             description="Add links between selected code and specification."
             id="edu.pdx.svl.coDoc.cdc.commands.AddReference"
             name="Add Link">
@@ -96,6 +102,10 @@
    <extension
          point="org.eclipse.ui.handlers">
       <handler
+            commandId="edu.pdx.svl.coDoc.cdc.commands.AddCategory"
+            class="edu.pdx.svl.coDoc.cdc.handles.AddCategory">
+      </handler>
+      <handler
             commandId="edu.pdx.svl.coDoc.cdc.commands.AddReference"
             class="edu.pdx.svl.coDoc.cdc.handles.AddReference">
       </handler>
@@ -116,6 +126,12 @@
          point="org.eclipse.ui.bindings">
       <!--M1+M3+F = ALT+CTRL+F-->
       <!--contextId = org.eclipse.ui.textEditorScope-->
+      <key
+            commandId="edu.pdx.svl.coDoc.cdc.commands.AddCategory"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+M3+F">
+      </key>
       <key
             commandId="edu.pdx.svl.coDoc.cdc.commands.AddReference"
             contextId="org.eclipse.ui.textEditorScope"
@@ -146,6 +162,10 @@
       <menuContribution
             allPopups="false"
             locationURI="popup:org.eclipse.ui.popup.any?after=additions">
+         <command
+               commandId="edu.pdx.svl.coDoc.cdc.commands.AddCategory"
+               style="push">
+         </command>
          <command
                commandId="edu.pdx.svl.coDoc.cdc.commands.AddReference"
                style="push">
@@ -180,6 +200,13 @@
             locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
          <toolbar
                id="edu.pdx.svl.coDoc.cdc.toolbars">
+            <command
+                  commandId="edu.pdx.svl.coDoc.cdc.commands.AddCategory"
+                  icon="icons/cat_add.png"
+                  style="push"
+                  tooltip="Add Category"
+                  id="edu.pdx.svl.coDoc.cdc.toolbars.AddCategory">
+            </command>
             <command
                   commandId="edu.pdx.svl.coDoc.cdc.commands.AddReference"
                   icon="icons/ref_add.png"

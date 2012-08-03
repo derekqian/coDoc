@@ -21,7 +21,7 @@ public class TreeLabelProvider extends StyledCellLabelProvider {
 
 		if (entry instanceof CategoryEntry) {
 			cell.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_FOLDER));
-			text.append(((CategoryEntry) entry).path);
+			text.append(((CategoryEntry) entry).name);
 			text.append("[" + node.getChildren().length + "]", StyledString.COUNTER_STYLER);
 		} else if (entry instanceof LinkEntry) {
 			cell.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_ELEMENT));

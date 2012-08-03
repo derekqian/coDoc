@@ -50,7 +50,7 @@ public class DeleteReference extends AbstractHandler {
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		// IEditorPart e = HandlerUtil.getActiveEditor(event);
-		CDCEditor.deleteReference();
+		CDCEditor.deleteEntry();
 		return null;
 	}
 }

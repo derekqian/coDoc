@@ -14,7 +14,9 @@ import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 
+import edu.pdx.svl.coDoc.cdc.Global;
 import edu.pdx.svl.coDoc.cdc.editor.CDCEditor;
+import edu.pdx.svl.coDoc.cdc.editor.EntryEditor;
 
 
 /**
@@ -24,12 +26,12 @@ import edu.pdx.svl.coDoc.cdc.editor.CDCEditor;
  * @author Boris von Loesch
  *
  */
-public class EditReference extends AbstractHandler {
+public class AddCategory extends AbstractHandler {
 	
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
-		// IEditorPart e = HandlerUtil.getActiveEditor(event);
-		CDCEditor.editReference();
+		CDCEditor.addCategory();
+
 		return null;
 	}
 }

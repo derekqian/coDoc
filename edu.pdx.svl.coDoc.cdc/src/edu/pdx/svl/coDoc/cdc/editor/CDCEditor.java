@@ -61,18 +61,24 @@ import edu.pdx.svl.coDoc.cdc.datacenter.BaseEntry;
 import edu.pdx.svl.coDoc.cdc.datacenter.CDCCachedFile;
 import edu.pdx.svl.coDoc.cdc.datacenter.CDCDataCenter;
 import edu.pdx.svl.coDoc.cdc.datacenter.CDCModel;
+import edu.pdx.svl.coDoc.cdc.datacenter.CDCModel_;
+import edu.pdx.svl.coDoc.cdc.datacenter.CategoryEntry;
 import edu.pdx.svl.coDoc.cdc.datacenter.CodeSelection;
 import edu.pdx.svl.coDoc.cdc.datacenter.EntryNode;
 import edu.pdx.svl.coDoc.cdc.datacenter.LinkEntry;
 import edu.pdx.svl.coDoc.cdc.datacenter.MapSelectionFilter;
 import edu.pdx.svl.coDoc.cdc.datacenter.SpecSelection;
 import edu.pdx.svl.coDoc.cdc.preferences.PreferenceValues;
+import edu.pdx.svl.coDoc.cdc.view.AddCategoryDialog;
 import edu.pdx.svl.coDoc.cdc.view.AddLinkDialog;
-import edu.pdx.svl.coDoc.cdc.view.EditView;
+import edu.pdx.svl.coDoc.cdc.view.EditLinkDialog;
 
 import org.eclipse.cdt.core.model.CoreModel;
 import org.eclipse.cdt.internal.core.model.TranslationUnit;
 import org.eclipse.cdt.internal.ui.editor.CEditor;
+import org.simpleframework.xml.Serializer;
+import org.simpleframework.xml.core.Persister;
+
 import edu.pdx.svl.coDoc.poppler.editor.PDFEditor;
 
 class TempCodeEditorInput implements IStorageEditorInput
@@ -358,6 +364,17 @@ public class CDCEditor implements IEditorLauncher
 	public static String proj2cdcName(IProject proj) {
 		assert(proj!=null);
 		return proj.getLocation().toString()+File.separator+"."+proj.getName()+".cdc";
+	}
+	public static String projname2cdcName(String projname) {
+		if(projname == null) return null;
+		IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
+		IProject[] projs = workspaceRoot.getProjects();
+		for(IProject proj : projs) {
+			if(proj.getName().equals(projname)) {
+				return proj.getLocation() + File.separator + "." + projname + ".cdc";
+			}
+		}
+		return null;
 	}
 	
 	public static boolean isCDCProject(String projectname) {
@@ -715,8 +732,9 @@ public class CDCEditor implements IEditorLauncher
 		
 		IWorkspace workspace = ResourcesPlugin.getWorkspace();
 		IWorkspaceRoot workspaceroot = workspace.getRoot();
-		CDCDataCenter.getInstance().setLastOpenedCodeFilename(projectname, "project:///"+codepath.toString());						
-		CDCDataCenter.getInstance().setLastOpenedSpecFilename(projectname, "project:///"+specpath.toString());						
+		String cdcfilename = projname2cdcName(projectname);
+		CDCDataCenter.getInstance().setLastOpenedCodeFilename(cdcfilename, "project:///"+codepath.toString());						
+		CDCDataCenter.getInstance().setLastOpenedSpecFilename(cdcfilename, "project:///"+specpath.toString());						
 		IEditorPart editor = getOpenedEntryEditorTop(projectname);
 		if(editor == null) {
 			entryeditor = openEntryEditor(codepath, specpath);
@@ -742,7 +760,8 @@ public class CDCEditor implements IEditorLauncher
 			}
 			entryeditor = editor;
 		}
-		MapSelectionFilter filter = new MapSelectionFilter(MapSelectionFilter.CODEFILE);
+		MapSelectionFilter filter = new MapSelectionFilter();
+		filter.setSelector(MapSelectionFilter.CODEFILE);
 		filter.setCodeFileName("project:///"+codepath.toString());
 		//((EntryEditor) entryeditor).showCodeAnchors(CDCDataCenter.getInstance().getMapEntries(projectname, filter));
 		((EntryEditor) entryeditor).enableCodeEditorCaret();
@@ -750,6 +769,57 @@ public class CDCEditor implements IEditorLauncher
 	
 	public static String getLatestProjectName() {
 		return projectname;
+	}
+
+	public static void addCategory() {
+		EntryEditor editor = (EntryEditor) CDCEditor.getActiveEntryEditor();
+		if(editor == null) {
+			MessageDialog.openError(null, "Error", "No editor open!");
+			return;
+		}
+		IReferenceExplorer view = (IReferenceExplorer)findView("edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView");
+		if(view == null) {
+			MessageDialog.openError(null, "Error", "Reference view not open!");
+			return;
+		}
+		String categoryId = editor.getCurCategoryId();
+		if(categoryId == null) {
+			System.out.println("category not selected, use root as default!");
+			EntryNode root = CDCDataCenter.getInstance().getLinkTree(editor.getCDCFilename(), null).getChildren()[0];
+			categoryId = ((BaseEntry)root.getData()).uuid;
+		}
+		if (PreferenceValues.getInstance().isUseConfirmationWindow() == true) {
+			String categoryPath = CDCDataCenter.getInstance().getCategoryEntry(editor.getCDCFilename(), categoryId).path;
+			AddCategoryDialog cw = new AddCategoryDialog(categoryPath);
+			switch(cw.open()) {
+			case Dialog.OK:
+				addCategory(categoryId, cw.getCatText());
+				break;
+			case Dialog.CANCEL:
+			default:
+				break;
+			}
+		}		
+	}
+	public static void addCategory(String parentuuid, String cat) {
+		EntryEditor editor = (EntryEditor) getActiveEntryEditor();
+		if(editor!=null) {
+			CDCDataCenter.getInstance().addCategoryEntry(editor.getCDCFilename(), parentuuid, cat);
+		} else {
+			MessageDialog.openError(null, "Error",  "Editor not open!");
+		}
+		
+		IReferenceExplorer view = (IReferenceExplorer)findView("edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView");
+		if(view != null) {
+			view.refresh();
+		}
+		
+		try {
+			ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor() );
+		} catch (CoreException e) {
+			System.out.println("Could not refresh the Project Explorer");
+			e.printStackTrace();
+		}
 	}
 
 	public static void addReference() {
@@ -766,11 +836,11 @@ public class CDCEditor implements IEditorLauncher
 		String categoryId = editor.getCurCategoryId();
 		if(categoryId == null) {
 			System.out.println("category not selected, use root as default!");
-			EntryNode root = CDCDataCenter.getInstance().getLinkTree(projectname, null).getChildren()[0];
+			EntryNode root = CDCDataCenter.getInstance().getLinkTree(editor.getCDCFilename(), null).getChildren()[0];
 			categoryId = ((BaseEntry)root.getData()).uuid;
 		}
 		if (PreferenceValues.getInstance().isUseConfirmationWindow() == true) {
-			String categoryPath = CDCDataCenter.getInstance().getCategoryEntry(projectname, categoryId).path;
+			String categoryPath = CDCDataCenter.getInstance().getCategoryEntry(editor.getCDCFilename(), categoryId).path;
 			CodeSelection codeSel = editor.getSelectionInTextEditor();
 			if(codeSel==null) return;
 			SpecSelection specSel = editor.getSelectionInAcrobat();
@@ -802,34 +872,13 @@ public class CDCEditor implements IEditorLauncher
 			CodeSelection codeselpath = editor.getSelectionInTextEditor();
 			String specfilename = (specpath.isAbsolute()?"project://":"project:///")+specpath;
 			SpecSelection specselpath = editor.getSelectionInAcrobat();
-			CDCDataCenter.getInstance().addLinkEntry(editor.getProjectName(), parentuuid, codefilename, codeselpath, specfilename, specselpath, comment);
+			CDCDataCenter.getInstance().addLinkEntry(editor.getCDCFilename(), parentuuid, codefilename, codeselpath, specfilename, specselpath, comment);
 		} else {
 			MessageDialog.openError(null, "Error",  "Editor not open!");
 		}
 		
 		IReferenceExplorer view = (IReferenceExplorer)findView("edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView");
 		if(view != null) {
-			view.refresh();
-		}
-		
-		try {
-			ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor() );
-		} catch (CoreException e) {
-			System.out.println("Could not refresh the Project Explorer");
-			e.printStackTrace();
-		}
-	}
-	public static void deleteReference() {
-		IReferenceExplorer view = (IReferenceExplorer)CDCEditor.findView("edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView");
-		ISelection selection = view.getSelection();
-		
-		if (selection != null && selection instanceof IStructuredSelection) {
-			IStructuredSelection sel = (IStructuredSelection) selection;
-			
-			for (Iterator<EntryNode> iterator = sel.iterator(); iterator.hasNext();) {
-				EntryNode mapEntry = iterator.next();
-				CDCDataCenter.getInstance().deleteLinkEntry(projectname,((BaseEntry)mapEntry.getData()).uuid);
-			}
 			view.refresh();
 		}
 		
@@ -853,11 +902,11 @@ public class CDCEditor implements IEditorLauncher
 				EntryNode node = iterator.next();
 				refNotSelected = false;
 				LinkEntry refToEdit = (LinkEntry)node.getData();
-				EditView editDialog = new EditView(new Shell(), refToEdit);
+				EditLinkDialog editDialog = new EditLinkDialog(new Shell(), refToEdit);
 				switch(editDialog.open()) {
 				case Dialog.OK:
-					CDCDataCenter.getInstance().deleteLinkEntry(view.getProjectName(),refToEdit.uuid);
-					CDCDataCenter.getInstance().addLinkEntry(view.getProjectName(),editor.getCurCategoryId(),refToEdit.codefilename, refToEdit.codeselpath, refToEdit.specfilename, refToEdit.specselpath, editDialog.getNewCommentText());
+					CDCDataCenter.getInstance().deleteLinkEntry(editor.getCDCFilename(),refToEdit.uuid);
+					CDCDataCenter.getInstance().addLinkEntry(editor.getCDCFilename(),editor.getCurCategoryId(),refToEdit.codefilename, refToEdit.codeselpath, refToEdit.specfilename, refToEdit.specselpath, editDialog.getNewCommentText());
 					break;
 				case Dialog.CANCEL:
 				default:
@@ -872,6 +921,38 @@ public class CDCEditor implements IEditorLauncher
 		}
 	}
 	
+	public static void deleteEntry() {
+		EntryEditor editor = (EntryEditor) CDCEditor.getActiveEntryEditor();
+		if(editor == null) {
+			MessageDialog.openError(null, "Error", "No editor open!");
+			return;
+		}
+		IReferenceExplorer view = (IReferenceExplorer)CDCEditor.findView("edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView");
+		ISelection selection = view.getSelection();
+		
+		if (selection != null && selection instanceof IStructuredSelection) {
+			IStructuredSelection sel = (IStructuredSelection) selection;
+			
+			for (Iterator<EntryNode> iterator = sel.iterator(); iterator.hasNext();) {
+				EntryNode mapEntry = iterator.next();
+				if(mapEntry.getData() instanceof CategoryEntry) {
+					CDCDataCenter.getInstance().deleteCategoryEntry(editor.getCDCFilename(),((BaseEntry)mapEntry.getData()).uuid);					
+				}
+				if(mapEntry.getData() instanceof LinkEntry) {
+					CDCDataCenter.getInstance().deleteLinkEntry(editor.getCDCFilename(),((BaseEntry)mapEntry.getData()).uuid);					
+				}
+			}
+			view.refresh();
+		}
+		
+		try {
+			ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor() );
+		} catch (CoreException e) {
+			System.out.println("Could not refresh the Project Explorer");
+			e.printStackTrace();
+		}
+	}
+	
 	public static MyASTNode getMyAST() {
 		EntryEditor editor = (EntryEditor) CDCEditor.getActiveEntryEditor();
 		if(editor != null) {
@@ -882,7 +963,7 @@ public class CDCEditor implements IEditorLauncher
 	}
 	
 	public static void convertCDCFile() {
-		return;
+		CDCDataCenter.convertCDCFile();
 	}
 	
 	public static void main(String[] args) {

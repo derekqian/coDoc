@@ -8,6 +8,5 @@ public interface IReferenceExplorer
 {
 	public void refresh();
 	public ISelection getSelection();
-	public void displayListOfTextSelectionReferencesForSelectionInActiveEditor();
 	public String getProjectName();
 }

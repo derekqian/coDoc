@@ -53,9 +53,11 @@ public class CodeSelection {
 	public boolean equals(Object o) {
 		if(o instanceof CodeSelection) {
 			CodeSelection sel = (CodeSelection) o;
-			return selcodepath.equals(sel.getSelCodePath()) && selcodetext.equals(sel.getSelCodeText())
-			                                                && syntaxcodepath.equals(sel.getSyntaxCodePath())
-			                                                && syntaxcodetext.equals(sel.getSyntaxCodeText());
+			boolean b1 = (sel.getSelCodePath() == null)?selcodepath.equals(" "):selcodepath.equals(sel.getSelCodePath());
+			boolean b2 = (sel.getSelCodeText() == null)?selcodetext.equals(" "):selcodetext.equals(sel.getSelCodeText());
+			boolean b3 = (sel.getSyntaxCodePath() == null)?syntaxcodepath.equals(" "):syntaxcodepath.equals(sel.getSyntaxCodePath());
+			boolean b4 = (sel.getSyntaxCodeText() == null)?syntaxcodetext.equals(" "):syntaxcodetext.equals(sel.getSyntaxCodeText());
+			return b1 && b2 && b3 && b4;
 		} else {
 			return false;
 		}

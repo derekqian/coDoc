@@ -83,6 +83,13 @@ public class CDCCachedFile {
 		flush();
 	}
 	
+	public boolean parentOf(String childuuid, String parentuuid) {
+		return cdcModel.parentOf(childuuid, parentuuid);
+	}
+	public void moveEntry(String sourceuuid, String destuuid) {
+		cdcModel.moveEntry(sourceuuid, destuuid);
+	}
+	
 	public void setLastOpenedCodeFilename(String codeFilename) {
 		cdcModel.setLastOpenedCodeFilename(codeFilename);
 		flush();
