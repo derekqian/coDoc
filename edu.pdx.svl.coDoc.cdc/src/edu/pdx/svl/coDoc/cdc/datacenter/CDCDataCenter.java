@@ -10,19 +10,35 @@ import java.util.List;
 import java.util.Stack;
 import java.util.Vector;
 
+import org.eclipse.cdt.core.model.ICElement;
+import org.eclipse.cdt.core.model.ITranslationUnit;
+import org.eclipse.cdt.internal.ui.editor.CEditor;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.ISelectionProvider;
+import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.part.FileEditorInput;
 import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.core.Persister;
 
 import edu.pdx.svl.coDoc.cdc.editor.CDCEditor;
 import edu.pdx.svl.coDoc.cdc.editor.EntryEditor;
+import edu.pdx.svl.coDoc.cdc.editor.EntryEditorInput;
+import edu.pdx.svl.coDoc.cdc.editor.MyASTTree;
 
 
 public class CDCDataCenter {
@@ -551,9 +567,11 @@ public class CDCDataCenter {
 				String codepath = operations.get(6);
 				int index = codepath.lastIndexOf('/');
 				codeselpath2.setSelCodeText(codepath.substring(0,index));
+				//codeselpath2.setSyntaxCodeText(codepath.substring(0,index)); // to be deleted
 				codepath = codepath.substring(index+1);
 				// index = codepath.indexOf('\\');
 				codeselpath2.setSelCodePath(codepath);
+				//codeselpath2.setSyntaxCodePath(codepath); // to be deleted
 				String specfilename2 = operations.get(7);
 				SpecSelection specselpath2 = new SpecSelection();
 				String specpath = operations.get(8);
@@ -574,18 +592,37 @@ public class CDCDataCenter {
 				specpath = specpath.substring(index+1);
 				specselpath2.setPDFText(specpath);
 				String comment2 = operations.get(9);
-				
+								
+				CEditor cEditor = null;
+				IWorkspace workspace = ResourcesPlugin.getWorkspace();
+				IWorkspaceRoot workspaceroot = workspace.getRoot();
 				IPath codefilepath = new Path(codefilename2);
 				codefilepath = codefilepath.removeFirstSegments(1); // remove "project:"
-				IPath specfilepath = new Path(specfilename2);
-				specfilepath = specfilepath.removeFirstSegments(1); // remove "project:"
-				CDCEditor.open("dio", codefilepath, specfilepath);
-				EntryEditor editor = (EntryEditor) CDCEditor.getActiveEntryEditor();
-				IEditorPart cEditor = CDCEditor.getActiveCEditorChild(editor);
-				ISelectionProvider selProv = cEditor.getEditorSite().getSelectionProvider();
+				IFile codefile = (IFile) workspaceroot.getFile(codefilepath);
+				final FileEditorInput codeEditorInput = new FileEditorInput(codefile);
+				try 
+				{
+					IWorkbench workbench = PlatformUI.getWorkbench();
+					IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
+					IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
+					cEditor = (CEditor) workbenchPage.openEditor(codeEditorInput, "org.eclipse.cdt.ui.editor.CEditor");
+				} 
+				catch (PartInitException e) 
+				{
+					e.printStackTrace();
+				}
+				ITranslationUnit tu = (ITranslationUnit) cEditor.getInputCElement();
+				MyASTTree myASTTree =  new MyASTTree(tu);
 				index = codepath.indexOf('\\');
-				selProv.setSelection(new TextSelection(Integer.valueOf(codepath.substring(0,index)), Integer.valueOf(codepath.substring(index+1))));
-				//editor.selection2Node1(new TextSelection());
+				TextSelection rawsel = new TextSelection(Integer.valueOf(codepath.substring(0, index)), Integer.valueOf(codepath.substring(index+1)));
+				TextSelection synsel = myASTTree.adjustSelection1(rawsel);
+				IDocument doc = cEditor.getDocumentProvider().getDocument(cEditor.getEditorInput());
+				try {
+					codeselpath2.setSyntaxCodeText(doc.get(synsel.getOffset(), synsel.getLength()));
+					codeselpath2.setSyntaxCodePath(myASTTree.selection2Node1(synsel));
+				} catch (BadLocationException e) {
+					e.printStackTrace();
+				}
 				
 				cdcModel2.addMapEntry(time, os, creater, parentfolderuuid, codefilename2, codeselpath2, specfilename2, specselpath2, comment2);
 			} else if(operations.get(3).equals("del") && operations.get(4).equals("mapentry")) {
@@ -595,9 +632,11 @@ public class CDCDataCenter {
 				String codepath = operations.get(6);
 				int index = codepath.indexOf('/');
 				codeselpath2.setSelCodeText(codepath.substring(0,index));
+				//codeselpath2.setSyntaxCodeText(codepath.substring(0,index)); // to be deleted
 				codepath = codepath.substring(index+1);
 				// index = codepath.indexOf('\\');
 				codeselpath2.setSelCodePath(codepath);
+				//codeselpath2.setSyntaxCodePath(codepath); // to be deleted
 				String specfilename2 = operations.get(7);
 				String specfileuuid2 = cdcModel2.getBody().specfiles.getFileEntryId(specfilename2);
 				SpecSelection specselpath2 = new SpecSelection();
@@ -619,6 +658,38 @@ public class CDCDataCenter {
 				specpath = specpath.substring(index+1);
 				specselpath2.setPDFText(specpath);
 				String comment2 = operations.get(9);
+				
+				CEditor cEditor = null;
+				IWorkspace workspace = ResourcesPlugin.getWorkspace();
+				IWorkspaceRoot workspaceroot = workspace.getRoot();
+				IPath codefilepath = new Path(codefilename2);
+				codefilepath = codefilepath.removeFirstSegments(1); // remove "project:"
+				IFile codefile = (IFile) workspaceroot.getFile(codefilepath);
+				final FileEditorInput codeEditorInput = new FileEditorInput(codefile);
+				try 
+				{
+					IWorkbench workbench = PlatformUI.getWorkbench();
+					IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
+					IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
+					cEditor = (CEditor) workbenchPage.openEditor(codeEditorInput, "org.eclipse.cdt.ui.editor.CEditor");
+				} 
+				catch (PartInitException e) 
+				{
+					e.printStackTrace();
+				}
+				ITranslationUnit tu = (ITranslationUnit) cEditor.getInputCElement();
+				MyASTTree myASTTree =  new MyASTTree(tu);
+				index = codepath.indexOf('\\');
+				TextSelection rawsel = new TextSelection(Integer.valueOf(codepath.substring(0, index)), Integer.valueOf(codepath.substring(index+1)));
+				TextSelection synsel = myASTTree.adjustSelection(rawsel);
+				IDocument doc = cEditor.getDocumentProvider().getDocument(cEditor.getEditorInput());
+				try {
+					codeselpath2.setSyntaxCodeText(doc.get(synsel.getOffset(), synsel.getLength()));
+					codeselpath2.setSyntaxCodePath(myASTTree.selection2Node1(synsel));
+				} catch (BadLocationException e) {
+					e.printStackTrace();
+				}
+				
 				String uuid = cdcModel2.getBody().maps.getMapEntryId(codefileuuid2, codeselpath2, specfileuuid2, specselpath2, comment2);
 				cdcModel2.deleteMapEntry(time, os, creater, uuid);
 			} else {

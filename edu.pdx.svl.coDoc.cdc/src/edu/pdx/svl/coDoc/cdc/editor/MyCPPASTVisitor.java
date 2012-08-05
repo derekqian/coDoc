@@ -8,6 +8,7 @@ import org.eclipse.cdt.core.dom.ast.IASTNode;
 import org.eclipse.cdt.core.dom.ast.IASTPreprocessorIncludeStatement;
 import org.eclipse.cdt.core.dom.ast.IASTPreprocessorStatement;
 import org.eclipse.cdt.core.dom.ast.IASTProblem;
+import org.eclipse.cdt.core.dom.ast.IASTProblemHolder;
 import org.eclipse.cdt.core.dom.ast.IASTTranslationUnit;
 import org.eclipse.cdt.internal.core.dom.parser.ASTNode;
 
@@ -23,6 +24,9 @@ public class MyCPPASTVisitor extends ASTGenericVisitor implements IMyASTVisitor 
 	}
 	private MyASTNode addRoot(IASTNode node) {
 		if(node == null) return null;
+		if(node instanceof ASTNode && ((ASTNode) node).getLength() <= 0 && !(node instanceof IASTProblemHolder)) {
+			return new MyASTNode(null);
+		}
 		LinkedList<IASTNode> ancients = new LinkedList<IASTNode>();
 		IASTNode parent = node.getParent();
 		while((parent != null) && !(parent instanceof IASTTranslationUnit)){
