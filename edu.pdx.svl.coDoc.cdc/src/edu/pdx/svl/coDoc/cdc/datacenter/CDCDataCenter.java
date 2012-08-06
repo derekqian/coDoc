@@ -20,10 +20,20 @@ import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.ISelectionProvider;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbench;
@@ -54,7 +64,7 @@ public class CDCDataCenter {
 		return instance;
 	}
 	
-	private CDCDataCenter() {
+	CDCDataCenter() {
 		projects = new Hashtable<String, CDCCachedFile>();
 	}
 	
@@ -152,6 +162,13 @@ public class CDCDataCenter {
 		CDCCachedFile f = getCDCCachedFile(cdcfilename);
 		if(f!=null) {
 			f.addMapEntry(parentfolderuuid, codefilename, codeselpath, specfilename, specselpath, comment);
+		}
+	}
+	
+	public void editLinkEntry(String cdcfilename, String uuid, String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
+		CDCCachedFile f = getCDCCachedFile(cdcfilename);
+		if(f!=null) {
+			f.editMapEntry(uuid, codefilename, codeselpath, specfilename, specselpath, comment);
 		}
 	}
 	
@@ -460,6 +477,14 @@ public class CDCDataCenter {
 		return true;
 	}
 	
+	CDCModel getCDCModel(String cdcfilename) {
+		CDCCachedFile f = getCDCCachedFile(cdcfilename);
+		if(f!=null) {
+			return f.getCDCModel();
+		}
+		return null;
+	}
+	
 	public static void convertCDCFile0() {
 		CDCModel_ cdcModel1 = null;
 		File cdcFile1 = new File("/home/derek/runtime-EclipseApplication/dio/dio.raw.cdc");
@@ -681,7 +706,7 @@ public class CDCDataCenter {
 				MyASTTree myASTTree =  new MyASTTree(tu);
 				index = codepath.indexOf('\\');
 				TextSelection rawsel = new TextSelection(Integer.valueOf(codepath.substring(0, index)), Integer.valueOf(codepath.substring(index+1)));
-				TextSelection synsel = myASTTree.adjustSelection(rawsel);
+				TextSelection synsel = myASTTree.adjustSelection1(rawsel);
 				IDocument doc = cEditor.getDocumentProvider().getDocument(cEditor.getEditorInput());
 				try {
 					codeselpath2.setSyntaxCodeText(doc.get(synsel.getOffset(), synsel.getLength()));
@@ -707,6 +732,123 @@ public class CDCDataCenter {
 			e.printStackTrace();
 		}
 
+		return;
+	}
+	
+	// test
+	public static void main(String[] args) {
+		// MessageDialog.openInformation(Display.getDefault().getActiveShell(), "Info", "test end successfully!");
+		Display display = new Display();
+		Rectangle rect = display.getBounds();
+		Shell shell = new Shell(display);
+		shell.setText("coDoc test center");
+		shell.setSize(400, 300);
+		Point shellSize = shell.getSize();
+		shell.setLocation((rect.width-shellSize.x)/2, (rect.height-shellSize.y)/2);
+		
+		Button btnMode1 = new Button(shell, SWT.NONE);
+		btnMode1.setText("Mode 1");
+		btnMode1.setBounds(shellSize.x/4,20,shellSize.x/2,40);
+		btnMode1.setToolTipText("Mode 1:\n  Random operation test. For CDCDataCenter only.");
+		btnMode1.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				return;
+			}
+		});
+		
+		Button btnMode2 = new Button(shell, SWT.NONE);
+		btnMode2.setText("Mode 2");
+		btnMode2.setBounds(shellSize.x/4,60,shellSize.x/2,40);
+		btnMode2.setToolTipText("Mode 2:\n  Historical operation test. For CDCDataCenter only.");
+		btnMode2.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				CDCDataCenter cdcDataCenter = new CDCDataCenter();
+				
+				FileDialog dialog = new FileDialog(e.display.getActiveShell(),SWT.OPEN);
+				dialog.setFilterNames(new String[]{"coDoc files","All Files (*.*)"});
+				dialog.setFilterExtensions(new String[]{"*.cdc","*.*"});
+				// dialog.setFilterPath("");
+				dialog.setText("open");
+				String cdcFilename = dialog.open();
+				// MessageDialog.openInformation(e.display.getActiveShell(), "Info", cdcFilename);
+				
+				Serializer serializer = new Persister();
+				File cdcFile = new File(cdcFilename);
+				CDCModel cdcModel = null;
+				try {
+					cdcModel = serializer.read(CDCModel.class, cdcFile);
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+				
+				String tempFilename = cdcFilename + ".tmp";
+				File tempFile = new File(tempFilename);
+				if(!tempFile.exists()) {
+					CDCModel tempCDCModel = new CDCModel();
+					try {
+						serializer.write(tempCDCModel, tempFile);
+					} catch (Exception e1) {
+						e1.printStackTrace();
+					}
+				}
+				
+				Vector<OpEntry> ops = cdcModel.getHist().getOperationList();
+				Iterator it = ops.iterator();
+				while(it.hasNext()) {
+					OpEntry op = (OpEntry) it.next();
+					String tempstr = op.getOperation();
+					Vector<String> opstr = new Vector<String>();
+					while(tempstr.lastIndexOf('#') != -1) {
+						int index = tempstr.lastIndexOf('#');
+						opstr.add(0, tempstr.substring(index+1));
+						tempstr = tempstr.substring(0,index);
+					}
+					opstr.add(0,tempstr);
+					
+					if(opstr.get(3).equals("add") && opstr.get(4).equals("mapentry")) {
+						String uuid = opstr.get(5);
+						String parentuuid = opstr.get(6);
+						String folderPath = cdcModel.getFolderEntry(parentuuid).getFolderpath();
+						parentuuid = cdcDataCenter.getCDCModel(tempFilename).getBody().folders.getFolderEntryId(folderPath);
+						MapEntry entry = cdcModel.getMapEntry(uuid);
+						String codefilename = cdcModel.getCodeFilename(entry.getCodefileUUID());
+						String specfilename = cdcModel.getSpecFilename(entry.getSpecfileUUID());
+						cdcDataCenter.addLinkEntry(tempFilename, parentuuid, codefilename, entry.getCodeselpath(), specfilename, entry.getSpecselpath(), entry.getComment());
+					} else if(opstr.get(3).equals("edt") && opstr.get(4).equals("mapentry")) {
+						String olduuid = opstr.get(5);
+						String uuid = opstr.get(6);
+						MapEntry oldentry = cdcModel.getMapEntry(olduuid);
+						String oldcodefilename = cdcModel.getBody().codefiles.getFilename(oldentry.getCodefileUUID());
+						String oldcodefileuuid = cdcDataCenter.getCDCModel(tempFilename).getBody().codefiles.getFileEntryId(oldcodefilename);
+						CodeSelection codeselpath = oldentry.getCodeselpath();
+						String oldspecfilename = cdcModel.getBody().specfiles.getFilename(oldentry.getSpecfileUUID());
+						String oldspecfileuuid = cdcDataCenter.getCDCModel(tempFilename).getBody().specfiles.getFileEntryId(oldspecfilename);
+						SpecSelection specselpath = oldentry.getSpecselpath();
+						String comment = oldentry.getComment();
+						olduuid = cdcDataCenter.getCDCModel(tempFilename).getBody().maps.getMapEntryId(oldcodefileuuid, codeselpath, oldspecfileuuid, specselpath, comment);
+						MapEntry entry = cdcModel.getMapEntry(uuid);
+						String codefilename = cdcModel.getCodeFilename(entry.getCodefileUUID());
+						String specfilename = cdcModel.getSpecFilename(entry.getSpecfileUUID());
+						cdcDataCenter.editLinkEntry(tempFilename, olduuid, codefilename, entry.getCodeselpath(), specfilename, entry.getSpecselpath(), entry.getComment());
+					} else if(opstr.get(3).equals("add") && opstr.get(4).equals("codefileentry")) {
+					} else if(opstr.get(3).equals("add") && opstr.get(4).equals("specfileentry")) {
+					} else {
+						MessageDialog.openError(e.display.getActiveShell(), "Error", "Unsupported operation:\n"+op.getOperation());
+					}
+				}
+				return;
+			}
+		});
+		
+		shell.open();
+		while(!shell.isDisposed()) {
+			if(!display.readAndDispatch()) {
+				display.sleep();
+			}
+		}
+		display.dispose();
 		return;
 	}
 }

@@ -905,8 +905,9 @@ public class CDCEditor implements IEditorLauncher
 				EditLinkDialog editDialog = new EditLinkDialog(new Shell(), refToEdit);
 				switch(editDialog.open()) {
 				case Dialog.OK:
-					CDCDataCenter.getInstance().deleteLinkEntry(editor.getCDCFilename(),refToEdit.uuid);
-					CDCDataCenter.getInstance().addLinkEntry(editor.getCDCFilename(),editor.getCurCategoryId(),refToEdit.codefilename, refToEdit.codeselpath, refToEdit.specfilename, refToEdit.specselpath, editDialog.getNewCommentText());
+					// CDCDataCenter.getInstance().deleteLinkEntry(editor.getCDCFilename(),refToEdit.uuid);
+					// CDCDataCenter.getInstance().addLinkEntry(editor.getCDCFilename(),editor.getCurCategoryId(),refToEdit.codefilename, refToEdit.codeselpath, refToEdit.specfilename, refToEdit.specselpath, editDialog.getNewCommentText());
+					CDCDataCenter.getInstance().editLinkEntry(editor.getCDCFilename(),refToEdit.uuid,refToEdit.codefilename, refToEdit.codeselpath, refToEdit.specfilename, refToEdit.specselpath, editDialog.getNewCommentText());
 					break;
 				case Dialog.CANCEL:
 				default:

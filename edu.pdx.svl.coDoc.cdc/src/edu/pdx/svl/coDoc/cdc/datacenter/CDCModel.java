@@ -412,6 +412,10 @@ class History {
 			}
 		}
 	}
+	
+	public Vector<OpEntry> getOperationList() {
+		return operations;
+	}
 }
 
 class FolderMapTreeNode {
@@ -424,6 +428,9 @@ class FolderMapTreeNode {
 	}
 	public String getData() {
 		return uuid;
+	}
+	public void setData(String uuid) {
+		this.uuid = uuid;
 	}
 	public void setParent(FolderMapTreeNode parent) {
 		this.parent = parent;
@@ -558,7 +565,7 @@ public class CDCModel {
 	private FolderMapTreeNode getMapIdTreeNode(String uuid) {
 		Stack<FolderMapTreeNode> stack = new Stack<FolderMapTreeNode>();
 		if(root == null) {
-			return null;
+			getMapIdTree();
 		}
 		stack.push(root);
 		while(!stack.empty()) {
@@ -621,7 +628,7 @@ public class CDCModel {
 		// body.folders.deleteFolderEntry(uuid);
 		FolderMapTreeNode parent = getMapIdTreeNode(parentfolderuuid);
 		parent.removeChild(child);
-		hist.addOperation(time+"#"+os+"#"+creater+"#del#folderentry#"+uuid+"#"+parentfolderuuid);
+		hist.addOperation(time+"#"+os+"#"+creater+"#del#folderentry#"+uuid);
 	}
 	
 	public void addMapEntry(String parentfolderuuid, String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
@@ -646,6 +653,27 @@ public class CDCModel {
 		hist.addOperation(time+"#"+os+"#"+creater+"#add#mapentry#"+uuid+"#"+parentfolderuuid);
 	}
 	
+	public void editMapEntry(String olduuid, String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
+		Properties props=System.getProperties();
+		date = new Date();
+		String time = ft.format(date);
+		String creater = props.getProperty("user.name");
+		String os = props.getProperty("os.name");
+		editMapEntry(time, os, creater, olduuid, codefilename, codeselpath, specfilename, specselpath, comment);
+	}
+	public void editMapEntry(String time, String os, String creater, String olduuid, String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
+		addCodeFileEntry(codefilename);
+		addSpecFileEntry(specfilename);
+		String codefileuuid = body.codefiles.getFileEntryId(codefilename);
+		String specfileuuid = body.specfiles.getFileEntryId(specfilename);
+		String uuid = body.maps.addMapEntry(time, os, creater, codefileuuid, codeselpath, specfileuuid, specselpath, comment);		
+		RelationEntry rentry = body.relations.getRelationEntry(olduuid);
+		rentry.setUUID(uuid);		
+		FolderMapTreeNode child = getMapIdTreeNode(olduuid);
+		child.setData(uuid);
+		hist.addOperation(time+"#"+os+"#"+creater+"#edt#mapentry#"+olduuid+"#"+uuid);
+	}
+	
 	public MapEntry getMapEntry(String uuid) {
 		return body.maps.getMapEntry(uuid);
 	}
@@ -662,7 +690,7 @@ public class CDCModel {
 		FolderMapTreeNode child = getMapIdTreeNode(uuid);
 		FolderMapTreeNode parent = getMapIdTreeNode(parentfolderuuid);
 		parent.removeChild(child);
-		hist.addOperation(time+"#"+os+"#"+creater+"#del#mapentry#"+uuid+"#"+parentfolderuuid);
+		hist.addOperation(time+"#"+os+"#"+creater+"#del#mapentry#"+uuid);
 	}
 	
 	public boolean parentOf(String childuuid, String parentuuid) {

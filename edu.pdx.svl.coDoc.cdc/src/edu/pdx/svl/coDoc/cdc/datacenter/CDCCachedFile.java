@@ -20,6 +20,10 @@ public class CDCCachedFile {
 	public void close() {
 	}
 	
+	public CDCModel getCDCModel() {
+		return cdcModel;
+	}
+	
 	public void refresh() {
 		if(fileName!=null) {
 			cdcModel = SimpleXML.readCDCModel(fileName);
@@ -73,6 +77,10 @@ public class CDCCachedFile {
 	
 	public void addMapEntry(String parentfolderuuid, String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
 		cdcModel.addMapEntry(parentfolderuuid, codefilename, codeselpath, specfilename, specselpath, comment);
+		flush();
+	}
+	public void editMapEntry(String uuid, String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
+		cdcModel.editMapEntry(uuid, codefilename, codeselpath, specfilename, specselpath, comment);
 		flush();
 	}
 	public MapEntry getMapEntry(String uuid) {
