@@ -6,7 +6,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Stack;
 import java.util.Vector;
 
@@ -785,13 +787,11 @@ public class CDCDataCenter {
 				
 				String tempFilename = cdcFilename + ".tmp";
 				File tempFile = new File(tempFilename);
-				if(!tempFile.exists()) {
-					CDCModel tempCDCModel = new CDCModel();
-					try {
-						serializer.write(tempCDCModel, tempFile);
-					} catch (Exception e1) {
-						e1.printStackTrace();
-					}
+				CDCModel tempCDCModel = new CDCModel();
+				try {
+					serializer.write(tempCDCModel, tempFile);
+				} catch (Exception e1) {
+					e1.printStackTrace();
 				}
 				
 				Vector<OpEntry> ops = cdcModel.getHist().getOperationList();
@@ -836,8 +836,36 @@ public class CDCDataCenter {
 					} else if(opstr.get(3).equals("add") && opstr.get(4).equals("specfileentry")) {
 					} else {
 						MessageDialog.openError(e.display.getActiveShell(), "Error", "Unsupported operation:\n"+op.getOperation());
+						return;
 					}
 				}
+				
+				// compare MapIdTree
+				FolderMapTreeNode[] tree = new FolderMapTreeNode[]{cdcModel.getMapIdTree(),cdcDataCenter.getCDCModel(tempFilename).getMapIdTree()};
+				String[] treecode = new String[tree.length];
+				for(int i=0; i<tree.length; i++) {
+					Queue<FolderMapTreeNode> queue = new LinkedList<FolderMapTreeNode>();
+					treecode[i] = "";
+					queue.add(tree[i]);
+					while(!queue.isEmpty()) {
+						FolderMapTreeNode node = queue.remove();
+						if(node.hasChildren()) {
+							FolderMapTreeNode[] children = node.getChildren();
+							treecode[i] += Integer.toString(children.length) + "#";
+							for(FolderMapTreeNode n : children) {
+								queue.add(n);
+							}							
+						} else {
+							treecode[i] += Integer.toString(0) + "#";
+						}
+					}
+				}
+				if(!treecode[0].equals(treecode[1])) {
+					MessageDialog.openError(e.display.getActiveShell(), "Error", "The structures of the two MapIdTree are different!");
+					return;
+				}
+				
+				MessageDialog.openInformation(e.display.getActiveShell(), "Info", "Test end successfully!");
 				return;
 			}
 		});

@@ -597,11 +597,11 @@ public class CDCModel {
 		}
 		folderpath += foldername;
 		String uuid = body.folders.addFolderEntry(time, os, creater, folderpath);
-		body.relations.addRelation(uuid, parentfolderuuid);
 		FolderMapTreeNode parent = getMapIdTreeNode(parentfolderuuid);
 		FolderMapTreeNode child = new FolderMapTreeNode(uuid);
 		child.setParent(parent);
 		parent.addChild(child);
+		body.relations.addRelation(uuid, parentfolderuuid);
 		hist.addOperation(time+"#"+os+"#"+creater+"#add#folderentry#"+uuid+"#"+parentfolderuuid);
 	}
 	
@@ -624,10 +624,10 @@ public class CDCModel {
 			return;
 		}
 		String parentfolderuuid = body.relations.getRelationEntry(uuid).getParentUUID();
-		body.relations.removeRelation(uuid);
-		// body.folders.deleteFolderEntry(uuid);
 		FolderMapTreeNode parent = getMapIdTreeNode(parentfolderuuid);
 		parent.removeChild(child);
+		body.relations.removeRelation(uuid);
+		// body.folders.deleteFolderEntry(uuid);
 		hist.addOperation(time+"#"+os+"#"+creater+"#del#folderentry#"+uuid);
 	}
 	
@@ -645,11 +645,11 @@ public class CDCModel {
 		String codefileuuid = body.codefiles.getFileEntryId(codefilename);
 		String specfileuuid = body.specfiles.getFileEntryId(specfilename);
 		String uuid = body.maps.addMapEntry(time, os, creater, codefileuuid, codeselpath, specfileuuid, specselpath, comment);
-		body.relations.addRelation(uuid, parentfolderuuid);
 		FolderMapTreeNode parent = getMapIdTreeNode(parentfolderuuid);
 		FolderMapTreeNode child = new FolderMapTreeNode(uuid);
 		child.setParent(parent);
 		parent.addChild(child);
+		body.relations.addRelation(uuid, parentfolderuuid);
 		hist.addOperation(time+"#"+os+"#"+creater+"#add#mapentry#"+uuid+"#"+parentfolderuuid);
 	}
 	
@@ -667,10 +667,10 @@ public class CDCModel {
 		String codefileuuid = body.codefiles.getFileEntryId(codefilename);
 		String specfileuuid = body.specfiles.getFileEntryId(specfilename);
 		String uuid = body.maps.addMapEntry(time, os, creater, codefileuuid, codeselpath, specfileuuid, specselpath, comment);		
-		RelationEntry rentry = body.relations.getRelationEntry(olduuid);
-		rentry.setUUID(uuid);		
 		FolderMapTreeNode child = getMapIdTreeNode(olduuid);
 		child.setData(uuid);
+		RelationEntry rentry = body.relations.getRelationEntry(olduuid);
+		rentry.setUUID(uuid);		
 		hist.addOperation(time+"#"+os+"#"+creater+"#edt#mapentry#"+olduuid+"#"+uuid);
 	}
 	
@@ -685,11 +685,11 @@ public class CDCModel {
 	}
 	public void deleteMapEntry(String time, String os, String creater, String uuid) {
 		String parentfolderuuid = body.relations.getRelationEntry(uuid).getParentUUID();
-		body.relations.removeRelation(uuid);
-		// body.maps.deleteMapEntry(uuid);
 		FolderMapTreeNode child = getMapIdTreeNode(uuid);
 		FolderMapTreeNode parent = getMapIdTreeNode(parentfolderuuid);
 		parent.removeChild(child);
+		body.relations.removeRelation(uuid);
+		// body.maps.deleteMapEntry(uuid);
 		hist.addOperation(time+"#"+os+"#"+creater+"#del#mapentry#"+uuid);
 	}
 	
@@ -715,15 +715,15 @@ public class CDCModel {
 		if(destuuid.equals(parentfolderuuid)) {
 			return;
 		}
-		body.relations.removeRelation(sourceuuid);
-		// body.maps.deleteMapEntry(uuid);
 		FolderMapTreeNode child = getMapIdTreeNode(sourceuuid);
 		FolderMapTreeNode parent = getMapIdTreeNode(parentfolderuuid);
 		parent.removeChild(child);
-		body.relations.addRelation(sourceuuid, destuuid);
 		parent = getMapIdTreeNode(destuuid);
 		child.setParent(parent);
 		parent.addChild(child);
+		body.relations.removeRelation(sourceuuid);
+		// body.maps.deleteMapEntry(uuid);
+		body.relations.addRelation(sourceuuid, destuuid);
 		hist.addOperation(time+"#"+os+"#"+creater+"#mov#entry#"+sourceuuid+"#"+destuuid);
 	}
 	
