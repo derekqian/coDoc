@@ -865,6 +865,39 @@ public class CDCDataCenter {
 					return;
 				}
 				
+				// compare MapIdTree with LinkTree
+				MapSelectionFilter filter = new MapSelectionFilter();
+				filter.setSelector(MapSelectionFilter.ALLDATA);
+				filter.setSearchStr("");
+				FolderMapTreeNode mapTree = cdcDataCenter.getCDCModel(tempFilename).getMapIdTree();
+				EntryNode linkTree = cdcDataCenter.getLinkTree(tempFilename, filter).getChildren()[0];
+				Queue<FolderMapTreeNode> mapQueue = new LinkedList<FolderMapTreeNode>();
+				mapQueue.add(mapTree);
+				Queue<EntryNode> linkQueue = new LinkedList<EntryNode>();
+				linkQueue.add(linkTree);
+				while(!mapQueue.isEmpty() && !linkQueue.isEmpty()) {
+					FolderMapTreeNode mapnode = mapQueue.remove();
+					EntryNode linknode = linkQueue.remove();
+					if(!mapnode.getData().equals(((BaseEntry)linknode.getData()).uuid)) {
+						MessageDialog.openError(e.display.getActiveShell(), "Error", "The content of MapIdTree and LinkTree are different!");
+						return;
+					}
+					if(mapnode.getChildren().length != linknode.getChildren().length) {
+						MessageDialog.openError(e.display.getActiveShell(), "Error", "The structures of MapIdTree and LinkTree are different!");
+						return;
+					}
+					for(FolderMapTreeNode n : mapnode.getChildren()) {
+						mapQueue.add(n);
+					}
+					for(EntryNode n : linknode.getChildren()) {
+						linkQueue.add(n);
+					}
+				}
+				if(!mapQueue.isEmpty() || !linkQueue.isEmpty()) {
+					MessageDialog.openError(e.display.getActiveShell(), "Error", "The structures of MapIdTree and LinkTree are different!");
+					return;
+				}
+				
 				MessageDialog.openInformation(e.display.getActiveShell(), "Info", "Test end successfully!");
 				return;
 			}
