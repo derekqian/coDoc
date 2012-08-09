@@ -1,0 +1,24 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: coDoc
+Bundle-SymbolicName: coDoc; singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: coDoc.Activator
+Require-Bundle: org.eclipse.core.runtime,
+ org.eclipse.ui,
+ org.eclipse.ui.editors,
+ org.eclipse.ui.intro,
+ org.eclipse.ui.forms,
+ org.eclipse.ui.navigator,
+ org.eclipse.ui.navigator.resources,
+ org.eclipse.ui.ide,
+ org.eclipse.core.resources,
+ org.eclipse.swt,
+ org.eclipse.jface.text,
+ org.eclipse.ui.console,
+ org.eclipse.core.filesystem,
+ org.eclipse.debug.ui,
+ org.eclipse.ui.views,
+ org.eclipse.ui.workbench.texteditor
+Bundle-ActivationPolicy: lazy
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6

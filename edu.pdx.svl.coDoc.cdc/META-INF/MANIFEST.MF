@@ -41,7 +41,8 @@ Export-Package: edu.pdx.svl.coDoc.cdc,
  edu.pdx.svl.coDoc.cdc.preferences,
  edu.pdx.svl.coDoc.cdc.referencemodel,
  edu.pdx.svl.coDoc.cdc.test,
- edu.pdx.svl.coDoc.cdc.view
+ edu.pdx.svl.coDoc.cdc.view,
+ edu.pdx.svl.coDoc.cdc.perspective
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: lib/simple-xml-2.5.3.jar,

@@ -27,6 +27,11 @@ public class Perspective implements IPerspectiveFactory {
 
 	private IPageLayout factory;
 
+	/**
+	 * The ID of the perspective as specified in the extension.
+	 */
+	public static final String ID = "edu.pdx.svl.coDoc.cdc.perspective.Perspective";
+
 	public Perspective() 
 	{
 		super();
@@ -35,6 +40,7 @@ public class Perspective implements IPerspectiveFactory {
 	public void createInitialLayout(IPageLayout factory) 
 	{
 		this.factory = factory;
+		factory.setEditorAreaVisible(true);
 		addViews();
 		addActionSets();
 		addNewWizardShortcuts();
@@ -49,20 +55,22 @@ public class Perspective implements IPerspectiveFactory {
 		// Note that each new Folder uses a percentage of the remaining EditorArea.
 
 		//addStandaloneView(String viewId, boolean showTitle, int relationship, float ratio, String refId)
-		//factory.addStandaloneView("topLeft", true, IPageLayout.LEFT, 0.20f, factory.getEditorArea());
+		//factory.addStandaloneView(IPageLayout.ID_PROJECT_EXPLORER, true, IPageLayout.LEFT, 0.20f, factory.getEditorArea());
 		IFolderLayout topLeft = factory.createFolder("topLeft", IPageLayout.LEFT, 0.20f, factory.getEditorArea());
 		topLeft.addView(IPageLayout.ID_PROJECT_EXPLORER);
-		topLeft.addView(IPageLayout.ID_RES_NAV);
+		//factory.getViewLayout(IPageLayout.ID_PROJECT_EXPLORER).setCloseable(false);
+		//topLeft.addView(IPageLayout.ID_RES_NAV);
 		//topLeft.addView("org.eclipse.jdt.junit.ResultView");
 		
 		IFolderLayout bottom = factory.createFolder("bottomRight", IPageLayout.BOTTOM, 0.75f, factory.getEditorArea());
 		bottom.addView("edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView");
-		bottom.addView("edu.pdx.svl.coDoc.cdc.view.PropertyView");
+		bottom.addView(IConsoleConstants.ID_CONSOLE_VIEW);
+		//bottom.addView("edu.pdx.svl.coDoc.cdc.view.PropertyView");
 		//bottom.addView(IPageLayout.ID_PROBLEM_VIEW);
 		//reserve the place for console view.
-		bottom.addPlaceholder(IConsoleConstants.ID_CONSOLE_VIEW);
+		//bottom.addPlaceholder(IConsoleConstants.ID_CONSOLE_VIEW);
 		
-		factory.addFastView("org.eclipse.pde.runtime.LogView");
+		//factory.addFastView("org.eclipse.pde.runtime.LogView");
 		//factory.addFastView("org.eclipse.team.ccvs.ui.RepositoriesView",0.50f); //NON-NLS-1
 		//factory.addFastView("org.eclipse.team.sync.views.SynchronizeView", 0.50f); //NON-NLS-1
 	}
@@ -99,7 +107,8 @@ public class Perspective implements IPerspectiveFactory {
 
 	private void addViewShortcuts() 
 	{
-		factory.addShowViewShortcut(IPageLayout.ID_RES_NAV);
+		factory.addShowViewShortcut(IPageLayout.ID_PROJECT_EXPLORER);
+		factory.addShowViewShortcut(IConsoleConstants.ID_CONSOLE_VIEW);
 		/*factory.addShowViewShortcut("org.eclipse.ant.ui.views.AntView");
 		factory.addShowViewShortcut("org.eclipse.team.ccvs.ui.AnnotateView");
 		factory.addShowViewShortcut("org.eclipse.pde.ui.DependenciesView");
@@ -110,5 +119,4 @@ public class Perspective implements IPerspectiveFactory {
 		factory.addShowViewShortcut(IPageLayout.ID_PROBLEM_VIEW);
 		factory.addShowViewShortcut(IPageLayout.ID_OUTLINE);*/
 	}
-
 }

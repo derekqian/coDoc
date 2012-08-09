@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         id="application"
+         point="org.eclipse.core.runtime.applications">
+      <application>
+         <run
+               class="coDoc.Application">
+         </run>
+      </application>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectives">
+      <perspective
+            name="coDoc Perspective"
+            class="coDoc.Perspective"
+            id="coDoc.perspective">
+      </perspective>
+   </extension>
+   <extension
+         id="product"
+         point="org.eclipse.core.runtime.products">
+      <product
+            application="VDT.hdvd.application"
+            name="VDT - HDVD">
+         <property
+               name="windowImages"
+               value="icons/alt_window_16.gif,icons/alt_window_32.gif">
+         </property>
+         <property
+               name="appName"
+               value="VDT - HDVD">
+         </property>
+         <property
+               name="startupForegroundColor"
+               value="000000">
+         </property>
+         <property
+               name="startupMessageRect"
+               value="7,360,585,20">
+         </property>
+         <property
+               name="startupProgressRect"
+               value="5,380,581,15">
+         </property>
+         <property
+               name="preferenceCustomization"
+               value="plugin_customization.ini">
+         </property>
+      </product>
+   </extension>
+   <extension
+         point="org.eclipse.ui.ide.projectNatureImages">
+      <image
+            icon="icons/alt_window_16.gif"
+            id="VDT.hdvd.projectNatureImage"
+            natureId="VDT.hdvd.projectNature">
+      </image>
+   </extension>
+   <extension
+         id="VDT.hdvd.projectNature"
+         point="org.eclipse.core.resources.natures">
+      <runtime>
+         <run
+               class="vdt.hdvd.project.support.HDVDProjectNature">
+         </run>
+      </runtime>
+   </extension>
+
+</plugin>

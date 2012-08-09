@@ -3,9 +3,11 @@
 # find conn -iname *.c -exec sed -e 's/street\s\+star/street komme/g' --in-place '{}' \;
 #find ./edu.pdx.svl.coDoc.cdt.core/ -exec sed -e 's/org.dworks.bbcdt/edu.pdx.svl.coDoc.cdt/' --in-place '{}' \;
 #find ./edu.pdx.svl.coDoc.cdt.core/ -exec sed -e 's/(org.dworks.bbcdt/(edu.pdx.svl.coDoc.cdt/' --in-place '{}' \;
-find ./edu.pdx.svl.coDoc.cdt.ui/ -exec sed -e 's/org.dworks.bbcdt/edu.pdx.svl.coDoc.cdt/' --in-place '{}' \;
-find ./edu.pdx.svl.coDoc.cdt.ui/ -exec sed -e 's/(org.dworks.bbcdt/(edu.pdx.svl.coDoc.cdt/' --in-place '{}' \;
-find ./temp/ -exec sed -e 's/org.dworks.bbcdt/edu.pdx.svl.coDoc.cdt/' --in-place '{}' \;
+#find ./edu.pdx.svl.coDoc.cdt.ui/ -exec sed -e 's/org.dworks.bbcdt/edu.pdx.svl.coDoc.cdt/' --in-place '{}' \;
+#find ./edu.pdx.svl.coDoc.cdt.ui/ -exec sed -e 's/(org.dworks.bbcdt/(edu.pdx.svl.coDoc.cdt/' --in-place '{}' \;
+#find ./temp/ -exec sed -e 's/org.dworks.bbcdt/edu.pdx.svl.coDoc.cdt/' --in-place '{}' \;
+find ./coDoc/ -exec sed -e 's/vdt.hdvd/coDoc/' --in-place '{}' \;
+find ./coDoc/ -exec sed -e 's/VDT.hdvd/coDoc/' --in-place '{}' \;
 
 # cat file | tr "abc" "xyz" > new_file
 # cat file | tr [a-z] [A-Z] > new_file
