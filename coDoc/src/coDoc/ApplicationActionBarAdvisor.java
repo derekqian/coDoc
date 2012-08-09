@@ -18,7 +18,7 @@ import org.eclipse.ui.actions.ContributionItemFactory;
 import org.eclipse.ui.application.ActionBarAdvisor;
 import org.eclipse.ui.application.IActionBarConfigurer;
 
-import vdt.hdvd.actions.HDVDActions;
+import coDoc.actions.Actions;
 
 public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
@@ -129,7 +129,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
         
         // Compilation tool bar
         IToolBarManager simulationToolbar = new ToolBarManager(SWT.FLAT | SWT.LEFT);
-        simulationToolbar.add(new WorkflowActionContributionItem(Perspective.ID, HDVDActions.LaunchVNC));
+        simulationToolbar.add(new WorkflowActionContributionItem(Perspective.ID, Actions.LaunchVNC));
 
         /*        // VD Runtime tool bar
         IToolBarManager cosimToolbar = new ToolBarManager(SWT.FLAT | SWT.LEFT);

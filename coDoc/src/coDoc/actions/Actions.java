@@ -1,4 +1,4 @@
-package vdt.hdvd.actions;
+package coDoc.actions;
 
 import java.io.IOException;
 import org.eclipse.jface.action.Action;
@@ -6,7 +6,7 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 
 import coDoc.Activator;
 
-public class HDVDActions
+public class Actions
 {
 	public static Action LaunchVNC = new Action() {
 		public void run()

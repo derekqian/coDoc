@@ -23,15 +23,15 @@
          id="product"
          point="org.eclipse.core.runtime.products">
       <product
-            application="VDT.hdvd.application"
-            name="VDT - HDVD">
+            application="coDoc.application"
+            name="coDoc">
          <property
                name="windowImages"
                value="icons/alt_window_16.gif,icons/alt_window_32.gif">
          </property>
          <property
                name="appName"
-               value="VDT - HDVD">
+               value="coDoc">
          </property>
          <property
                name="startupForegroundColor"
@@ -51,22 +51,4 @@
          </property>
       </product>
    </extension>
-   <extension
-         point="org.eclipse.ui.ide.projectNatureImages">
-      <image
-            icon="icons/alt_window_16.gif"
-            id="VDT.hdvd.projectNatureImage"
-            natureId="VDT.hdvd.projectNature">
-      </image>
-   </extension>
-   <extension
-         id="VDT.hdvd.projectNature"
-         point="org.eclipse.core.resources.natures">
-      <runtime>
-         <run
-               class="vdt.hdvd.project.support.HDVDProjectNature">
-         </run>
-      </runtime>
-   </extension>
-
 </plugin>
