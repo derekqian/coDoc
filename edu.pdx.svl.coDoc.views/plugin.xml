@@ -14,7 +14,7 @@
             class="edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView"
             icon="icons/coDoc.png"
             id="edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView"
-            name="Reference Explorer">
+            name="Links">
       </view>
    </extension>
    <extension

@@ -1,9 +1,9 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Reference Explorer View
-Bundle-SymbolicName: edu.pdx.svl.coDoc.refexp; singleton:=true
+Bundle-Name: coDoc Views
+Bundle-SymbolicName: edu.pdx.svl.coDoc.views;singleton:=true
 Bundle-Version: 1.0.0.qualifier
-Bundle-Activator: edu.pdx.svl.coDoc.refexp.Activator
+Bundle-Activator: edu.pdx.svl.coDoc.views.Activator
 Bundle-Vendor: Derek.QIAN
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
