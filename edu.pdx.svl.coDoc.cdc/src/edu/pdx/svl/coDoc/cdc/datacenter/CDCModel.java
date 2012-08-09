@@ -721,6 +721,11 @@ public class CDCModel {
 		parent = getMapIdTreeNode(destuuid);
 		child.setParent(parent);
 		parent.addChild(child);
+		if(body.folders.getFolderEntry(sourceuuid) != null) {
+			FolderEntry childfolder = body.folders.getFolderEntry(sourceuuid);
+			FolderEntry parentfolder = body.folders.getFolderEntry(destuuid);
+			childfolder.setFolderpath(parentfolder.getFolderpath()+childfolder.getFoldername());
+		}
 		body.relations.removeRelation(sourceuuid);
 		// body.maps.deleteMapEntry(uuid);
 		body.relations.addRelation(sourceuuid, destuuid);
