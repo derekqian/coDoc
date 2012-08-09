@@ -1,5 +1,11 @@
 package coDoc;
 
+import org.eclipse.core.runtime.IConfigurationElement;
+import org.eclipse.core.runtime.IExtension;
+import org.eclipse.core.runtime.IExtensionPoint;
+import org.eclipse.core.runtime.IExtensionRegistry;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.jface.action.GroupMarker;
 import org.eclipse.jface.action.IContributionItem;
 import org.eclipse.jface.action.ICoolBarManager;
 import org.eclipse.jface.action.IMenuManager;
@@ -17,6 +23,9 @@ import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
 import org.eclipse.ui.actions.ContributionItemFactory;
 import org.eclipse.ui.application.ActionBarAdvisor;
 import org.eclipse.ui.application.IActionBarConfigurer;
+import org.eclipse.ui.internal.WorkbenchPlugin;
+import org.eclipse.ui.internal.registry.ActionSetRegistry;
+import org.eclipse.ui.internal.registry.IActionSetDescriptor;
 
 import coDoc.actions.Actions;
 
@@ -30,23 +39,13 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 	
 	private static ApplicationActionBarAdvisor instance = null;
 	
-	// file menu
-    private IWorkbenchAction fileSaveAction;
-    private IWorkbenchAction fileSaveAllAction;
-    private IWorkbenchAction importAction;
+    // Actions - important to allocate these only in makeActions, and then use them
+    // in the fill methods.  This ensures that the actions aren't recreated
+    // when fillActionBars is called with FILL_PROXY.
     private IWorkbenchAction newAction;
-    private IWorkbenchAction openNewWindowAction;
+    private IWorkbenchAction importAction;
     private IWorkbenchAction exitAction;
-    
-    // edit menu
-    private IWorkbenchAction selectAllAction;
-    private IWorkbenchAction undoAction;
-    private IWorkbenchAction redoAction;
-    private IWorkbenchAction copyAction;
-    private IWorkbenchAction cutAction;
-    
-    // search menu
-    private IWorkbenchAction searchAction;
+    private IWorkbenchAction aboutAction;
     
     // window menu
     private IWorkbenchAction maximizeAction;
@@ -76,35 +75,22 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 	 */
 	protected void makeActions(IWorkbenchWindow window) {
 
-		// file menu
-		openNewWindowAction = ActionFactory.OPEN_NEW_WINDOW.create(window);
-		register(openNewWindowAction);
-		fileSaveAction = ActionFactory.SAVE.create(window);
-		register(fileSaveAction);
-		fileSaveAllAction = ActionFactory.SAVE_ALL.create(window);	
-		register(fileSaveAllAction);
-		importAction = ActionFactory.IMPORT.create(window);
-		register(importAction);
+        // Creates the actions and registers them.
+        // Registering is needed to ensure that key bindings work.
+        // The corresponding commands keybindings are defined in the plugin.xml file.
+        // Registering also provides automatic disposal of the actions when
+        // the window is closed.
+
+    	// file menu
 		newAction = ActionFactory.NEW_WIZARD_DROP_DOWN.create(window);
 		register(newAction);
-		exitAction = ActionFactory.QUIT.create(window);
+		importAction = ActionFactory.IMPORT.create(window);
+		register(importAction);
+        exitAction = ActionFactory.QUIT.create(window);
         register(exitAction);
-		
-		// edit menu
-		selectAllAction = ActionFactory.SELECT_ALL.create(window);
-		register(selectAllAction);
-		undoAction = ActionFactory.UNDO.create(window);
-		register(undoAction);
-		redoAction = ActionFactory.REDO.create(window);
-		register(redoAction);
-		copyAction = ActionFactory.COPY.create(window);
-		register(copyAction);
-		cutAction = ActionFactory.CUT.create(window);
-		register(cutAction);
-		
-		// search menu
-		searchAction = ActionFactory.FIND.create(window);
-		register(searchAction);
+        
+        aboutAction = ActionFactory.ABOUT.create(window);
+        register(aboutAction);
 		
 		// window menu
 		maximizeAction = ActionFactory.MAXIMIZE.create(window);
@@ -113,6 +99,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 		register(maximizeAction);
 		viewList = ContributionItemFactory.VIEWS_SHORTLIST.create(window);
 		perspectiveList = ContributionItemFactory.PERSPECTIVES_SHORTLIST.create(window);
+        
+        removeDuplicateAction();
 	}
 	
 	protected void fillCoolBar(ICoolBarManager coolBar) {
@@ -123,85 +111,42 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 		
 		// file tool bar
         IToolBarManager fileToolbar = new ToolBarManager(SWT.FLAT | SWT.LEFT);
+        // fileToolbar.add(new ActionContributionItem(newAction));
         fileToolbar.add(new WorkflowActionContributionItem(Perspective.ID, newAction));
-        fileToolbar.add(new WorkflowActionContributionItem(Perspective.ID, fileSaveAction));
-        fileToolbar.add(new WorkflowActionContributionItem(Perspective.ID, fileSaveAllAction));
+        fileToolbar.add(new WorkflowActionContributionItem(Perspective.ID, importAction));
         
         // Compilation tool bar
         IToolBarManager simulationToolbar = new ToolBarManager(SWT.FLAT | SWT.LEFT);
         simulationToolbar.add(new WorkflowActionContributionItem(Perspective.ID, Actions.LaunchVNC));
 
-        /*        // VD Runtime tool bar
-        IToolBarManager cosimToolbar = new ToolBarManager(SWT.FLAT | SWT.LEFT);
-        Hashtable<String, String> table = new Hashtable<String, String>();
-        table.put(VDInsightPerspective.ID, VDInsightPerspective.ID);
-		table.put(CoSimPerspective.ID, CoSimPerspective.ID);
-        cosimToolbar.add(new WorkflowActionContributionItem(table, SvdActions.ExecuteSvd));
-        cosimToolbar.add(new WorkflowActionContributionItem(CoSimPerspective.ID, SvdActions.StopSvd));
-        
-        // QEMU tool bar
-        IToolBarManager qemuToolbar = new ToolBarManager(SWT.FLAT | SWT.LEFT);
-        qemuToolbar.add(new WorkflowActionContributionItem(CoSimPerspective.ID, SvdActions.SelectQemuImage));
-        qemuToolbar.add(new WorkflowActionContributionItem(CoSimPerspective.ID, SvdActions.LaunchQemu));
-        qemuToolbar.add(new WorkflowActionContributionItem(CoSimPerspective.ID, SvdActions.LaunchQemuImage));
-        
-        // SVD runtime control tool bar
-        IToolBarManager runtimeControlToolbar = new ToolBarManager(SWT.FLAT | SWT.LEFT);
-        Global.svdCtl = new SvdControlCombo("SvdControlMode");
-        runtimeControlToolbar.add(Global.svdCtl);
-        runtimeControlToolbar.add(new WorkflowActionContributionItem(CoSimPerspective.ID, SvdActions.PauseSvd));
-        runtimeControlToolbar.add(new WorkflowActionContributionItem(CoSimPerspective.ID, SvdActions.ResumeSvd));
-      
-        // SVD runtime report/tools 
-        IToolBarManager runtimeReportToolbar = new ToolBarManager(SWT.FLAT | SWT.LEFT);
-        runtimeReportToolbar.add(new WorkflowActionContributionItem(CoSimPerspective.ID, SvdActions.LoadSvdCoverageReport));
-        runtimeReportToolbar.add(new WorkflowActionContributionItem(CoverageReportPerspective.ID, SvdActions.LoadRequestFilter));
-        runtimeReportToolbar.add(new WorkflowActionContributionItem(CoverageReportPerspective.ID, SvdActions.CreateCoverageReport));
-        
-        // SVD debug tool bar
-        IToolBarManager debugToolbar = new ToolBarManager(SWT.FLAT | SWT.LEFT);
-        debugToolbar.add(new WorkflowActionContributionItem(DebugPerspective.ID, SvdActions.StartDebugging));
-        debugToolbar.add(new WorkflowActionContributionItem(DebugPerspective.ID, SvdActions.StopDebugging));
-        
-        // add to cool bar
-        coolBar.add(new ToolBarContributionItem(fileToolbar, "fileToolbar"));  
-        coolBar.add(new ToolBarContributionItem(vdinsightToolbar, "VDInsightToolbar"));   
-        coolBar.add(new ToolBarContributionItem(cosimToolbar, "CoSimToolbar"));   
-        coolBar.add(new ToolBarContributionItem(qemuToolbar, "QEMUToolbar"));   
-        coolBar.add(new ToolBarContributionItem(runtimeControlToolbar, "RuntimeControlToolbar"));   
-        coolBar.add(new ToolBarContributionItem(runtimeReportToolbar, "RuntimeReportToolbar"));
-        coolBar.add(new ToolBarContributionItem(debugToolbar, "DebugToolbar"));*/
-
         coolBar.add(new ToolBarContributionItem(fileToolbar, "fileToolbar"));
         coolBar.add(new ToolBarContributionItem(simulationToolbar, "simulationToolbar"));
+        
         coolBar.update(true);
         coolBar.setLockLayout(true);
     }
 
 	protected void fillMenuBar(IMenuManager menuBar) {
-		
 		ApplicationActionBarAdvisor.menuBar = menuBar;
 		
-		// file menu
 		MenuManager fileMenu = new MenuManager("&File", IWorkbenchActionConstants.M_FILE);
-		fileMenu.add(newAction);
-		// fileMenu.add(openNewWindowAction);
-		fileMenu.add(fileSaveAction);
-		fileMenu.add(fileSaveAllAction);
-		fileMenu.add(importAction);
-		fileMenu.add(new Separator());
-		fileMenu.add(exitAction);
+		MenuManager windowMenu = new MenuManager("&Window", IWorkbenchActionConstants.M_WINDOW);
+        MenuManager helpMenu = new MenuManager("&Help", IWorkbenchActionConstants.M_HELP);
+
+        menuBar.add(fileMenu);
+        // Add a group marker indicating where action set menus will appear.
+        menuBar.add(new GroupMarker(IWorkbenchActionConstants.MB_ADDITIONS));
+		menuBar.add(windowMenu);
+        menuBar.add(helpMenu);
 		
-		// edit menu
-		MenuManager editMenu = new MenuManager("&Edit", IWorkbenchActionConstants.M_EDIT);
-		editMenu.add(selectAllAction);
-		editMenu.add(undoAction);
-		editMenu.add(redoAction);
-		editMenu.add(copyAction);
-		editMenu.add(cutAction);
+        // file menu
+        fileMenu.add(newAction);
+        fileMenu.add(new Separator());
+        fileMenu.add(importAction);
+        fileMenu.add(new Separator());
+        fileMenu.add(exitAction);
 		
 		// windows menu
-		MenuManager windowMenu = new MenuManager("&Window", IWorkbenchActionConstants.M_WINDOW);
 		windowMenu.add(maximizeAction);
 		windowMenu.add(minimizeAction);
 		windowMenu.add(new Separator());
@@ -213,9 +158,51 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 		MenuManager viewMenu = new MenuManager("&Show View", "showView");
 		viewMenu.add(viewList);
 		windowMenu.add(viewMenu);
-
-		menuBar.add(fileMenu);
-		menuBar.add(editMenu);
-		menuBar.add(windowMenu);
+		        
+        // Help
+        helpMenu.add(aboutAction);
 	}
+
+    // remove unexpected menue and toolbar by (org.eclipse.ui.ide)
+    @SuppressWarnings("restriction")
+    public void removeDuplicateAction() {
+        listActionSetId();
+        String[] actionSetId = new String[]{"org.eclipse.ui.edit.text.actionSet.navigation", // removing annoying gotoLastPosition Message.
+        									"org.eclipse.ui.edit.text.actionSet.annotationNavigation",
+        									"org.eclipse.ui.edit.text.actionSet.convertLineDelimitersTo", // Removing convert line delimiters menu.   
+        									"org.eclipse.ui.actionSet.openFiles",
+        									"org.eclipse.search.searchActionSet",
+        									"org.eclipse.cdt.ui.edit.text.c.toggleMarkOccurrences"};
+       
+        ActionSetRegistry reg = WorkbenchPlugin.getDefault().getActionSetRegistry();   
+        IActionSetDescriptor[] actionSets = reg.getActionSets();   
+        for(int i=0; i<actionSetId.length; i++) {
+			for(int j=0; j<actionSets.length; j++) {
+	            if(actionSets[j].getId().equals(actionSetId[i])) {
+		            IExtension ext = actionSets[j].getConfigurationElement().getDeclaringExtension();   
+		            reg.removeExtension(ext, new Object[]{actionSets[j]});   
+	            }
+			}
+        }
+        //IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+        //page.hideActionSet("org.eclipse.ui.WorkingSetActionSet");
+    }    
+    private void listActionSetId() {
+	    IExtensionRegistry registry = Platform.getExtensionRegistry();
+	    IExtensionPoint extensionPoint = registry.getExtensionPoint("org.eclipse.ui.actionSets");
+	    IExtension[] extensions = extensionPoint.getExtensions();
+	    for(int i=0; i<extensions.length; i++) {
+	    	IConfigurationElement elements[] = extensions[i].getConfigurationElements();
+	    	for(int j=0; j<elements.length; j++) {
+	    		String pluginId = elements[j].getNamespaceIdentifier();
+	    		if(pluginId.indexOf("org.eclipse")>-1){ //$NON-NLS-1$
+	    			IConfigurationElement[] subElements = elements[j].getChildren("action");
+	    			for(int m=0; m<subElements.length; m++) {
+	    				if(pluginId.contains("cdt") && subElements[m].getAttribute("id").contains("factor"))
+	    				System.out.println("Plugin: " + pluginId + "  Id: " + subElements[m].getAttribute("id"));
+	    			}
+	    		}
+	    	}
+	    }
+    }
 }

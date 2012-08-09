@@ -40,7 +40,7 @@ public class WelcomePage extends WizardPage
 
 		//
 		Label label = new Label(composite, 64);
-		label.setText("Derek.QIAN -> This is the wizard to create a coDoc project. A coDoc project usually contains code and specifications.");
+		label.setText("This is the wizard to create a coDoc project. A coDoc project usually contains code and specifications.");
 		GridData griddata = new GridData();
 		griddata.widthHint = convertWidthInCharsToPixels(80);
 		griddata.horizontalSpan = 3;
