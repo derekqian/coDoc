@@ -4,6 +4,7 @@ Bundle-Name: coDoc
 Bundle-SymbolicName: coDoc; singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: coDoc.Activator
+Bundle-Vendor: Derek
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.ui,
  org.eclipse.ui.editors,
