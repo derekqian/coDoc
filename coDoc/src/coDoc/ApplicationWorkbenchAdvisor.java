@@ -8,7 +8,7 @@ import org.eclipse.ui.application.IWorkbenchWindowConfigurer;
 import org.eclipse.ui.application.WorkbenchAdvisor;
 import org.eclipse.ui.application.WorkbenchWindowAdvisor;
 import org.eclipse.ui.ide.IDE;
-
+import edu.pdx.svl.coDoc.cdc.perspective.Perspective;
 
 public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
 
@@ -23,6 +23,7 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
     }
 
 	public String getInitialWindowPerspectiveId() {
+		//return Perspective.ID;
 		return Perspective.ID;
 	}
 	
