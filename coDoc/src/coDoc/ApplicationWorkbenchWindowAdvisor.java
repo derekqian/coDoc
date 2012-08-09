@@ -27,7 +27,7 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
         configurer.setInitialSize(new Point(800, 600));
         configurer.setShowCoolBar(true);
         configurer.setShowStatusLine(true);
-        configurer.setTitle("VDT - HDVD");
+        configurer.setTitle("coDoc");
         configurer.setShowPerspectiveBar(false);
     }
     
@@ -47,9 +47,10 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
         page.hideActionSet("org.eclipse.ui.edit.text.actionSet.presentation");
     }
     private void centerWindow() {
-        Shell shell = getWindowConfigurer().getWindow().getShell();
         Rectangle screenSize = Display.getDefault().getClientArea();
+        Shell shell = getWindowConfigurer().getWindow().getShell();
         Rectangle frameSize = shell.getBounds();
         shell.setLocation((screenSize.width-frameSize.width)/2, (screenSize.height-frameSize.height)/2);
+        shell.setMaximized(true);
     }
 }
