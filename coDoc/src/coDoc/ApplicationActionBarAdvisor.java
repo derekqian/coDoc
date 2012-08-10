@@ -167,8 +167,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 		windowMenu.add(viewMenu);
 		        
         // Help
-        helpMenu.add(onlinehelpAction);
-        fileMenu.add(new Separator());
+        //helpMenu.add(onlinehelpAction);
+        //fileMenu.add(new Separator());
         helpMenu.add(aboutAction);
 	}
 
