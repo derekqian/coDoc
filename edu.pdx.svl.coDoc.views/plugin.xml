@@ -11,9 +11,9 @@
       <view
             allowMultiple="false"
             category="edu.pdx.svl.coDoc.views.category"
-            class="edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView"
+            class="edu.pdx.svl.coDoc.views.link.ReferenceExplorerView"
             icon="icons/coDoc.png"
-            id="edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView"
+            id="edu.pdx.svl.coDoc.views.link.ReferenceExplorerView"
             name="Links">
       </view>
    </extension>
@@ -28,7 +28,7 @@
       <perspectiveExtension
             targetID="org.eclipse.cdt.ui.CPerspective">
          <view
-               id="edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView"
+               id="edu.pdx.svl.coDoc.views.link.ReferenceExplorerView"
                minimized="false"
                relationship="stack"
                relative="org.eclipse.ui.console.ConsoleView"

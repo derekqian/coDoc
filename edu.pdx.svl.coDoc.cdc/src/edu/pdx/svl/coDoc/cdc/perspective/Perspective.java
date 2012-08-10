@@ -63,7 +63,7 @@ public class Perspective implements IPerspectiveFactory {
 		//topLeft.addView("org.eclipse.jdt.junit.ResultView");
 		
 		IFolderLayout bottom = factory.createFolder("bottomRight", IPageLayout.BOTTOM, 0.75f, factory.getEditorArea());
-		bottom.addView("edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView");
+		bottom.addView("edu.pdx.svl.coDoc.views.link.ReferenceExplorerView");
 		bottom.addView(IConsoleConstants.ID_CONSOLE_VIEW);
 		//bottom.addView("edu.pdx.svl.coDoc.cdc.view.PropertyView");
 		//bottom.addView(IPageLayout.ID_PROBLEM_VIEW);

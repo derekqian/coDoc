@@ -1,4 +1,4 @@
-package edu.pdx.svl.coDoc.refexp.referenceexplorer;
+package edu.pdx.svl.coDoc.views.link;
 
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IEditorInput;
@@ -69,12 +69,10 @@ import edu.pdx.svl.coDoc.cdc.datacenter.SpecSelection;
 import edu.pdx.svl.coDoc.cdc.editor.CDCEditor;
 import edu.pdx.svl.coDoc.cdc.editor.EntryEditor;
 import edu.pdx.svl.coDoc.cdc.editor.IReferenceExplorer;
-import edu.pdx.svl.coDoc.refexp.referenceexplorer.edit.EditComment;
-import edu.pdx.svl.coDoc.refexp.referenceexplorer.provider.*;
 import edu.pdx.svl.coDoc.refexp.view.Help;
 
 public class ReferenceExplorerView extends ViewPart implements ISelectionListener, Listener, IPartListener2, IResourceChangeListener, IReferenceExplorer {
-	public static final String ID = "edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView";
+	public static final String ID = "edu.pdx.svl.coDoc.views.link.ReferenceExplorerView";
 	Composite parent;
 	private String projectname = null;
 	private final int NUM_HORIZONTAL_ELEMENTS = 5; // max num elements in a row

@@ -1,4 +1,4 @@
-package edu.pdx.svl.coDoc.refexp.referenceexplorer.edit;
+package edu.pdx.svl.coDoc.views.link;
 
 import org.eclipse.jface.viewers.*;
 

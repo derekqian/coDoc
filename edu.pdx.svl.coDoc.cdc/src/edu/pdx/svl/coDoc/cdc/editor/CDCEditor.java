@@ -777,7 +777,7 @@ public class CDCEditor implements IEditorLauncher
 			MessageDialog.openError(null, "Error", "No editor open!");
 			return;
 		}
-		IReferenceExplorer view = (IReferenceExplorer)findView("edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView");
+		IReferenceExplorer view = (IReferenceExplorer)findView("edu.pdx.svl.coDoc.views.link.ReferenceExplorerView");
 		if(view == null) {
 			MessageDialog.openError(null, "Error", "Reference view not open!");
 			return;
@@ -809,7 +809,7 @@ public class CDCEditor implements IEditorLauncher
 			MessageDialog.openError(null, "Error",  "Editor not open!");
 		}
 		
-		IReferenceExplorer view = (IReferenceExplorer)findView("edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView");
+		IReferenceExplorer view = (IReferenceExplorer)findView("edu.pdx.svl.coDoc.views.link.ReferenceExplorerView");
 		if(view != null) {
 			view.refresh();
 		}
@@ -828,7 +828,7 @@ public class CDCEditor implements IEditorLauncher
 			MessageDialog.openError(null, "Error", "No code and spec open!");
 			return;
 		}
-		IReferenceExplorer view = (IReferenceExplorer)findView("edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView");
+		IReferenceExplorer view = (IReferenceExplorer)findView("edu.pdx.svl.coDoc.views.link.ReferenceExplorerView");
 		if(view == null) {
 			MessageDialog.openError(null, "Error", "Reference view not open!");
 			return;
@@ -877,7 +877,7 @@ public class CDCEditor implements IEditorLauncher
 			MessageDialog.openError(null, "Error",  "Editor not open!");
 		}
 		
-		IReferenceExplorer view = (IReferenceExplorer)findView("edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView");
+		IReferenceExplorer view = (IReferenceExplorer)findView("edu.pdx.svl.coDoc.views.link.ReferenceExplorerView");
 		if(view != null) {
 			view.refresh();
 		}
@@ -892,7 +892,7 @@ public class CDCEditor implements IEditorLauncher
 	public static void editReference() {
 		boolean refNotSelected = true;
 		EntryEditor editor = (EntryEditor) CDCEditor.getActiveEntryEditor();
-		IReferenceExplorer view = (IReferenceExplorer)editor.getSite().getPage().findView("edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView");
+		IReferenceExplorer view = (IReferenceExplorer)editor.getSite().getPage().findView("edu.pdx.svl.coDoc.views.link.ReferenceExplorerView");
 		ISelection selection = view.getSelection();
 		
 		if (selection != null && selection instanceof IStructuredSelection) {
@@ -928,7 +928,7 @@ public class CDCEditor implements IEditorLauncher
 			MessageDialog.openError(null, "Error", "No editor open!");
 			return;
 		}
-		IReferenceExplorer view = (IReferenceExplorer)CDCEditor.findView("edu.pdx.svl.coDoc.refexp.referenceexplorer.ReferenceExplorerView");
+		IReferenceExplorer view = (IReferenceExplorer)CDCEditor.findView("edu.pdx.svl.coDoc.views.link.ReferenceExplorerView");
 		ISelection selection = view.getSelection();
 		
 		if (selection != null && selection instanceof IStructuredSelection) {

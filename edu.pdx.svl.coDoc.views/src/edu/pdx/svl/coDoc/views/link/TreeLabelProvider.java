@@ -1,4 +1,4 @@
-package edu.pdx.svl.coDoc.refexp.referenceexplorer.provider;
+package edu.pdx.svl.coDoc.views.link;
 
 import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.StyledString;
