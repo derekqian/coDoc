@@ -51,4 +51,30 @@
          </property>
       </product>
    </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <category
+            name="coDoc"
+            id="coDoc.category">
+      </category>
+      <command
+            name="Online Help"
+            description="Online Help"
+            categoryId="coDoc.category"
+            id="coDoc.onlinehelp">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.bindings">
+      <key
+            commandId="coDoc.onlinehelp"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="CTRL+O">
+      </key>
+      <key
+            commandId="org.eclipse.ui.file.exit"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="CTRL+X">
+      </key>
+   </extension>
 </plugin>

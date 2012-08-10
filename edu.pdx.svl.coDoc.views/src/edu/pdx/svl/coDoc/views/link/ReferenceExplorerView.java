@@ -69,7 +69,6 @@ import edu.pdx.svl.coDoc.cdc.datacenter.SpecSelection;
 import edu.pdx.svl.coDoc.cdc.editor.CDCEditor;
 import edu.pdx.svl.coDoc.cdc.editor.EntryEditor;
 import edu.pdx.svl.coDoc.cdc.editor.IReferenceExplorer;
-import edu.pdx.svl.coDoc.refexp.view.Help;
 
 public class ReferenceExplorerView extends ViewPart implements ISelectionListener, Listener, IPartListener2, IResourceChangeListener, IReferenceExplorer {
 	public static final String ID = "edu.pdx.svl.coDoc.views.link.ReferenceExplorerView";
@@ -312,7 +311,6 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		
 		// setup buttons
 		createSearchTypeComboBox(parent);
-		createHelpButton(parent);
 		// createShowCategoryCheckBox(parent);
 	}
 
@@ -351,16 +349,6 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 			
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
-			}
-		});
-	}
-
-	private void createHelpButton(Composite parent) {
-		Button ok = new Button(parent, SWT.PUSH);
-		ok.setText("Help");
-		ok.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent e) {
-				Help.openHelpBrowser();
 			}
 		});
 	}

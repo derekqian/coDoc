@@ -1,4 +1,4 @@
-package edu.pdx.svl.coDoc.refexp.view;
+package coDoc.actions;
 
 import java.net.MalformedURLException;
 import java.net.URL;

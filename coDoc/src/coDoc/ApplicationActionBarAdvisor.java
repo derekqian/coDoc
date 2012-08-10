@@ -5,6 +5,7 @@ import org.eclipse.core.runtime.IExtension;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.GroupMarker;
 import org.eclipse.jface.action.IContributionItem;
 import org.eclipse.jface.action.ICoolBarManager;
@@ -45,13 +46,16 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     private IWorkbenchAction newAction;
     private IWorkbenchAction importAction;
     private IWorkbenchAction exitAction;
-    private IWorkbenchAction aboutAction;
     
     // window menu
     private IWorkbenchAction maximizeAction;
     private IWorkbenchAction minimizeAction;
 	private IContributionItem viewList;
 	private IContributionItem perspectiveList;
+	
+	// help menu
+    private Action onlinehelpAction;
+    private IWorkbenchAction aboutAction;
     
 	public ApplicationActionBarAdvisor(IActionBarConfigurer configurer) {
 		super(configurer);
@@ -88,9 +92,6 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 		register(importAction);
         exitAction = ActionFactory.QUIT.create(window);
         register(exitAction);
-        
-        aboutAction = ActionFactory.ABOUT.create(window);
-        register(aboutAction);
 		
 		// window menu
 		maximizeAction = ActionFactory.MAXIMIZE.create(window);
@@ -99,6 +100,12 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 		register(maximizeAction);
 		viewList = ContributionItemFactory.VIEWS_SHORTLIST.create(window);
 		perspectiveList = ContributionItemFactory.PERSPECTIVES_SHORTLIST.create(window);
+        
+		// help menu
+		onlinehelpAction = Actions.OnlineHELP;
+        register(onlinehelpAction);
+        aboutAction = ActionFactory.ABOUT.create(window);
+        register(aboutAction);
         
         removeDuplicateAction();
 	}
@@ -160,6 +167,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 		windowMenu.add(viewMenu);
 		        
         // Help
+        helpMenu.add(onlinehelpAction);
+        fileMenu.add(new Separator());
         helpMenu.add(aboutAction);
 	}
 
