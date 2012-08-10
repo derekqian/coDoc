@@ -56,19 +56,20 @@ public class Perspective implements IPerspectiveFactory {
 
 		//addStandaloneView(String viewId, boolean showTitle, int relationship, float ratio, String refId)
 		//factory.addStandaloneView(IPageLayout.ID_PROJECT_EXPLORER, true, IPageLayout.LEFT, 0.20f, factory.getEditorArea());
-		IFolderLayout topLeft = factory.createFolder("topLeft", IPageLayout.LEFT, 0.20f, factory.getEditorArea());
-		topLeft.addView(IPageLayout.ID_PROJECT_EXPLORER);
-		//factory.getViewLayout(IPageLayout.ID_PROJECT_EXPLORER).setCloseable(false);
-		//topLeft.addView(IPageLayout.ID_RES_NAV);
-		//topLeft.addView("org.eclipse.jdt.junit.ResultView");
 		
-		IFolderLayout bottom = factory.createFolder("bottomRight", IPageLayout.BOTTOM, 0.75f, factory.getEditorArea());
+		IFolderLayout bottom = factory.createFolder("bottomRight", IPageLayout.BOTTOM, 0.40f, factory.getEditorArea());
 		bottom.addView("edu.pdx.svl.coDoc.views.link.ReferenceExplorerView");
 		bottom.addView(IConsoleConstants.ID_CONSOLE_VIEW);
 		//bottom.addView("edu.pdx.svl.coDoc.cdc.view.PropertyView");
 		//bottom.addView(IPageLayout.ID_PROBLEM_VIEW);
 		//reserve the place for console view.
 		//bottom.addPlaceholder(IConsoleConstants.ID_CONSOLE_VIEW);
+		
+		IFolderLayout topLeft = factory.createFolder("topLeft", IPageLayout.LEFT, 0.20f, factory.getEditorArea());
+		topLeft.addView(IPageLayout.ID_PROJECT_EXPLORER);
+		//factory.getViewLayout(IPageLayout.ID_PROJECT_EXPLORER).setCloseable(false);
+		//topLeft.addView(IPageLayout.ID_RES_NAV);
+		//topLeft.addView("org.eclipse.jdt.junit.ResultView");
 		
 		//factory.addFastView("org.eclipse.pde.runtime.LogView");
 		//factory.addFastView("org.eclipse.team.ccvs.ui.RepositoriesView",0.50f); //NON-NLS-1
