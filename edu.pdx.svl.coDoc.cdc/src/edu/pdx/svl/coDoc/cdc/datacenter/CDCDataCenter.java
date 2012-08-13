@@ -445,6 +445,11 @@ public class CDCDataCenter {
 							needSwap = less(children[j],children[j+1],sorter) ^ sorter.getComments();
 							break;
 						}
+						if((children[j].getData() instanceof CategoryEntry) && (children[j+1].getData() instanceof LinkEntry)) {
+							needSwap = false;
+						} else if((children[j].getData() instanceof LinkEntry) && (children[j+1].getData() instanceof CategoryEntry)) {
+							needSwap = true;
+						}
 						if(needSwap) {
 							EntryNode temp = children[j];
 							children[j] = children[j+1];
