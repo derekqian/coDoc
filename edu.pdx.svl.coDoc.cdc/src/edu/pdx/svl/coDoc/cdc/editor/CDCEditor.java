@@ -61,7 +61,6 @@ import edu.pdx.svl.coDoc.cdc.datacenter.BaseEntry;
 import edu.pdx.svl.coDoc.cdc.datacenter.CDCCachedFile;
 import edu.pdx.svl.coDoc.cdc.datacenter.CDCDataCenter;
 import edu.pdx.svl.coDoc.cdc.datacenter.CDCModel;
-import edu.pdx.svl.coDoc.cdc.datacenter.CDCModel_;
 import edu.pdx.svl.coDoc.cdc.datacenter.CategoryEntry;
 import edu.pdx.svl.coDoc.cdc.datacenter.CodeSelection;
 import edu.pdx.svl.coDoc.cdc.datacenter.EntryNode;
@@ -475,6 +474,24 @@ public class CDCEditor implements IEditorLauncher
 		return editor;
 	}
 	
+	public static IEditorPart getOpenedEntryEditorTop() {
+		IEditorPart editor = null;
+		IWorkbench workbench = PlatformUI.getWorkbench();
+		IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
+		IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
+		//IWorkbenchPage workbenchPage = getEditorSite().getPage();
+		//IEditorReference[] editorrefs = workbenchPage.getEditorReferences();
+		IEditorReference[] editorrefs = workbenchPage.findEditors(null,"edu.pdx.svl.coDoc.cdc.editor.EntryEditor",IWorkbenchPage.MATCH_ID);
+		if(editorrefs.length != 0) {
+			// already open
+			editor = editorrefs[0].getEditor(false);
+			workbenchPage.bringToTop(editor);
+			workbenchPage.activate(editor);
+		}
+
+		return editor;
+	}
+	
 	// get the editor which is an entryeditor and is active. if not found, return null.
 	public static IEditorPart getActiveEntryEditor() {
 		IEditorPart editor = null;
@@ -735,7 +752,8 @@ public class CDCEditor implements IEditorLauncher
 		String cdcfilename = projname2cdcName(projectname);
 		CDCDataCenter.getInstance().setLastOpenedCodeFilename(cdcfilename, "project:///"+codepath.toString());						
 		CDCDataCenter.getInstance().setLastOpenedSpecFilename(cdcfilename, "project:///"+specpath.toString());						
-		IEditorPart editor = getOpenedEntryEditorTop(projectname);
+		//IEditorPart editor = getOpenedEntryEditorTop(projectname);
+		IEditorPart editor = getOpenedEntryEditorTop();
 		if(editor == null) {
 			entryeditor = openEntryEditor(codepath, specpath);
 		} else {
@@ -846,7 +864,7 @@ public class CDCEditor implements IEditorLauncher
 			SpecSelection specSel = editor.getSelectionInAcrobat();
 			if(specSel==null) return;
 			String codetext = codeSel.getSyntaxCodeText();
-			String spectext = specSel.getPDFText();
+			String spectext = specSel.getPDFText(new String());
 			AddLinkDialog cw = new AddLinkDialog(categoryPath, codetext, spectext);
 			switch(cw.open()) {
 			case Dialog.OK:

@@ -29,10 +29,10 @@ public class TableLabelProvider implements ITableLabelProvider {
 				text = temp.substring(temp.lastIndexOf('/')+1);
 				break;
 			case 3: // page
-				text = String.valueOf(mp.specselpath.getPage());
+				text = mp.specselpath.getPage(new String());
 				break;
 			case 4: // spec text
-				text = mp.specselpath.getPDFText();
+				text = mp.specselpath.getPDFText(new String());
 				break;
 			case 5: // comment
 				text = mp.comment;

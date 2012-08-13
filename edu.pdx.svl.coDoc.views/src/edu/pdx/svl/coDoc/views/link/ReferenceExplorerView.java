@@ -622,7 +622,7 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 				if (element instanceof EntryNode) {
 					BaseEntry entry = (BaseEntry) ((EntryNode) element).getData();
 					if(entry instanceof LinkEntry) {
-						return Integer.toString(((LinkEntry) entry).specselpath.getPage());						
+						return ((LinkEntry) entry).specselpath.getPage(new String());
 					}
 				}
 				return "";
@@ -636,7 +636,7 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 				if (element instanceof EntryNode) {
 					BaseEntry entry = (BaseEntry) ((EntryNode) element).getData();
 					if(entry instanceof LinkEntry) {
-						return ((LinkEntry) entry).specselpath.getPDFText().replace('\n', ' ');						
+						return ((LinkEntry) entry).specselpath.getPDFText(new String()).replace('\n', ' ');						
 					}
 				}
 				return "";
@@ -935,7 +935,7 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		            }
 		        }
 		    }
-		} else if(part instanceof IEditorPart) {
+		}/* else if(part instanceof IEditorPart) {
 			EntryEditor editorPart = (EntryEditor) CDCEditor.getActiveEntryEditor();
 			if (editorPart != null) {
 				projectname = editorPart.getProjectName();
@@ -943,6 +943,22 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 				projectname = null;
 			}
 		}
+		if(projectname != null) {
+				Display.getDefault().asyncExec(new Runnable() {
+					public void run() {
+			String cdcfilename = CDCEditor.projname2cdcName(projectname);
+			String codeFilename = CDCDataCenter.getInstance().getLastOpenedCodeFilename(cdcfilename);
+			String specFilename = CDCDataCenter.getInstance().getLastOpenedSpecFilename(cdcfilename);
+			if(codeFilename!=null && specFilename!=null) {
+				IPath codepath = new Path(codeFilename);
+				codepath = codepath.removeFirstSegments(1); // remove "project:"
+				IPath specpath = new Path(specFilename);
+				specpath = specpath.removeFirstSegments(1); // remove "project:"
+					    CDCEditor.open(projectname, codepath, specpath);				
+					}
+			}
+				});
+		}*/
 	    refresh();
 	
 //		IEditorReference[] editors = part.getSite().getPage().getEditorReferences();

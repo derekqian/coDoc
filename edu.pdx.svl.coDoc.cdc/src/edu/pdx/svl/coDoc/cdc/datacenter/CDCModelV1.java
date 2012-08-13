@@ -1,4 +1,7 @@
-/* 
+/**
+ * CDCModelV1 is the first version of CDC file.
+ * In this version, no category information is supported.
+ *  
  * project:///testproj/code/example.c
  * absolute:///home/derek/testproj/code.example.c
  */
@@ -20,7 +23,7 @@ import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.core.Persister;
 
 
-class Head_ {
+class HeadV1 {
 	@Element
 	private String filetype=" ";
 	@Element
@@ -56,7 +59,7 @@ class Head_ {
 	}
 }
 
-class CodeFileEntry_ {
+class CodeFileEntryV1 {
 	@Element
 	private String filename=" ";	
 	
@@ -68,12 +71,12 @@ class CodeFileEntry_ {
 	}
 }
 
-class CodeFiles_ {
+class CodeFilesV1 {
 	@ElementList
-	private Vector<CodeFileEntry_> files = new Vector<CodeFileEntry_>();
+	private Vector<CodeFileEntryV1> files = new Vector<CodeFileEntryV1>();
 }
 
-class SpecFileEntry_ {
+class SpecFileEntryV1 {
 	@Element
 	private String filename=" ";
 	
@@ -85,12 +88,12 @@ class SpecFileEntry_ {
 	}
 }
 
-class SpecFiles_ {
+class SpecFilesV1 {
 	@ElementList
-	private Vector<SpecFileEntry_> files = new Vector<SpecFileEntry_>();
+	private Vector<SpecFileEntryV1> files = new Vector<SpecFileEntryV1>();
 }
 
-class CodeSelection_ {
+class CodeSelectionV1 {
 	@Element
 	private String codeselpath=" ";
 	@Element
@@ -111,8 +114,8 @@ class CodeSelection_ {
 	public String toString() {
 		return codetext+"/"+codeselpath;
 	}
-	public CodeSelection toCodeSelection() {
-		CodeSelection temp = new CodeSelection();
+	public CodeSelectionV2 toCodeSelection() {
+		CodeSelectionV2 temp = new CodeSelectionV2();
 		temp.setSelCodePath(null);
 		temp.setSelCodeText(null);
 		temp.setSyntaxCodePath(codeselpath);
@@ -121,7 +124,7 @@ class CodeSelection_ {
 	}
 }
 
-class SpecSelection_ {
+class SpecSelectionV1 {
 	@Element
 	private int page;
 	@Element
@@ -174,8 +177,8 @@ class SpecSelection_ {
 	public String toString() {
 		return page+"/"+left+"/"+top+"/"+right+"/"+bottom+"/"+pdftext;
 	}
-	public SpecSelection toSpecSelection() {
-		SpecSelection temp = new SpecSelection();
+	public SpecSelectionV2 toSpecSelection() {
+		SpecSelectionV2 temp = new SpecSelectionV2();
 		temp.setBottom(bottom);
 		temp.setLeft(left);
 		temp.setPage(page);
@@ -186,15 +189,15 @@ class SpecSelection_ {
 	}
 }
 
-class MapEntry_ {
+class MapEntryV1 {
 	@Element
 	private String codefilename=" ";
 	@Element
-	private CodeSelection_ codeselpath = new CodeSelection_();
+	private CodeSelectionV1 codeselpath = new CodeSelectionV1();
 	@Element
 	private String specfilename=" ";
 	@Element
-	private SpecSelection_ specselpath = new SpecSelection_();
+	private SpecSelectionV1 specselpath = new SpecSelectionV1();
 	@Element
 	private String comment=" ";
 	
@@ -204,10 +207,10 @@ class MapEntry_ {
 	public String getCodefilename() {
 		return codefilename;
 	}
-	public void setCodeselpath(CodeSelection_ codeselpath) {
+	public void setCodeselpath(CodeSelectionV1 codeselpath) {
 		this.codeselpath = codeselpath;
 	}
-	public CodeSelection_ getCodeselpath() {
+	public CodeSelectionV1 getCodeselpath() {
 		return codeselpath;
 	}
 	public void setSpecfilename(String specfilename) {
@@ -216,10 +219,10 @@ class MapEntry_ {
 	public String getSpecfilename() {
 		return specfilename;
 	}
-	public void setSpecselpath(SpecSelection_ specselpath) {
+	public void setSpecselpath(SpecSelectionV1 specselpath) {
 		this.specselpath = specselpath;
 	}
-	public SpecSelection_ getSpecselpath() {
+	public SpecSelectionV1 getSpecselpath() {
 		return specselpath;
 	}
 	public void setComment(String comment) {
@@ -230,31 +233,31 @@ class MapEntry_ {
 	}
 }
 
-class Maps_ {
+class MapsV1 {
 	@ElementList
-	private Vector<MapEntry_> maplist = new Vector<MapEntry_>();
+	private Vector<MapEntryV1> maplist = new Vector<MapEntryV1>();
 	
-	public Vector<MapEntry_> getMapList() {
+	public Vector<MapEntryV1> getMapList() {
 		return maplist;
 	}
 }
 
-class Body_ {
+class BodyV1 {
 	@Element
-	public CodeFiles_ codefiles = null;
+	public CodeFilesV1 codefiles = null;
 	@Element
-	public SpecFiles_ specfiles = null;
+	public SpecFilesV1 specfiles = null;
 	@Element
-	public Maps_ maps = null;
+	public MapsV1 maps = null;
 	
-	public Body_() {
-		codefiles = new CodeFiles_();
-		specfiles = new SpecFiles_();
-		maps = new Maps_();
+	public BodyV1() {
+		codefiles = new CodeFilesV1();
+		specfiles = new SpecFilesV1();
+		maps = new MapsV1();
 	}
 }
 
-class OpEntry_ {
+class OpEntryV1 {
 	@Element
 	private String operation=" ";
 	
@@ -266,7 +269,7 @@ class OpEntry_ {
 	}
 }
 
-class LastOpened_ {
+class LastOpenedV1 {
 	@Element
 	private String codeFilename=" ";
 	@Element
@@ -286,11 +289,11 @@ class LastOpened_ {
 		return specFilename.equals(" ")?null:specFilename;
 	}
 }
-class History_ {
+class HistoryV1 {
 	@Element
-	private LastOpened_ lastOpened = new LastOpened_();
+	private LastOpenedV1 lastOpened = new LastOpenedV1();
 	@ElementList
-	private Vector<OpEntry_> operations = new Vector<OpEntry_>();
+	private Vector<OpEntryV1> operations = new Vector<OpEntryV1>();
 	
 	public void setLastOpenedCodeFilename(String codeFilename) {
 		lastOpened.setCodeFilename(codeFilename);
@@ -306,42 +309,42 @@ class History_ {
 		return lastOpened.getSpecFilename();
 	}
 	
-	public Vector<OpEntry_> getOperationList() {
+	public Vector<OpEntryV1> getOperationList() {
 		return operations;
 	}
 }
 
 @Root
-public class CDCModel_ {
+public class CDCModelV1 {
 	@Element
-	private Head_ head;
+	private HeadV1 head;
 	@Element
-	private Body_ body;
+	private BodyV1 body;
 	@Element
-	private History_ hist;
+	private HistoryV1 hist;
 	
 	private Date date;
 	private SimpleDateFormat ft = null;
 	
 	private FolderMapTreeNode root = null;
 	
-	public CDCModel_() {
+	public CDCModelV1() {
 		Properties props=System.getProperties();
 		ft = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss:SSS zzz");
 		date = new Date();
 		String time = ft.format(date);
 		String os = props.getProperty("os.name");
 		String creater = props.getProperty("user.name");
-		head = new Head_();
+		head = new HeadV1();
 		head.setFiletype("CDC");
 		head.setCreater(creater);
 		head.setOS(os);
 		head.setCreatetime(time);
-		body = new Body_();
-		hist = new History_();
+		body = new BodyV1();
+		hist = new HistoryV1();
 	}
 	
-	public Vector<MapEntry_> getMapEntries() {
+	public Vector<MapEntryV1> getMapEntries() {
 		return body.maps.getMapList();
 	}
 	public String getLastOpenedCodeFilename() {
@@ -350,49 +353,51 @@ public class CDCModel_ {
 	public String getLastOpenedSpecFilename() {
 		return hist.getLastOpenedSpecFilename();
 	}
-	public Vector<OpEntry_> getOperationList() {
+	public Vector<OpEntryV1> getOperationList() {
 		return hist.getOperationList();
 	}
 	
-	public Head_ getHead() {
+	public HeadV1 getHead() {
 		return head;
 	}
-	public Body_ getBody() {
+	public BodyV1 getBody() {
 		return body;
 	}
-	public History_ getHist() {
+	public HistoryV1 getHist() {
 		return hist;
 	}
 	public static void main(String[] args) {
-		CDCModel_ cdcModel_ = null;
-		File cdcFile_ = new File("/home/derek/runtime-EclipseApplication/dio/dio.ver1.cdc");
+		toV2();
+	}
+	private static void toV2() {
+		CDCModelV1 cdcModelV1 = null;
+		File cdcFileV1 = new File("/home/derek/runtime-EclipseApplication/dio/dio.ver1.cdc");
 		Serializer serializer = new Persister();
 		try {
-			cdcModel_ = serializer.read(CDCModel_.class, cdcFile_);
+			cdcModelV1 = serializer.read(CDCModelV1.class, cdcFileV1);
 		} catch (Exception e) {
-			System.out.println("Unable to read cdcFile!");
+			System.out.println("Unable to read cdcFileV1!");
 			e.printStackTrace();
 		}
 		
-		CDCModel cdcModel = new CDCModel();
-		cdcModel.getHead().setCreater(cdcModel_.getHead().getCreater());
-		cdcModel.getHead().setCreatetime(cdcModel_.getHead().getCreatetime());
-		cdcModel.getHead().setFiletype(cdcModel_.getHead().getFiletype());
-		cdcModel.getHead().setOS(cdcModel_.getHead().getOS());
-		cdcModel.getMapIdTree();
-		for(MapEntry_ entry : cdcModel_.getBody().maps.getMapList()) {
-			String parentfolderuuid = cdcModel.getBody().folders.getFolderEntryId("/");
-			cdcModel.addMapEntry(parentfolderuuid, entry.getCodefilename(), entry.getCodeselpath().toCodeSelection(), entry.getSpecfilename(), entry.getSpecselpath().toSpecSelection(), entry.getComment());
+		CDCModelV2 cdcModelV2 = new CDCModelV2();
+		cdcModelV2.getHead().setCreater(cdcModelV1.getHead().getCreater());
+		cdcModelV2.getHead().setCreatetime(cdcModelV1.getHead().getCreatetime());
+		cdcModelV2.getHead().setFiletype(cdcModelV1.getHead().getFiletype());
+		cdcModelV2.getHead().setOS(cdcModelV1.getHead().getOS());
+		cdcModelV2.getMapIdTree();
+		for(MapEntryV1 entry : cdcModelV1.getBody().maps.getMapList()) {
+			String parentfolderuuid = cdcModelV2.getBody().folders.getFolderEntryId("/");
+			cdcModelV2.addMapEntry(parentfolderuuid, entry.getCodefilename(), entry.getCodeselpath().toCodeSelection(), entry.getSpecfilename(), entry.getSpecselpath().toSpecSelection(), entry.getComment());
 		}
-		cdcModel.setLastOpenedCodeFilename(cdcModel_.getLastOpenedCodeFilename());
-		cdcModel.setLastOpenedSpecFilename(cdcModel_.getLastOpenedSpecFilename());
-		File cdcFile = new File("/home/derek/runtime-EclipseApplication/dio/dio.ver2.cdc");
+		cdcModelV2.setLastOpenedCodeFilename(cdcModelV1.getLastOpenedCodeFilename());
+		cdcModelV2.setLastOpenedSpecFilename(cdcModelV1.getLastOpenedSpecFilename());
+		File cdcFileV2 = new File("/home/derek/runtime-EclipseApplication/dio/dio.ver2.cdc");
 		try {
-			serializer.write(cdcModel, cdcFile);
+			serializer.write(cdcModelV2, cdcFileV2);
 		} catch (Exception e) {
-			System.out.println("Unable to write cdcFile!");
+			System.out.println("Unable to write cdcFileV2!");
 			e.printStackTrace();
-		}
-		return;
+		}		
 	}
 }

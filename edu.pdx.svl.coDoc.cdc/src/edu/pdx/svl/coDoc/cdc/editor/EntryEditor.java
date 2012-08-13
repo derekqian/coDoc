@@ -91,6 +91,7 @@ import edu.pdx.svl.coDoc.cdc.preferences.PreferenceValues;
 import edu.pdx.svl.coDoc.cdc.referencemodel.References;
 import edu.pdx.svl.coDoc.poppler.editor.PDFEditor;
 import edu.pdx.svl.coDoc.poppler.editor.PDFPageViewer;
+import edu.pdx.svl.coDoc.poppler.editor.PDFSelection;
 
 public class EntryEditor extends MultiEditor implements IReusableEditor, ISelectionListener
 {
@@ -528,40 +529,49 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 			MessageDialog.openError(null, "Alert", "Warning:\nYou do not have an open PDF file in Acrobat from which you will create a reference.\nNo reference has been saved.");
 			return null;
 		}
-		String pdftext = acrobatInterface.getSelectedText();
-		if(pdftext == null || pdftext.equals("")) {
+		Vector<String> pdftextvec = acrobatInterface.getSelectedText();
+		if(pdftextvec == null || pdftextvec.size() == 0) {
 			MessageDialog.openError(null, "Alert", "Warning:\nYou have not selected any text in your PDF file.\nNo reference has been saved.");
 			return null;
+		}		
+		Vector<PDFSelection> selvec = acrobatInterface.getSelection();
+		if(selvec == null || selvec.size() == 0) {
+			return null;
 		}
-		pdftext = pdftext.replace('\n', ' ').replace('\t', ' ');
-		
-		int page = acrobatInterface.getPage();
-		Rectangle sel = acrobatInterface.getSelection();
-		int top = sel.y;
-		int bottom = sel.y + sel.height;
-		int left = sel.x;
-		int right = sel.x + sel.width;
 		
 		SpecSelection selection = new SpecSelection();
-		selection.setPage(page);
-		selection.setTop(top);
-		selection.setBottom(bottom);
-		selection.setLeft(left);
-		selection.setRight(right);
-		selection.setPDFText(pdftext);
+		
+		Iterator it = selvec.iterator();
+		Iterator ittext = pdftextvec.iterator();
+		while(it.hasNext()) {
+			PDFSelection sel = (PDFSelection) it.next();
+			String pdftext = (String) ittext.next();
+			selection.addPage(sel.getPage());
+			selection.addTop(sel.getTop());
+			selection.addBottom(sel.getBottom());
+			selection.addLeft(sel.getLeft());
+			selection.addRight(sel.getRigth());
+			selection.addPDFText(pdftext);
+		}
 		
 		return selection;
 	}
 	
 	public void selectTextInAcrobat(SpecSelection sel) {
-		PDFPageViewer acrobatInterface;
-		acrobatInterface = ((PDFEditor) CDCEditor.getActivePDFEditorChild(this)).getPDFPageViewer();
+		PDFPageViewer acrobatInterface = ((PDFEditor) CDCEditor.getActivePDFEditorChild(this)).getPDFPageViewer();
+		Vector<PDFSelection> selvec = new Vector<PDFSelection>();
 
 		if(sel!=null) {
-			acrobatInterface.selectText(sel.getPage(), sel.getTop(), sel.getBottom(), sel.getLeft(), sel.getRight());			
-		} else {
-			acrobatInterface.selectText(-1, 0, 0, 0, 0);
+			Vector<Integer> page = sel.getPage(new Vector<Integer>());
+			Vector<Integer> left = sel.getLeft();
+			Vector<Integer> right = sel.getRight();
+			Vector<Integer> top = sel.getTop();
+			Vector<Integer> bottom = sel.getBottom();
+			for(int i=0; i<page.size(); i++) {
+				selvec.add(new PDFSelection(page.get(i),left.get(i),top.get(i),right.get(i),bottom.get(i)));				
+			}
 		}
+		acrobatInterface.selectText(selvec);
 	}
 	
 	private MyASTTree buildMyAST() {

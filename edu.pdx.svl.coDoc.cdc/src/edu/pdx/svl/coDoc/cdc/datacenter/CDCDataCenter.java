@@ -245,8 +245,8 @@ public class CDCDataCenter {
 			if((entry.codefilename.contains(filter.getSearchStr()))
 				|| (entry.codeselpath.getSyntaxCodeText().contains(filter.getSearchStr()))
 				|| (entry.specfilename.contains(filter.getSearchStr()))
-				|| (Integer.toString(entry.specselpath.getPage()).equals(filter.getSearchStr()))
-				|| (entry.specselpath.getPDFText().contains(filter.getSearchStr()))
+				|| (entry.specselpath.getPage(new String()).equals(filter.getSearchStr()))
+				|| (entry.specselpath.getPDFText(new String()).contains(filter.getSearchStr()))
 				|| (entry.comment.contains(filter.getSearchStr()))) {
 				res = true;
 			}
@@ -267,12 +267,12 @@ public class CDCDataCenter {
 			}
 			break;
 		case MapSelectionFilter.PDFPAGE:
-			if(Integer.toString(entry.specselpath.getPage()).equals(filter.getSearchStr())) {
+			if(entry.specselpath.getPage(new String()).equals(filter.getSearchStr())) {
 				res = true;
 			}
 			break;
 		case MapSelectionFilter.SPECTEXT:
-			if(entry.specselpath.getPDFText().contains(filter.getSearchStr())) {
+			if(entry.specselpath.getPDFText(new String()).contains(filter.getSearchStr())) {
 				res = true;
 			}
 			break;
@@ -456,13 +456,14 @@ public class CDCDataCenter {
 						return true;
 					}
 				case MapSelectionSort.PDFPAGE:
-					if(e1.specselpath.getPage() > e2.specselpath.getPage()) {
+					//if(e1.specselpath.getPage() > e2.specselpath.getPage()) {
+					if(e1.specselpath.getPage(new String()).compareToIgnoreCase(e2.specselpath.getPage(new String())) > 0) {
 						return false;
 					} else {
 						return true;
 					}
 				case MapSelectionSort.SPECTEXT:
-					if(e1.specselpath.getPDFText().compareToIgnoreCase(e2.specselpath.getPDFText()) > 0) {
+					if(e1.specselpath.getPDFText(new String()).compareToIgnoreCase(e2.specselpath.getPDFText(new String())) > 0) {
 						return false;
 					} else {
 						return true;
@@ -488,41 +489,41 @@ public class CDCDataCenter {
 	}
 	
 	public static void convertCDCFile0() {
-		CDCModel_ cdcModel1 = null;
+		CDCModelV1 cdcModel1 = null;
 		File cdcFile1 = new File("/home/derek/runtime-EclipseApplication/dio/dio.raw.cdc");
 		Serializer serializer = new Persister();
 		try {
-			cdcModel1 = serializer.read(CDCModel_.class, cdcFile1);
+			cdcModel1 = serializer.read(CDCModelV1.class, cdcFile1);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
-		CDCModel cdcModel2 = new CDCModel();
+		CDCModelV2 cdcModel2 = new CDCModelV2();
 		cdcModel2.getHead().setCreatetime(cdcModel1.getHead().getCreatetime());
 		cdcModel2.getHead().setOS(cdcModel1.getHead().getOS());
 		cdcModel2.getHead().setCreater(cdcModel1.getHead().getCreater());
 		cdcModel2.getHead().setFiletype(cdcModel1.getHead().getFiletype());
 		cdcModel2.setLastOpenedCodeFilename(cdcModel1.getLastOpenedCodeFilename());
 		cdcModel2.setLastOpenedSpecFilename(cdcModel1.getLastOpenedSpecFilename());
-		Vector<MapEntry_> maps1 = cdcModel1.getMapEntries();
-		Vector<OpEntry_> ops1 = cdcModel1.getOperationList();
+		Vector<MapEntryV1> maps1 = cdcModel1.getMapEntries();
+		Vector<OpEntryV1> ops1 = cdcModel1.getOperationList();
 		Iterator it1 = maps1.iterator();
 		while(it1.hasNext()) {
-			MapEntry_ entry1 = (MapEntry_) it1.next();
+			MapEntryV1 entry1 = (MapEntryV1) it1.next();
 			String codefilename1 = entry1.getCodefilename();
-			CodeSelection_ codeselpath1 = entry1.getCodeselpath();
+			CodeSelectionV1 codeselpath1 = entry1.getCodeselpath();
 			String specfilename1 = entry1.getSpecfilename();
-			SpecSelection_ specselpath1 = entry1.getSpecselpath();
+			SpecSelectionV1 specselpath1 = entry1.getSpecselpath();
 			String comment1 = entry1.getComment();
 			
-			FolderMapTreeNode root = cdcModel2.getMapIdTree();
+			FolderMapTreeNodeV2 root = cdcModel2.getMapIdTree();
 			String parentfolderuuid = root.getData();
 			String codefilename2 = codefilename1;
-			CodeSelection codeselpath2 = new CodeSelection();
+			CodeSelectionV2 codeselpath2 = new CodeSelectionV2();
 			codeselpath2.setSelCodePath(codeselpath1.getCodeSelPath());
 			codeselpath2.setSelCodeText(codeselpath1.getCodeText());
 			String specfilename2 = specfilename1;
-			SpecSelection specselpath2 = new SpecSelection();
+			SpecSelectionV2 specselpath2 = new SpecSelectionV2();
 			specselpath2.setLeft(specselpath1.getLeft());
 			specselpath2.setRight(specselpath1.getRight());
 			specselpath2.setTop(specselpath1.getTop());
@@ -543,27 +544,27 @@ public class CDCDataCenter {
 	}
 	
 	public static void convertCDCFile() {
-		CDCModel_ cdcModel1 = null;
+		CDCModelV1 cdcModel1 = null;
 		File cdcFile1 = new File("/home/derek/runtime-EclipseApplication/dio/dio.raw.cdc");
 		Serializer serializer = new Persister();
 		try {
-			cdcModel1 = serializer.read(CDCModel_.class, cdcFile1);
+			cdcModel1 = serializer.read(CDCModelV1.class, cdcFile1);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
-		CDCModel cdcModel2 = new CDCModel();
+		CDCModelV2 cdcModel2 = new CDCModelV2();
 		cdcModel2.getHead().setCreatetime(cdcModel1.getHead().getCreatetime());
 		cdcModel2.getHead().setOS(cdcModel1.getHead().getOS());
 		cdcModel2.getHead().setCreater(cdcModel1.getHead().getCreater());
 		cdcModel2.getHead().setFiletype(cdcModel1.getHead().getFiletype());
 		cdcModel2.setLastOpenedCodeFilename(cdcModel1.getLastOpenedCodeFilename());
 		cdcModel2.setLastOpenedSpecFilename(cdcModel1.getLastOpenedSpecFilename());
-		Vector<MapEntry_> maps1 = cdcModel1.getMapEntries();
-		Vector<OpEntry_> ops1 = cdcModel1.getOperationList();
+		Vector<MapEntryV1> maps1 = cdcModel1.getMapEntries();
+		Vector<OpEntryV1> ops1 = cdcModel1.getOperationList();
 		Iterator it1 = ops1.iterator();
 		while(it1.hasNext()) {
-			OpEntry_ entry1 = (OpEntry_) it1.next();
+			OpEntryV1 entry1 = (OpEntryV1) it1.next();
 			String tempstr = entry1.getOperation();
 			System.out.println(tempstr);
 			Vector<String> operations = new Vector<String>();
@@ -587,10 +588,10 @@ public class CDCDataCenter {
 			String os = operations.get(1); // os
 			String creater = operations.get(2); // author
 			if(operations.get(3).equals("add") && operations.get(4).equals("mapentry")) {
-				FolderMapTreeNode root = cdcModel2.getMapIdTree();
+				FolderMapTreeNodeV2 root = cdcModel2.getMapIdTree();
 				String parentfolderuuid = root.getData();
 				String codefilename2 = operations.get(5);
-				CodeSelection codeselpath2 = new CodeSelection();
+				CodeSelectionV2 codeselpath2 = new CodeSelectionV2();
 				String codepath = operations.get(6);
 				int index = codepath.lastIndexOf('/');
 				codeselpath2.setSelCodeText(codepath.substring(0,index));
@@ -600,7 +601,7 @@ public class CDCDataCenter {
 				codeselpath2.setSelCodePath(codepath);
 				//codeselpath2.setSyntaxCodePath(codepath); // to be deleted
 				String specfilename2 = operations.get(7);
-				SpecSelection specselpath2 = new SpecSelection();
+				SpecSelectionV2 specselpath2 = new SpecSelectionV2();
 				String specpath = operations.get(8);
 				index = specpath.indexOf('/');
 				specselpath2.setPage(Integer.valueOf(specpath.substring(0,index)));
@@ -655,7 +656,7 @@ public class CDCDataCenter {
 			} else if(operations.get(3).equals("del") && operations.get(4).equals("mapentry")) {
 				String codefilename2 = operations.get(5);
 				String codefileuuid2 = cdcModel2.getBody().codefiles.getFileEntryId(codefilename2);
-				CodeSelection codeselpath2 = new CodeSelection();
+				CodeSelectionV2 codeselpath2 = new CodeSelectionV2();
 				String codepath = operations.get(6);
 				int index = codepath.indexOf('/');
 				codeselpath2.setSelCodeText(codepath.substring(0,index));
@@ -666,7 +667,7 @@ public class CDCDataCenter {
 				//codeselpath2.setSyntaxCodePath(codepath); // to be deleted
 				String specfilename2 = operations.get(7);
 				String specfileuuid2 = cdcModel2.getBody().specfiles.getFileEntryId(specfilename2);
-				SpecSelection specselpath2 = new SpecSelection();
+				SpecSelectionV2 specselpath2 = new SpecSelectionV2();
 				String specpath = operations.get(8);
 				index = specpath.indexOf('/');
 				specselpath2.setPage(Integer.valueOf(specpath.substring(0,index)));

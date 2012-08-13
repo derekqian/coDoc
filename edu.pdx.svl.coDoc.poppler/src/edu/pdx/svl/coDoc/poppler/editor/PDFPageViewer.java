@@ -10,23 +10,15 @@
  ******************************************************************************/
 package edu.pdx.svl.coDoc.poppler.editor;
 
-import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Image;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.Rectangle2D.Double;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
-import java.awt.image.DirectColorModel;
-import java.awt.image.IndexColorModel;
-import java.awt.image.WritableRaster;
-import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Vector;
 
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences.IPreferenceChangeListener;
@@ -45,7 +37,6 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.PaletteData;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
@@ -96,8 +87,9 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
     
     IPDFEditor editor;
     
-    private Rectangle Selection;
-    private String text;
+    private Vector<PDFSelection> Selection;
+    private Vector<String> text;
+    private boolean ctrlPressed;
     private Point startPoint;
     private Point stopPoint;
     
@@ -111,30 +103,32 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
     	super(parent, SWT.NO_BACKGROUND);
     	sc = (ScrolledComposite) parent;
 
-    	this.addMouseListener(new MouseListener() {
-			
+    	this.addMouseListener(new MouseListener() {			
 			@Override
-			public void mouseUp(org.eclipse.swt.events.MouseEvent e) {
-				
+			public void mouseUp(MouseEvent e) {				
 				stopPoint.x = e.x;
 				stopPoint.y = e.y;
-				Selection = new Rectangle(startPoint.x,startPoint.y,stopPoint.x-startPoint.x,stopPoint.y-startPoint.y);
+				String tempstr = poppler.page_get_selected_text(1.0, new Rectangle(startPoint.x,startPoint.y,stopPoint.x-startPoint.x,stopPoint.y-startPoint.y));
+				System.out.println("\n=======================");
+				System.out.println(tempstr);
+				System.out.println("=======================\n");
+				if(tempstr.length() != 0) {
+					Selection.add(new PDFSelection(currentPageNum, startPoint.x,startPoint.y,stopPoint.x,stopPoint.y));
+					text.add(tempstr);
+				}
 				highlight(Selection);
 				redraw();
-				text = poppler.page_get_selected_text(1.0, Selection);
-				System.out.println("\n=======================");
-				System.out.println(text);
-				System.out.println("=======================\n");
-				if(text.length() == 0)
-				{
-					Selection = null;
-				}
 			}
 			
 			@Override
-			public void mouseDown(org.eclipse.swt.events.MouseEvent e) {
+			public void mouseDown(MouseEvent e) {
 				
 				if (e.button != 1) return;
+				ctrlPressed = ((e.stateMask & SWT.CONTROL) != 0);
+				if(!ctrlPressed) {
+					Selection.clear();
+					text.clear();
+				}
 				
 				startPoint.x = e.x;
 				startPoint.y = e.y;
@@ -207,11 +201,15 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
 
 			@Override
 			public void mouseMove(MouseEvent e) {
-				if((e.stateMask & 0x80000) == 0) return;
+				if((e.stateMask & SWT.BUTTON1) == 0) return;
+				//if((e.stateMask & SWT.COMMAND) != 0);
 				
 				stopPoint.x = e.x;
 				stopPoint.y = e.y;
-				highlight(new Rectangle(startPoint.x,startPoint.y,stopPoint.x-startPoint.x,stopPoint.y-startPoint.y));
+				Vector<PDFSelection> tempsel = new Vector<PDFSelection>();
+				tempsel.addAll(Selection);
+				tempsel.add(new PDFSelection(currentPageNum,startPoint.x,startPoint.y,stopPoint.x,stopPoint.y));
+				highlight(tempsel);
 				redraw();
 				
 				return;
@@ -292,8 +290,9 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
 		
 		this.editor = editor;
 
-		Selection = null;
-		text = null;
+		Selection = new Vector<PDFSelection>();
+		text = new Vector<String>();
+		ctrlPressed = false;
 		startPoint = new Point(-1,-1);
 		stopPoint = new Point(-1,-1);
 
@@ -319,29 +318,33 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
      * @param x2
      * @param y2
      */
-    public void highlight(Rectangle rect) {
-    	highlight = poppler.page_get_selected_region(1.0, rect);
+    public void highlight(Vector<PDFSelection> selection2) {
+    	Vector<Rectangle> rects = new Vector<Rectangle>();
+    	Iterator it = selection2.iterator();
+    	while(it.hasNext()) {
+    		PDFSelection sel = (PDFSelection) it.next();
+    		Rectangle rect = new Rectangle(sel.getLeft(),sel.getTop(),sel.getRigth()-sel.getLeft(),sel.getBottom()-sel.getTop());
+	    	for(Rectangle rc : poppler.page_get_selected_region(1.0, rect)) {
+	    		rects.add(rc);
+	    	}
+    	}
+    	highlight = rects.toArray(new Rectangle[0]);
     }
     
-    public Rectangle getSelection()
+    public Vector<PDFSelection> getSelection()
     {
     	return Selection;
     }
     
-    public int getPage()
-    {
-    	return currentPageNum;
-    }
-    
-    public String getSelectedText()
+    public Vector<String> getSelectedText()
     {
     	return text;
     }
     
-    public void selectText(int page, int top, int bottom, int left, int right)
+    public void selectText(Vector<PDFSelection> selection)
     {
-    	editor.showPage(page);
-		highlight(new Rectangle(left,top,right-left,bottom-top));
+    	editor.showPage(selection.get(0).getPage());
+		highlight(selection);
 		redraw();
     	return;
     }
