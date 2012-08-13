@@ -325,6 +325,47 @@ public class CDCDataCenter {
 		return invisibleroot;
 	}
 	
+	public EntryNode getCategoryTree(String cdcfilename) {
+		invisibleroot.clearChildren();
+		if(cdcfilename==null) {
+			return null;
+		}
+		CDCCachedFile f = getCDCCachedFile(cdcfilename);
+		Stack<FolderMapTreeNode> stack = new Stack<FolderMapTreeNode>();
+		stack.push(f.getMapIdTree());
+		Stack<EntryNode> stackdes = new Stack<EntryNode>();
+		String uuid = f.getMapIdTree().getData();
+		FolderMapEntry entry = f.getFolderEntry(uuid);
+		EntryNode childdes = new EntryNode(new CategoryEntry(uuid, entry.getTime(), entry.getOS(), entry.getCreater(), ((FolderEntry) entry).getFoldername(), ((FolderEntry) entry).getFolderpath()));
+		stackdes.push(childdes);
+		invisibleroot.addChildA(childdes);
+		childdes.setParent(invisibleroot);
+		while(!stack.empty()) {
+			FolderMapTreeNode node = stack.pop();
+			EntryNode parentdes = stackdes.pop();
+			uuid = node.getData();
+			if(getCategoryEntry(cdcfilename, uuid) != null) {
+				// this is a folder
+				FolderMapTreeNode[] children = node.getChildren();
+				for(int i=children.length-1; i>=0; i--) {
+					stack.push(children[i]);
+					uuid = children[i].getData();
+					entry = f.getFolderEntry(uuid);
+					if(entry != null) {
+						childdes = new EntryNode(new CategoryEntry(uuid, entry.getTime(), entry.getOS(), entry.getCreater(), ((FolderEntry) entry).getFoldername(), ((FolderEntry) entry).getFolderpath()));
+						parentdes.addChildA(childdes);
+						childdes.setParent(parentdes);
+					} else {
+						entry = f.getMapEntry(uuid);
+						LinkEntry le = new LinkEntry(uuid, entry.getTime(), entry.getOS(), entry.getCreater(), f.getCodeFilename(((MapEntry) entry).getCodefileUUID()), ((MapEntry) entry).getCodeselpath(), f.getSpecFilename(((MapEntry) entry).getSpecfileUUID()), ((MapEntry) entry).getSpecselpath(), ((MapEntry) entry).getComment());
+						childdes = new EntryNode(le);
+					}
+					stackdes.push(childdes);
+				}
+			}
+		}
+		return invisibleroot;
+	}
 	public EntryNode getLinkTree(String cdcfilename, MapSelectionFilter filter) {
 		invisibleroot.clearChildren();
 		if(cdcfilename==null) {

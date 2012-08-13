@@ -389,6 +389,23 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 			treeViewer.expandToLevel(4);
 		}
 	}
+	public void refresh(EntryNode invisibleroot) {
+		String cdcfilename = CDCEditor.projname2cdcName(projectname);
+		if(tableViewer != null) {
+			tableViewer.setInput(invisibleroot);
+			tableViewer.refresh();
+		}
+		if(treeViewer != null) {
+			if(showCategory) {
+				treeViewer.setInput(invisibleroot);				
+			} else {
+				treeViewer.setInput(invisibleroot);
+			}
+			treeViewer.refresh();
+			treeViewer.expandToLevel(4);
+		}
+	}
+
 	
 	private void highlightSelection(LinkEntry mp) {
 		EntryEditor editor = getActiveEntryEditor();
@@ -728,28 +745,32 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		int operations = DND.DROP_MOVE | DND.DROP_COPY;
 		Transfer[] transferTypes = new Transfer[]{TextTransfer.getInstance()};
 		treeViewer.addDragSupport(operations, transferTypes, new DragSourceListener() {
+			String uuids = null;
 			@Override
 			public void dragStart(DragSourceEvent event) {
 				System.out.println("dragStart");
 				// event.doit = false;
+				ISelection selection = treeViewer.getSelection();
+				if(selection!=null && selection instanceof IStructuredSelection) {
+					IStructuredSelection sel = (IStructuredSelection) selection;
+					Object[] objs = sel.toArray();
+					EntryNode node = (EntryNode) objs[0];
+					uuids = ((BaseEntry) node.getData()).uuid;
+					for(int i=1; i<objs.length; i++) {
+						node = (EntryNode) objs[i];
+						uuids += "/";
+						uuids += ((BaseEntry) node.getData()).uuid;
+					}
+				}
+				System.out.println(uuids);
+				String cdcfilename = CDCEditor.projname2cdcName(projectname);
+				refresh(CDCDataCenter.getInstance().getCategoryTree(cdcfilename));
 			}			
 			@Override
 			public void dragSetData(DragSourceEvent event) {
 				System.out.println("dragSetData");
 				if (TextTransfer.getInstance().isSupportedType(event.dataType)) {
-					ISelection selection = treeViewer.getSelection();
-					if(selection!=null && selection instanceof IStructuredSelection) {
-						IStructuredSelection sel = (IStructuredSelection) selection;
-						Object[] objs = sel.toArray();
-						EntryNode node = (EntryNode) objs[0];
-						String uuids = ((BaseEntry) node.getData()).uuid;
-						for(int i=1; i<objs.length; i++) {
-							node = (EntryNode) objs[i];
-							uuids += "/";
-							uuids += ((BaseEntry) node.getData()).uuid;
-						}
-						event.data = uuids; 
-					}
+					event.data = uuids; 
 				}
 			}
 			@Override
@@ -803,7 +824,7 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 			}
 			@Override
 			public boolean performDrop(Object data) {
-				if(data instanceof String) {
+				if(category != null && data instanceof String) {
 					System.out.println("performDrop: "+data);
 					String cdcfilename = CDCEditor.projname2cdcName(projectname);
 					Vector<String> uuids = new Vector<String>();
@@ -824,8 +845,8 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 					for(int i=0; i<uuids.size(); i++) {
 						CDCDataCenter.getInstance().moveEntry(cdcfilename, uuids.get(i), category.uuid);
 					}
-					refresh();
 				}
+				refresh();
 				return true;
 			}
 		});
