@@ -198,7 +198,7 @@ public class PDFEditor extends EditorPart implements IResourceChangeListener, IN
 		parent.setLayout(new FillLayout());
 		sc = new ScrolledComposite(parent, SWT.H_SCROLL | SWT.V_SCROLL);
 		//ScrolledComposite sc2 = new ScrolledComposite(parent, SWT.H_SCROLL | SWT.V_SCROLL);
-		pv = new PDFPageViewer(sc, this);
+		pv = new PDFPageViewer(sc, this, poppler);
 		//pv = new PDFPageViewerAWT(sc, this);
 		sc.setContent(pv);
 		// Speed up scrolling when using a wheel mouse
@@ -309,12 +309,6 @@ public class PDFEditor extends EditorPart implements IResourceChangeListener, IN
 			writeStatusLineError(NLS.bind("Messages.PDFEditor_SynctexMsg4", path));
 		}
 
-	}
-
-	public PopplerJNI getPoppler() 
-	{
-		System.out.println("PDFEditor::getPoppler()\n");
-		return poppler;
 	}
 	
 	public PDFPageViewer getPDFPageViewer()

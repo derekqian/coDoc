@@ -34,6 +34,7 @@ import org.eclipse.swt.events.MouseMoveListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.PaletteData;
 import org.eclipse.swt.graphics.Point;
@@ -41,6 +42,7 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.ScrollBar;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 
@@ -97,7 +99,7 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
     /**
      * Create a new PagePanel.
      */
-    public PDFPageViewer(Composite parent, final IPDFEditor editor) {
+    public PDFPageViewer(Composite parent, final IPDFEditor editor, final PopplerJNI poppler) {
         //super(parent, SWT.NO_BACKGROUND|SWT.NO_REDRAW_RESIZE);
     	//super(parent, SWT.EMBEDDED | SWT.NO_BACKGROUND | SWT.NO_REDRAW_RESIZE);
     	super(parent, SWT.NO_BACKGROUND);
@@ -297,8 +299,12 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
 		stopPoint = new Point(-1,-1);
 
     	display = parent.getDisplay();
-    	poppler = editor.getPoppler();
-        setSize(800, 600);
+    	this.poppler = poppler;
+		int pages = poppler.document_get_n_pages();
+    	poppler.document_get_page(1);
+    	Dimension size = poppler.page_get_size();
+    	poppler.document_release_page();
+        setSize(size.width, size.height*pages);
         swtImage = null;
         zoomFactor = 1.f;
         this.addPaintListener(this);
@@ -325,6 +331,10 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
     		PDFSelection sel = (PDFSelection) it.next();
     		Rectangle rect = new Rectangle(sel.getLeft(),sel.getTop(),sel.getRigth()-sel.getLeft(),sel.getBottom()-sel.getTop());
 	    	for(Rectangle rc : poppler.page_get_selected_region(1.0, rect)) {
+	        	poppler.document_get_page(1);
+	        	Dimension size = poppler.page_get_size();
+	        	poppler.document_release_page();
+	        	rc.y += (sel.getPage()-1)*size.height;
 	    		rects.add(rc);
 	    	}
     	}
@@ -370,18 +380,10 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
     	//Reset highlight
     	highlight = null;
 
-    	boolean resize = false;
     	int newW = Math.round(zoomFactor*size.width);
     	int newH = Math.round(zoomFactor*size.height);
 
     	Point sz = getSize();
-
-    	if (sz.x != newW || sz.y != newH) {
-    		sz.x = newW;
-    		sz.y = newH;
-    		resize = true;
-    	}
-
     	if (sz.x == 0 || sz.y == 0) return;
 
     	Dimension pageSize = new Dimension(size.width,size.height);
@@ -399,11 +401,9 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
 
     	prevSize = pageSize;
 
-    	if (resize) {
-    		//Resize triggers repaint
-    		setSize(Math.round(zoomFactor*size.width), Math.round(zoomFactor*size.height));
-    		redraw();
-    	}
+		//Resize triggers repaint
+		//setSize(Math.round(zoomFactor*size.width), Math.round(zoomFactor*size.height));
+		redraw();
     }
 
     private Rectangle getRectangle(Rectangle2D r) {
@@ -456,68 +456,56 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
     	GC g = event.gc;
         Point sz = getSize();
     	
-        if (swtImage == null) 
-        {
+    	int pdfPageHeight = sz.y / poppler.document_get_n_pages();
+    	ScrollBar vBar = sc.getVerticalBar();
+    	int page1 = vBar.getSelection() / pdfPageHeight;
+    	int page2 = (vBar.getSelection() + vBar.getThumb() - 1) / pdfPageHeight;
+    	System.out.println(page1 +","+ page2);
+    	for(int i=page1; i<=page2; i++) {
+	    	poppler.document_get_page(i+1);
+	    	Dimension size = poppler.page_get_size();
+	    	ImageData imgdata = new ImageData(size.width, size.height, 32, new PaletteData(0x0000FF00, 0x00FF0000, 0xFF000000));
+	    	poppler.page_render(imgdata.data);
+	    	Image img = new Image(display, imgdata);
+            offx = 0;
+            offy = pdfPageHeight*i;
+	    	g.drawImage(img, offx, offy);
+	    	img.dispose();
+	    	poppler.document_release_page();
+    	}
+
+        if(page1>page2) {
             g.setForeground(getBackground());
             g.fillRectangle(0, 0, sz.x, sz.y);
             g.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
-            g.drawString("swtImage == NULL", sz.x / 2 - 30, sz.y / 2);
-        } 
-        else 
-        {
-        	Dimension size = poppler.page_get_size();
-        	
-            // draw the image
-            int imwid = size.width;
-            int imhgt = size.height;
-
-            // draw it centered within the panel
-            offx = (sz.x - imwid) / 2;
-            offy = (sz.y - imhgt) / 2;
-
-            if ((imwid == sz.x && imhgt <= sz.y) || (imhgt == sz.y && imwid <= sz.x)) 
-            {
-            	
-            	g.drawImage(swtImage, offx, offy);
-
-            	//if (highlightLinks) 
-            	if (false) 
-            	{
-            		//derek List<PDFAnnotation> anno = currentPageNum.getAnnots(PDFAnnotation.LINK_ANNOTATION);
-            		List<LinkAnnotation> anno = null;
-            		g.setForeground(display.getSystemColor(SWT.COLOR_RED));
-            		for (LinkAnnotation a : anno) {
-            			Rectangle r = getRectangle(convertPDF2ImageCoord(a.getRect()));
-            			g.drawRectangle(r);
-            		}
-            	}
-            	
-            	// Draw highlight
-            	if(highlight != null)
-            	{
-                	g.setForeground(display.getSystemColor(SWT.COLOR_WHITE));
-                	g.setXORMode(true);
-            		for(Rectangle rect : highlight)
-            		{
-            			g.fillRectangle(rect);
-            		}
-            	}
-
-            } 
-            else 
-            {
-                // the image is bogus.  try again, or give up.
-                if (currentPageNum != -1) 
-                {
-                    showPage(currentPageNum);
-                }
-                g.setForeground(getBackground());
-                g.fillRectangle(0, 0, sz.x, sz.y);                
-                g.setForeground(display.getSystemColor(SWT.COLOR_RED));
-                g.drawLine(0, 0, sz.x, sz.y);
-                g.drawLine(0, sz.y, sz.x, 0);
-            }
+            g.drawString("No images to display", 20, 20);
+            g.setForeground(display.getSystemColor(SWT.COLOR_RED));
+            g.drawLine(0, 0, sz.x, sz.y);
+            g.drawLine(0, sz.y, sz.x, 0);
         }
+    	
+    	// Draw highlight
+    	if(highlight != null)
+    	{
+        	g.setForeground(display.getSystemColor(SWT.COLOR_WHITE));
+        	g.setXORMode(true);
+    		for(Rectangle rect : highlight)
+    		{
+    			g.fillRectangle(rect);
+    		}
+    	}
+        
+     	//if (highlightLinks) 
+    	if (false) 
+    	{
+    		//derek List<PDFAnnotation> anno = currentPageNum.getAnnots(PDFAnnotation.LINK_ANNOTATION);
+    		List<LinkAnnotation> anno = null;
+    		g.setForeground(display.getSystemColor(SWT.COLOR_RED));
+    		for (LinkAnnotation a : anno) {
+    			Rectangle r = getRectangle(convertPDF2ImageCoord(a.getRect()));
+    			g.drawRectangle(r);
+    		}
+    	}
     }
 
     @Override
@@ -531,8 +519,6 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
     @Override
     public void dispose() {
     	super.dispose();
-
-    	if (swtImage != null) swtImage.dispose();
     	
     	//IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(de.vonloesch.pdf4eclipse.Activator.PLUGIN_ID);
     	IEclipsePreferences prefs = (new InstanceScope()).getNode(edu.pdx.svl.coDoc.poppler.Activator.PLUGIN_ID);
@@ -568,7 +554,6 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
 	}
 
 	public interface IPDFEditor {
-		public PopplerJNI getPoppler();
 		public void showPage(int pageNr);
 		public void showFirstPage();
 		public void showPreviousPage();
