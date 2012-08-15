@@ -50,7 +50,7 @@ public class PDFSelection
 	public void setRight(int right) {
 		this.right = right;
 	}
-	public int getRigth() {
+	public int getRight() {
 		return right;
 	}
 }

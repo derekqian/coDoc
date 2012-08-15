@@ -72,22 +72,16 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
     int offx;
     /** The vertical offset of the image from the top of the panel */
     int offy;
-    /** the size of the image */
-    Dimension prevSize;
     
     private boolean highlightLinks;
     private Rectangle[] highlight;
     
+    IPDFEditor editor;
+    private ScrolledComposite sc;    
     private Display display;
     private PopplerJNI poppler;
     
-    private float zoomFactor;
-    
-    private ScrolledComposite sc;
-    
-    private org.eclipse.swt.graphics.Image swtImage;
-    
-    IPDFEditor editor;
+    private float zoomFactor;    
     
     private Vector<PDFSelection> Selection;
     private Vector<String> text;
@@ -110,12 +104,16 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
 			public void mouseUp(MouseEvent e) {				
 				stopPoint.x = e.x;
 				stopPoint.y = e.y;
-				String tempstr = poppler.page_get_selected_text(1.0, new Rectangle(startPoint.x,startPoint.y,stopPoint.x-startPoint.x,stopPoint.y-startPoint.y));
+				PDFSelection pdfsel = rectToPdfsel(new Rectangle(startPoint.x,startPoint.y,stopPoint.x-startPoint.x,stopPoint.y-startPoint.y));
+				poppler.document_get_page(pdfsel.getPage());
+				poppler.page_get_size();
+				String tempstr = poppler.page_get_selected_text(1.0, new Rectangle(pdfsel.getLeft(),pdfsel.getTop(),pdfsel.getRight()-pdfsel.getLeft(),pdfsel.getBottom()-pdfsel.getTop()));
+				poppler.document_release_page();
 				System.out.println("\n=======================");
 				System.out.println(tempstr);
 				System.out.println("=======================\n");
 				if(tempstr.length() != 0) {
-					Selection.add(new PDFSelection(currentPageNum, startPoint.x,startPoint.y,stopPoint.x,stopPoint.y));
+					Selection.add(pdfsel);
 					text.add(tempstr);
 				}
 				highlight(Selection);
@@ -123,8 +121,7 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
 			}
 			
 			@Override
-			public void mouseDown(MouseEvent e) {
-				
+			public void mouseDown(MouseEvent e) {				
 				if (e.button != 1) return;
 				ctrlPressed = ((e.stateMask & SWT.CONTROL) != 0);
 				if(!ctrlPressed) {
@@ -182,15 +179,13 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
 			}
 			
 			@Override
-			public void mouseDoubleClick(org.eclipse.swt.events.MouseEvent e) {
-				
+			public void mouseDoubleClick(org.eclipse.swt.events.MouseEvent e) {				
 				System.out.println(e);
 				if (e.button != 1) return;
 				
 				final Rectangle2D r = convertImage2PDFCoord(new java.awt.Rectangle(e.x, e.y, 1, 1));
 
-				Display.getDefault().asyncExec(new Runnable() {
-					
+				Display.getDefault().asyncExec(new Runnable() {					
 					@Override
 					public void run() {
 						//derek editor.reverseSearch(r.getX(), currentPageNum.getHeight() - r.getY());
@@ -200,7 +195,6 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
 		});
     	
     	this.addMouseMoveListener(new MouseMoveListener(){
-
 			@Override
 			public void mouseMove(MouseEvent e) {
 				if((e.stateMask & SWT.BUTTON1) == 0) return;
@@ -210,11 +204,10 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
 				stopPoint.y = e.y;
 				Vector<PDFSelection> tempsel = new Vector<PDFSelection>();
 				tempsel.addAll(Selection);
-				tempsel.add(new PDFSelection(currentPageNum,startPoint.x,startPoint.y,stopPoint.x,stopPoint.y));
+				PDFSelection pdfsel = rectToPdfsel(new Rectangle(startPoint.x,startPoint.y,stopPoint.x-startPoint.x,stopPoint.y-startPoint.y));
+				tempsel.add(pdfsel);
 				highlight(tempsel);
 				redraw();
-				
-				return;
 			}
 		});
 
@@ -305,7 +298,6 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
     	Dimension size = poppler.page_get_size();
     	poppler.document_release_page();
         setSize(size.width, size.height*pages);
-        swtImage = null;
         zoomFactor = 1.f;
         this.addPaintListener(this);
         
@@ -315,6 +307,31 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
 		highlightLinks = prefs.getBoolean(ToggleLinkHighlightHandler.PREF_LINKHIGHTLIGHT_ID, true);
     }
 
+    private Rectangle pdfselToRect(PDFSelection sel) {
+    	poppler.document_get_page(1);
+    	Dimension size = poppler.page_get_size();
+    	poppler.document_release_page();
+    	Rectangle rect = new Rectangle(sel.getLeft(),sel.getTop()+(sel.getPage()-1)*size.height,sel.getRight()-sel.getLeft(),sel.getBottom()-sel.getTop());
+    	return rect;
+    }
+    private PDFSelection rectToPdfsel(Rectangle rect) {
+    	poppler.document_get_page(1);
+    	Dimension size = poppler.page_get_size();
+    	poppler.document_release_page();
+    	int page = rect.y/size.height + 1;
+    	int left = rect.x;
+    	int top = rect.y % size.height;
+    	int right = left + rect.width;
+    	int bottom = top + rect.height;
+    	PDFSelection sel = new PDFSelection(page,left,top,right,bottom);
+    	return sel;
+    }
+    private Rectangle filerectToDisprect(int page, Rectangle drect) {
+    	poppler.document_get_page(1);
+    	Dimension size = poppler.page_get_size();
+    	poppler.document_release_page();
+    	return new Rectangle(drect.x,drect.y+(page-1)*size.height,drect.width,drect.height);
+    }
 
     /**
      * Highlights the rectangle given by the upper left and lower right 
@@ -329,14 +346,13 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
     	Iterator it = selection2.iterator();
     	while(it.hasNext()) {
     		PDFSelection sel = (PDFSelection) it.next();
-    		Rectangle rect = new Rectangle(sel.getLeft(),sel.getTop(),sel.getRigth()-sel.getLeft(),sel.getBottom()-sel.getTop());
+    		Rectangle rect = new Rectangle(sel.getLeft(),sel.getTop(),sel.getRight()-sel.getLeft(),sel.getBottom()-sel.getTop());
+    		poppler.document_get_page(sel.getPage());
+    		poppler.page_get_size();
 	    	for(Rectangle rc : poppler.page_get_selected_region(1.0, rect)) {
-	        	poppler.document_get_page(1);
-	        	Dimension size = poppler.page_get_size();
-	        	poppler.document_release_page();
-	        	rc.y += (sel.getPage()-1)*size.height;
-	    		rects.add(rc);
+	    		rects.add(filerectToDisprect(sel.getPage(),rc));
 	    	}
+	    	poppler.document_release_page();
     	}
     	highlight = rects.toArray(new Rectangle[0]);
     }
@@ -356,7 +372,6 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
     	editor.showPage(selection.get(0).getPage());
 		highlight(selection);
 		redraw();
-    	return;
     }
 
     /**
@@ -366,13 +381,6 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
     public void showPage(int page) 
     {
     	Dimension size = poppler.page_get_size();
-    	
-    	ImageData imgdata = new ImageData(size.width, size.height, 32, new PaletteData(0x0000FF00, 0x00FF0000, 0xFF000000));
-    	poppler.page_render(imgdata.data);
-    	if (swtImage != null) swtImage.dispose();
-    	swtImage = new org.eclipse.swt.graphics.Image(display, imgdata);
-
-    	// stop drawing the previous page
 
     	// set up the new page
     	currentPageNum = page;
@@ -398,8 +406,6 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
     		//System.out.println(Messages.PDFPageViewer_Error1);
     	//derek nte.printStackTrace();
     	//derek }
-
-    	prevSize = pageSize;
 
 		//Resize triggers repaint
 		//setSize(Math.round(zoomFactor*size.width), Math.round(zoomFactor*size.height));

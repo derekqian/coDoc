@@ -550,7 +550,7 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 			selection.addTop(sel.getTop());
 			selection.addBottom(sel.getBottom());
 			selection.addLeft(sel.getLeft());
-			selection.addRight(sel.getRigth());
+			selection.addRight(sel.getRight());
 			selection.addPDFText(pdftext);
 		}
 		
