@@ -52,6 +52,7 @@ import edu.pdx.svl.coDoc.poppler.lib.GoToAction;
 import edu.pdx.svl.coDoc.poppler.lib.UriAction;
 import edu.pdx.svl.coDoc.poppler.lib.LinkAnnotation;
 
+import edu.pdx.svl.coDoc.poppler.handler.PageSelectCombo;
 import edu.pdx.svl.coDoc.poppler.handler.ToggleLinkHighlightHandler;
 import edu.pdx.svl.coDoc.poppler.lib.PopplerJNI;
 
@@ -212,7 +213,6 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
 		});
 
 		this.addKeyListener(new KeyAdapter() {
-
 			@Override
 			public void keyPressed(KeyEvent e) {
 				int height = sc.getClientArea().height;
@@ -299,6 +299,16 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
     	poppler.document_release_page();
         setSize(size.width, size.height*pages);
         zoomFactor = 1.f;
+        
+        if(PageSelectCombo.getInstance() != null) {
+	        PageSelectCombo.getInstance().removeAll();
+	        for(int i=1; i<=pages; i++) {
+		        PageSelectCombo.getInstance().add(Integer.toString(i));        	
+	        }
+	        PageSelectCombo.getInstance().select(0);
+	        //PageSelectCombo.getInstance().redraw();        	
+        }
+        
         this.addPaintListener(this);
         
         IEclipsePreferences prefs = (new InstanceScope()).getNode(edu.pdx.svl.coDoc.poppler.Activator.PLUGIN_ID);
@@ -380,22 +390,21 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
      */
     public void showPage(int page) 
     {
-    	Dimension size = poppler.page_get_size();
-
     	// set up the new page
     	currentPageNum = page;
 
     	//Reset highlight
     	highlight = null;
 
-    	int newW = Math.round(zoomFactor*size.width);
-    	int newH = Math.round(zoomFactor*size.height);
-
     	Point sz = getSize();
     	if (sz.x == 0 || sz.y == 0) return;
+    	
+    	poppler.document_get_page(1);
+    	Dimension size = poppler.page_get_size();
+    	poppler.document_release_page();
+    	setOrigin(sc.getOrigin().x, (page-1)*size.height);
 
-    	Dimension pageSize = new Dimension(size.width,size.height);
-
+    	//Dimension pageSize = new Dimension(size.width,size.height);
     	//ImageInfo info = new ImageInfo(pageSize.width, pageSize.height, null, Color.WHITE);
     	
     	// calculate the transform from screen to page space
@@ -479,6 +488,7 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
 	    	img.dispose();
 	    	poppler.document_release_page();
     	}
+    	PageSelectCombo.getInstance().select((page1+page2)/2);
 
         if(page1>page2) {
             g.setForeground(getBackground());

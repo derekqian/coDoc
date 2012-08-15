@@ -71,6 +71,18 @@
             </class>
          </state>
       </command>
+      <command
+            categoryId="edu.pdx.svl.coDoc.commands.category"
+            defaultHandler="edu.pdx.svl.coDoc.poppler.handler.PageSelectHandler"
+            description="Select the page to be displayed"
+            id="PDFViewer.command.pageSelectAction"
+            name="Page select">
+         <commandParameter
+               id="PDFViewer.command.parameter.pageselect"
+               name="page select"
+               optional="false">
+         </commandParameter>
+      </command>
    </extension>
    <extension
          point="org.eclipse.ui.bindings">
@@ -201,7 +213,29 @@
                   </reference>
                </visibleWhen>
             </command>
+            <command
+                  commandId="PDFViewer.command.pageSelectAction"
+                  id="PDFViewer.command.toolbar.pageSelectAction"
+                  style="pulldown"
+                  tooltip="This is main">
+            </command>
+            <control
+                  class="edu.pdx.svl.coDoc.poppler.handler.PageSelectCombo"
+                  id="PDFViewer.command.toolbar.PageSelectCombo">
+            </control>
          </toolbar>
+      </menuContribution>
+      <menuContribution locationURI="menu:PDFViewer.command.toolbar.pageSelectAction">
+         <command commandId="PDFViewer.command.pageSelectAction" label="Msg - hi" style="push">
+               <parameter name="PDFViewer.command.parameter.pageselect" value="Hello">
+               </parameter>
+         </command>
+	<separator name="additions" visible="false">
+	</separator>
+         <command commandId="PDFViewer.command.pageSelectAction" label="Msg - bye" style="push">
+               <parameter name="PDFViewer.command.parameter.pageselect" value="Goodbye">
+               </parameter>
+         </command>
       </menuContribution>
    </extension>
    <extension
