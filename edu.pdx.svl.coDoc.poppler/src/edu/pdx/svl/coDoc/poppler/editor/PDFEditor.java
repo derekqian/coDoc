@@ -334,13 +334,6 @@ public class PDFEditor extends EditorPart implements IResourceChangeListener, IN
 		//}
 	}
 	
-	public void showFirstPage()
-	{
-		System.out.println("PDFEditor::showFirstPage()\n");
-		showPage(1);
-		return;
-	}
-	
 	public void showPreviousPage()
 	{
 		System.out.println("PDFEditor::showPreviousPage()\n");
@@ -356,13 +349,6 @@ public class PDFEditor extends EditorPart implements IResourceChangeListener, IN
 		if (currentPage < pageNumbers) {
 			showPage(currentPage + 1);
 		}
-		return;
-	}
-	
-	public void showLastPage()
-	{
-		System.out.println("PDFEditor::showLastPage()\n");
-		showPage(pageNumbers);
 		return;
 	}
 

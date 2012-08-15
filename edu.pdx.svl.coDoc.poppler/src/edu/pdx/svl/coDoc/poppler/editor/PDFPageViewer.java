@@ -223,28 +223,20 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
 				Point p = sc.getOrigin();
 				if (e.keyCode == SWT.PAGE_DOWN) {
 					if (p.y < pheight - height) {
+						//We are not at the end of the page
 						int y = p.y + pInc;
 						if (y > pheight - height) {
 							y = pheight - height;
 						}
 						sc.setOrigin(sc.getOrigin().x, y);
 					}
-					else {
-						//We are at the end of the page
-						editor.showNextPage();
-						setOrigin(sc.getOrigin().x, 0);
-					}
 				}
 				else if (e.keyCode == SWT.PAGE_UP) {
 					if (p.y > 0) {
+						//We are not at the top of the page
 						int y = p.y - pInc;
 						if (y < 0) y = 0;
 						sc.setOrigin(sc.getOrigin().x, y);
-					}
-					else {
-						//We are at the top of the page
-						editor.showPreviousPage();
-						setOrigin(sc.getOrigin().x, pheight);
 					}					
 				}
 				else if (e.keyCode == SWT.ARROW_DOWN) {
@@ -272,11 +264,9 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
 					}					
 				}
 				else if (e.keyCode == SWT.HOME) {
-					editor.showFirstPage();
 					setOrigin(sc.getOrigin().x, 0);
 				}
 				else if (e.keyCode == SWT.END) {
-					editor.showLastPage();
 					setOrigin(sc.getOrigin().x, pheight);
 				}	
 
@@ -367,34 +357,44 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
     	highlight = rects.toArray(new Rectangle[0]);
     }
     
-    public Vector<PDFSelection> getSelection()
-    {
+    public Vector<PDFSelection> getSelection() {
     	return Selection;
     }
     
-    public Vector<String> getSelectedText()
-    {
+    public Vector<String> getSelectedText() {
     	return text;
     }
     
-    public void selectText(Vector<PDFSelection> selection)
-    {
-    	editor.showPage(selection.get(0).getPage());
+    public void selectText(Vector<PDFSelection> selection) {
 		highlight(selection);
 		redraw();
+    }
+    
+    public void selectTextAndReveal(Vector<PDFSelection> selection) {
+		if(!selection.isEmpty()) {
+			highlight(selection);
+			Rectangle rect = sc.getClientArea();
+			PDFSelection sel = selection.get(0);
+	    	int page = sel.getPage();
+	    	poppler.document_get_page(page);
+	    	Dimension size = poppler.page_get_size();
+	    	poppler.document_release_page();
+	    	int y = (page-1)*size.height;
+	    	if(rect.height/2 < sel.getTop()) {
+	    		y += sel.getTop() - rect.height/2;
+	    	}
+	    	setOrigin(sc.getOrigin().x, y);			
+			redraw();
+		}
     }
 
     /**
      * Stop the generation of any previous page, and draw the new one.
      * @param page the PDFPage to draw.
      */
-    public void showPage(int page) 
-    {
+    public void showPage(int page) {
     	// set up the new page
     	currentPageNum = page;
-
-    	//Reset highlight
-    	highlight = null;
 
     	Point sz = getSize();
     	if (sz.x == 0 || sz.y == 0) return;
@@ -571,10 +571,8 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
 
 	public interface IPDFEditor {
 		public void showPage(int pageNr);
-		public void showFirstPage();
 		public void showPreviousPage();
 		public void showNextPage();
-		public void showLastPage();
 		public void gotoAction(PDFDestination dest);
 		public void writeStatusLineError(String text);
 	}
