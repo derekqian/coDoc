@@ -35,6 +35,7 @@ import edu.pdx.svl.coDoc.poppler.editor.PDFPageViewer;
 public class PageSelectCombo extends WorkbenchWindowControlContribution {
 	private static PageSelectCombo instance = null;
 	private Combo combo;
+	private boolean indirect = false;
 	
 	public static PageSelectCombo getInstance() {
 		return instance;
@@ -59,20 +60,21 @@ public class PageSelectCombo extends WorkbenchWindowControlContribution {
 	    combo.setLayoutData(grid);
 		combo.addModifyListener(new ModifyListener() {
 			public void modifyText(final ModifyEvent e) {
-
-				IWorkbench workbench = PlatformUI.getWorkbench();
-				if(workbench == null) return;
-				IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
-				if(workbenchwindow == null) return;
-				IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
-				if(workbenchPage == null) return;
-				IEditorReference[] editorrefs = workbenchPage.findEditors(null,PDFEditor.ID,IWorkbenchPage.MATCH_ID);
-				if(editorrefs == null) return;
-				for(IEditorReference er : editorrefs) {
-					PDFEditor editor = (PDFEditor) er.getEditor(false);
-					PDFPageViewer pageviewer = editor.getPDFPageViewer();
-					int page = combo.getSelectionIndex() + 1;
-					pageviewer.showPage(page);
+				if(!indirect) {
+					IWorkbench workbench = PlatformUI.getWorkbench();
+					if(workbench == null) return;
+					IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
+					if(workbenchwindow == null) return;
+					IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
+					if(workbenchPage == null) return;
+					IEditorReference[] editorrefs = workbenchPage.findEditors(null,PDFEditor.ID,IWorkbenchPage.MATCH_ID);
+					if(editorrefs == null) return;
+					for(IEditorReference er : editorrefs) {
+						PDFEditor editor = (PDFEditor) er.getEditor(false);
+						PDFPageViewer pageviewer = editor.getPDFPageViewer();
+						int page = combo.getSelectionIndex() + 1;
+						pageviewer.showPage(page);
+					}					
 				}
 			}
 		});
@@ -89,8 +91,14 @@ public class PageSelectCombo extends WorkbenchWindowControlContribution {
 		combo.removeAll();
 	}
 	
+	/**
+	 * Only change the selection display. This action will not trigger the actions defined in the Listener.
+	 * @param index
+	 */
 	public void select(int index) {
+		indirect = true;
 		combo.select(index);
+		indirect = false;
 	}
 	
 	public void redraw() {
