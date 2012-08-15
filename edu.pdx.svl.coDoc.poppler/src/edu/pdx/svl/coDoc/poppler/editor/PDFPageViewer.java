@@ -488,7 +488,20 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
 	    	img.dispose();
 	    	poppler.document_release_page();
     	}
-    	PageSelectCombo.getInstance().select((page1+page2)/2);
+    	if(page1==page2) {
+	    	PageSelectCombo.getInstance().select(page1);    		
+    	} else {
+    		int page1size = (page1+1)*pdfPageHeight - vBar.getSelection();
+    		int page2size = vBar.getSelection() + vBar.getThumb() - (page1+1)*pdfPageHeight;
+    		if(page2size > pdfPageHeight) {
+    			page2size = pdfPageHeight;
+    		}
+    		if(page2size>page1size) {
+    			PageSelectCombo.getInstance().select(page2);
+    		} else {
+    			PageSelectCombo.getInstance().select(page1);
+    		}
+    	}
 
         if(page1>page2) {
             g.setForeground(getBackground());
