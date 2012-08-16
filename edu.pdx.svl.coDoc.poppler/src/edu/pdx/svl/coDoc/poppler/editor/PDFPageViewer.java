@@ -295,7 +295,7 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
 	        for(int i=1; i<=pages; i++) {
 		        PageSelectCombo.getInstance().add(Integer.toString(i));        	
 	        }
-	        PageSelectCombo.getInstance().select(0);
+	        //PageSelectCombo.getInstance().select(0);
 	        //PageSelectCombo.getInstance().redraw();        	
         }
         
