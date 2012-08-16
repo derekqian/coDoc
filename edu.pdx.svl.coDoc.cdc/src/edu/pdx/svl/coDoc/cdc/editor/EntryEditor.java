@@ -571,7 +571,8 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 				selvec.add(new PDFSelection(page.get(i),left.get(i),top.get(i),right.get(i),bottom.get(i)));				
 			}
 		}
-		acrobatInterface.selectText(selvec);
+		//acrobatInterface.selectText(selvec);
+		acrobatInterface.selectTextAndReveal(selvec);
 	}
 	
 	private MyASTTree buildMyAST() {
