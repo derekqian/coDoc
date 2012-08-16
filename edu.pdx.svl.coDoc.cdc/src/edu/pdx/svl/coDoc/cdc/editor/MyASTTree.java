@@ -81,9 +81,9 @@ public class MyASTTree {
 		}
 		leafArray = new MyASTNode[astLeaf.size()];
 		System.arraycopy(astLeaf.toArray(), 0, leafArray, 0, astLeaf.size());
-		for(int i=0; i<leafArray.length; i++) {
-			System.out.println(leafArray[i].getData().getFileLocation().getNodeOffset() + " -> " + (leafArray[i].getData().getFileLocation().getNodeOffset()+leafArray[i].getData().getFileLocation().getNodeLength()) + leafArray[i].getData().getRawSignature());
-		}
+		//for(int i=0; i<leafArray.length; i++) {
+		//	System.out.println(leafArray[i].getData().getFileLocation().getNodeOffset() + " -> " + (leafArray[i].getData().getFileLocation().getNodeOffset()+leafArray[i].getData().getFileLocation().getNodeLength()) + leafArray[i].getData().getRawSignature());
+		//}
 		return leafArray;
 	}
 	
