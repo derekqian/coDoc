@@ -21,6 +21,7 @@ import org.eclipse.swt.widgets.Control;
 
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbench;
@@ -28,6 +29,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.menus.WorkbenchWindowControlContribution;
+import org.eclipse.ui.part.AbstractMultiEditor;
 
 import edu.pdx.svl.coDoc.poppler.editor.PDFEditor;
 import edu.pdx.svl.coDoc.poppler.editor.PDFPageViewer;
@@ -61,20 +63,47 @@ public class PageSelectCombo extends WorkbenchWindowControlContribution {
 		combo.addModifyListener(new ModifyListener() {
 			public void modifyText(final ModifyEvent e) {
 				if(!indirect) {
+					IEditorPart editor = null;
+					PDFPageViewer pageviewer = null;
 					IWorkbench workbench = PlatformUI.getWorkbench();
 					if(workbench == null) return;
 					IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
 					if(workbenchwindow == null) return;
 					IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
 					if(workbenchPage == null) return;
-					IEditorReference[] editorrefs = workbenchPage.findEditors(null,PDFEditor.ID,IWorkbenchPage.MATCH_ID);
-					if(editorrefs == null) return;
-					for(IEditorReference er : editorrefs) {
-						PDFEditor editor = (PDFEditor) er.getEditor(false);
-						PDFPageViewer pageviewer = editor.getPDFPageViewer();
-						int page = combo.getSelectionIndex() + 1;
-						pageviewer.showPage(page);
-					}					
+					IEditorPart activeeditor = workbenchPage.getActiveEditor();
+					if(activeeditor == null) return;
+					if(activeeditor instanceof AbstractMultiEditor) {
+						editor = activeeditor;
+					} else {
+						// check if it's the child of EntryEditor
+						IEditorReference[] editorrefs = workbenchPage.findEditors(null,"edu.pdx.svl.coDoc.cdc.editor.EntryEditor",IWorkbenchPage.MATCH_ID);
+						for(IEditorReference er : editorrefs) {
+							IEditorPart innerEditors[] = ((AbstractMultiEditor) er.getEditor(false)).getInnerEditors();
+							for(IEditorPart ep : innerEditors) {
+								if(ep == activeeditor) {
+									editor = er.getEditor(false);
+									break;
+								}
+							}
+							if(editor != null) {
+								break;
+							}
+						}
+					}
+					if(editor == null) return;
+					
+					IEditorPart innerEditors[] = ((AbstractMultiEditor) editor).getInnerEditors();
+					for(IEditorPart ep : innerEditors) {
+						if(ep instanceof PDFEditor) {
+							editor = ep;
+							break;
+						}
+					}
+					
+					pageviewer = ((PDFEditor) editor).getPDFPageViewer();
+					int page = combo.getSelectionIndex() + 1;
+					pageviewer.showPage(page);
 				}
 			}
 		});
