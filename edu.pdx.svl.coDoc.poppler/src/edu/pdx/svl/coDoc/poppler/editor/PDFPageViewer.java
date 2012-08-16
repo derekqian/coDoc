@@ -366,13 +366,24 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
     }
     
     public void selectText(Vector<PDFSelection> selection) {
+    	this.Selection = selection;
+    	text.clear();
+    	Iterator it = selection.iterator();
+    	while(it.hasNext()) {
+    		PDFSelection sel = (PDFSelection) it.next();
+			poppler.document_get_page(sel.getPage());
+			poppler.page_get_size();
+    		Rectangle rect = new Rectangle(sel.getLeft(),sel.getTop(),sel.getRight()-sel.getLeft(),sel.getBottom()-sel.getTop());
+			String tempstr = poppler.page_get_selected_text(1.0, rect);
+	    	text.add(tempstr);
+	    	poppler.document_release_page();
+    	}
 		highlight(selection);
 		redraw();
     }
     
     public void selectTextAndReveal(Vector<PDFSelection> selection) {
 		if(!selection.isEmpty()) {
-			highlight(selection);
 			Rectangle rect = sc.getClientArea();
 			PDFSelection sel = selection.get(0);
 	    	int page = sel.getPage();
@@ -384,7 +395,7 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
 	    		y += sel.getTop() - rect.height/2;
 	    	}
 	    	setOrigin(sc.getOrigin().x, y);			
-			redraw();
+	    	selectText(selection);
 		}
     }
 
