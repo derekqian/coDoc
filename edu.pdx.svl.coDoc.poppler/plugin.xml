@@ -218,6 +218,12 @@
                   id="PDFViewer.command.toolbar.pageSelectAction"
                   style="pulldown"
                   tooltip="This is main">
+               <visibleWhen
+                     checkEnabled="false">
+                  <reference
+                        definitionId="PDFViewer.definitions.isPDFEditorActive">
+                  </reference>
+               </visibleWhen>
             </command>
             <control
                   class="edu.pdx.svl.coDoc.poppler.handler.PageSelectCombo"
