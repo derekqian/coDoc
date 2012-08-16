@@ -406,6 +406,19 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		}
 	}
 
+	public void reselect(EntryNode node) {
+		if(tableViewer != null) {
+			tableViewer.setSelection(new StructuredSelection(node),true);
+		}
+		if(treeViewer != null) {
+			treeViewer.setSelection(new StructuredSelection(node),true);
+		}
+	}
+	public void reselect(String uuid) {
+		String cdcfilename = CDCEditor.projname2cdcName(projectname);
+		EntryNode node = CDCDataCenter.getInstance().getEntryNode(uuid);
+		reselect(node);
+	}
 	
 	private void highlightSelection(LinkEntry mp) {
 		EntryEditor editor = (EntryEditor) CDCEditor.getOpenedEntryEditorTop(projectname);
@@ -854,10 +867,7 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 					}
 				}
 				refresh();
-				// reselect code here
-				EntryNode node = CDCDataCenter.getInstance().getEntryNode(uuids.get(uuids.size()-1));
-				//treeViewer.setSelection(new TreeSelection(node));
-				treeViewer.setSelection(new StructuredSelection(node),true);
+				reselect(uuids.get(uuids.size()-1));
 				return true;
 			}
 		});
