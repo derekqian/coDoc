@@ -63,9 +63,10 @@ public class CDCCachedFile {
 		return cdcModel.getMapIdTree();
 	}
 	
-	public void addFolderEntry(String parentfolderuuid, String foldername) {
-		cdcModel.addFolderEntry(parentfolderuuid, foldername);
+	public String addFolderEntry(String parentfolderuuid, String foldername) {
+		String uuid = cdcModel.addFolderEntry(parentfolderuuid, foldername);
 		flush();
+		return uuid;
 	}
 	public FolderEntry getFolderEntry(String uuid) {
 		return cdcModel.getFolderEntry(uuid);
@@ -75,9 +76,10 @@ public class CDCCachedFile {
 		flush();
 	}
 	
-	public void addMapEntry(String parentfolderuuid, String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
-		cdcModel.addMapEntry(parentfolderuuid, codefilename, codeselpath, specfilename, specselpath, comment);
+	public String addMapEntry(String parentfolderuuid, String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
+		String uuid = cdcModel.addMapEntry(parentfolderuuid, codefilename, codeselpath, specfilename, specselpath, comment);
 		flush();
+		return uuid;
 	}
 	public void editMapEntry(String uuid, String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
 		cdcModel.editMapEntry(uuid, codefilename, codeselpath, specfilename, specselpath, comment);

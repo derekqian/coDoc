@@ -820,16 +820,19 @@ public class CDCEditor implements IEditorLauncher
 		}		
 	}
 	public static void addCategory(String parentuuid, String cat) {
+		String uuid = null;
 		EntryEditor editor = (EntryEditor) getActiveEntryEditor();
 		if(editor!=null) {
-			CDCDataCenter.getInstance().addCategoryEntry(editor.getCDCFilename(), parentuuid, cat);
+			uuid = CDCDataCenter.getInstance().addCategoryEntry(editor.getCDCFilename(), parentuuid, cat);
 		} else {
 			MessageDialog.openError(null, "Error",  "Editor not open!");
+			return;
 		}
 		
 		IReferenceExplorer view = (IReferenceExplorer)findView("edu.pdx.svl.coDoc.views.link.ReferenceExplorerView");
 		if(view != null) {
 			view.refresh();
+			view.reselect(uuid);
 		}
 		
 		try {
@@ -880,6 +883,7 @@ public class CDCEditor implements IEditorLauncher
 		
 	}
 	public static void addReference(String parentuuid, String comment) {
+		String uuid = null;
 		EntryEditor editor = (EntryEditor) getActiveEntryEditor();
 		if(editor!=null) {
 			IPath codepath = null;
@@ -890,14 +894,16 @@ public class CDCEditor implements IEditorLauncher
 			CodeSelection codeselpath = editor.getSelectionInTextEditor();
 			String specfilename = (specpath.isAbsolute()?"project://":"project:///")+specpath;
 			SpecSelection specselpath = editor.getSelectionInAcrobat();
-			CDCDataCenter.getInstance().addLinkEntry(editor.getCDCFilename(), parentuuid, codefilename, codeselpath, specfilename, specselpath, comment);
+			uuid = CDCDataCenter.getInstance().addLinkEntry(editor.getCDCFilename(), parentuuid, codefilename, codeselpath, specfilename, specselpath, comment);
 		} else {
 			MessageDialog.openError(null, "Error",  "Editor not open!");
+			return;
 		}
 		
 		IReferenceExplorer view = (IReferenceExplorer)findView("edu.pdx.svl.coDoc.views.link.ReferenceExplorerView");
 		if(view != null) {
 			view.refresh();
+			view.reselect(uuid);
 		}
 		
 		try {

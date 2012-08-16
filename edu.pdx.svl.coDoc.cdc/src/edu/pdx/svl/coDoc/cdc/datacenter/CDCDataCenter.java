@@ -126,10 +126,12 @@ public class CDCDataCenter {
 		}
 	}
 	
-	public void addCategoryEntry(String cdcfilename, String parentfolderuuid, String foldername) {
+	public String addCategoryEntry(String cdcfilename, String parentfolderuuid, String foldername) {
 		CDCCachedFile f = getCDCCachedFile(cdcfilename);
 		if(f!=null) {
-			f.addFolderEntry(parentfolderuuid, foldername);
+			return f.addFolderEntry(parentfolderuuid, foldername);
+		} else {
+			return null;
 		}
 	}
 	
@@ -160,10 +162,12 @@ public class CDCDataCenter {
 		}
 	}*/
 	
-	public void addLinkEntry(String cdcfilename, String parentfolderuuid, String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
+	public String addLinkEntry(String cdcfilename, String parentfolderuuid, String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
 		CDCCachedFile f = getCDCCachedFile(cdcfilename);
 		if(f!=null) {
-			f.addMapEntry(parentfolderuuid, codefilename, codeselpath, specfilename, specselpath, comment);
+			return f.addMapEntry(parentfolderuuid, codefilename, codeselpath, specfilename, specselpath, comment);
+		} else {
+			return null;
 		}
 	}
 	

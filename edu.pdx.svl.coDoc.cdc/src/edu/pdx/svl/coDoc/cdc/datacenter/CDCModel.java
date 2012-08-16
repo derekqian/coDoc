@@ -581,15 +581,15 @@ public class CDCModel {
 		return null;
 	}
 	
-	public void addFolderEntry(String parentfolderuuid, String foldername) {
+	public String addFolderEntry(String parentfolderuuid, String foldername) {
 		Properties props=System.getProperties();
 		date = new Date();
 		String time = ft.format(date);
 		String creater = props.getProperty("user.name");
 		String os = props.getProperty("os.name");
-		addFolderEntry(time, os, creater, parentfolderuuid, foldername);
+		return addFolderEntry(time, os, creater, parentfolderuuid, foldername);
 	}
-	public void addFolderEntry(String time, String os, String creater, String parentfolderuuid, String foldername) {
+	public String addFolderEntry(String time, String os, String creater, String parentfolderuuid, String foldername) {
 		FolderEntry folderentry = body.folders.getFolderEntry(parentfolderuuid);
 		String folderpath = folderentry.getFolderpath();
 		if(!folderentry.getFoldername().equals("/")) {
@@ -603,6 +603,7 @@ public class CDCModel {
 		parent.addChild(child);
 		body.relations.addRelation(uuid, parentfolderuuid);
 		hist.addOperation(time+"#"+os+"#"+creater+"#add#folderentry#"+uuid+"#"+parentfolderuuid);
+		return uuid;
 	}
 	
 	public FolderEntry getFolderEntry(String uuid) {
@@ -631,15 +632,15 @@ public class CDCModel {
 		hist.addOperation(time+"#"+os+"#"+creater+"#del#folderentry#"+uuid);
 	}
 	
-	public void addMapEntry(String parentfolderuuid, String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
+	public String addMapEntry(String parentfolderuuid, String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
 		Properties props=System.getProperties();
 		date = new Date();
 		String time = ft.format(date);
 		String creater = props.getProperty("user.name");
 		String os = props.getProperty("os.name");
-		addMapEntry(time, os, creater, parentfolderuuid, codefilename, codeselpath, specfilename, specselpath, comment);
+		return addMapEntry(time, os, creater, parentfolderuuid, codefilename, codeselpath, specfilename, specselpath, comment);
 	}
-	public void addMapEntry(String time, String os, String creater, String parentfolderuuid, String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
+	public String addMapEntry(String time, String os, String creater, String parentfolderuuid, String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
 		addCodeFileEntry(codefilename);
 		addSpecFileEntry(specfilename);
 		String codefileuuid = body.codefiles.getFileEntryId(codefilename);
@@ -651,6 +652,7 @@ public class CDCModel {
 		parent.addChild(child);
 		body.relations.addRelation(uuid, parentfolderuuid);
 		hist.addOperation(time+"#"+os+"#"+creater+"#add#mapentry#"+uuid+"#"+parentfolderuuid);
+		return uuid;
 	}
 	
 	public void editMapEntry(String olduuid, String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {

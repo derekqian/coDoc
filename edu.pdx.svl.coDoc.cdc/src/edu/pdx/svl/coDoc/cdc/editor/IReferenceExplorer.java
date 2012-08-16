@@ -9,4 +9,5 @@ public interface IReferenceExplorer
 	public void refresh();
 	public ISelection getSelection();
 	public String getProjectName();
+	public void reselect(String uuid);
 }
