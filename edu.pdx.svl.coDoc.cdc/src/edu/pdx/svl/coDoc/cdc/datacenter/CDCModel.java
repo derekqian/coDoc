@@ -645,13 +645,16 @@ public class CDCModel {
 		addSpecFileEntry(specfilename);
 		String codefileuuid = body.codefiles.getFileEntryId(codefilename);
 		String specfileuuid = body.specfiles.getFileEntryId(specfilename);
-		String uuid = body.maps.addMapEntry(time, os, creater, codefileuuid, codeselpath, specfileuuid, specselpath, comment);
-		FolderMapTreeNode parent = getMapIdTreeNode(parentfolderuuid);
-		FolderMapTreeNode child = new FolderMapTreeNode(uuid);
-		child.setParent(parent);
-		parent.addChild(child);
-		body.relations.addRelation(uuid, parentfolderuuid);
-		hist.addOperation(time+"#"+os+"#"+creater+"#add#mapentry#"+uuid+"#"+parentfolderuuid);
+		String uuid = body.maps.getMapEntryId(codefileuuid, codeselpath, specfileuuid, specselpath, comment);
+		if(uuid == null) {
+			uuid = body.maps.addMapEntry(time, os, creater, codefileuuid, codeselpath, specfileuuid, specselpath, comment);
+			FolderMapTreeNode parent = getMapIdTreeNode(parentfolderuuid);
+			FolderMapTreeNode child = new FolderMapTreeNode(uuid);
+			child.setParent(parent);
+			parent.addChild(child);
+			body.relations.addRelation(uuid, parentfolderuuid);
+			hist.addOperation(time+"#"+os+"#"+creater+"#add#mapentry#"+uuid+"#"+parentfolderuuid);
+		}
 		return uuid;
 	}
 	
