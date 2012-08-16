@@ -448,8 +448,9 @@ public class CDCDataCenter {
 		}
 		String preuuid = null;
 		Stack<EntryNode> stack = new Stack<EntryNode>();
-		for(EntryNode n : invisibleroot.getChildren()) {
-			stack.push(n);
+		EntryNode[] children = invisibleroot.getChildren();
+		for(int i=(children.length-1); i>=0; i--) {
+			stack.push(children[i]);
 		}
 		while(!stack.empty()) {
 			EntryNode node = stack.pop();
@@ -457,8 +458,9 @@ public class CDCDataCenter {
 				return preuuid;
 			}
 			if(node.hasChildren()) {
-				for(EntryNode n : node.getChildren()) {
-					stack.push(n);
+				children = node.getChildren();
+				for(int i=(children.length-1); i>=0; i--) {
+					stack.push(children[i]);
 				}
 			}
 			preuuid = ((BaseEntry)node.getData()).uuid;
@@ -470,8 +472,9 @@ public class CDCDataCenter {
 			return null;
 		}
 		Stack<EntryNode> stack = new Stack<EntryNode>();
-		for(EntryNode n : invisibleroot.getChildren()) {
-			stack.push(n);
+		EntryNode[] children = invisibleroot.getChildren();
+		for(int i=(children.length-1); i>=0; i--) {
+			stack.push(children[i]);
 		}
 		while(!stack.empty()) {
 			EntryNode node = stack.pop();
@@ -484,8 +487,9 @@ public class CDCDataCenter {
 				}
 			}
 			if(node.hasChildren()) {
-				for(EntryNode n : node.getChildren()) {
-					stack.push(n);
+				children = node.getChildren();
+				for(int i=(children.length-1); i>=0; i--) {
+					stack.push(children[i]);
 				}
 			}
 		}
