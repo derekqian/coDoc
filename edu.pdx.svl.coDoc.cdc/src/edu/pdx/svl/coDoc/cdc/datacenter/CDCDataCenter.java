@@ -411,6 +411,27 @@ public class CDCDataCenter {
 		}
 		return invisibleroot;
 	}
+	public EntryNode getEntryNode(String uuid) {
+		if((invisibleroot==null) || (!invisibleroot.hasChildren())) {
+			return null;
+		}
+		Stack<EntryNode> stack = new Stack<EntryNode>();
+		for(EntryNode n : invisibleroot.getChildren()) {
+			stack.push(n);
+		}
+		while(!stack.empty()) {
+			EntryNode node = stack.pop();
+			if(((BaseEntry)node.getData()).uuid.equals(uuid)) {
+				return node;
+			}
+			if(node.hasChildren()) {
+				for(EntryNode n : node.getChildren()) {
+					stack.push(n);
+				}
+			}
+		}
+		return null;
+	}
 	public EntryNode sortLinkTree(String cdcfilename, MapSelectionSort sorter) {
 		sortTree(invisibleroot,sorter);
 		return invisibleroot;

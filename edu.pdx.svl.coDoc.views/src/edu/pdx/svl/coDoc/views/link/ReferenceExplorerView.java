@@ -824,18 +824,25 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 			}
 			@Override
 			public boolean performDrop(Object data) {
-				if(category != null && data instanceof String) {
-					System.out.println("performDrop: "+data);
-					String cdcfilename = CDCEditor.projname2cdcName(projectname);
-					Vector<String> uuids = new Vector<String>();
-					String tempstr = (String) data;
-					while(tempstr.lastIndexOf('/') != -1) {
-						int index = tempstr.lastIndexOf('/');
-						String uuid = tempstr.substring(index+1);
-						uuids.add(0, uuid);
-						tempstr = tempstr.substring(0,index);
+				if(!(data instanceof String)) {
+					try {
+						throw new Exception("Not the expected type (String)");
+					} catch (Exception e) {
+						e.printStackTrace();
 					}
-					uuids.add(0, tempstr);
+				}
+				System.out.println("performDrop: "+data);
+				Vector<String> uuids = new Vector<String>();
+				String tempstr = (String) data;
+				while(tempstr.lastIndexOf('/') != -1) {
+					int index = tempstr.lastIndexOf('/');
+					String uuid = tempstr.substring(index+1);
+					uuids.add(0, uuid);
+					tempstr = tempstr.substring(0,index);
+				}
+				uuids.add(0, tempstr);
+				if(category != null) {
+					String cdcfilename = CDCEditor.projname2cdcName(projectname);
 					for(int i=0; i<uuids.size(); i++) {
 						if(CDCDataCenter.getInstance().parentOf(cdcfilename, category.uuid, uuids.get(i))) {
 							MessageDialog.openError(null, "Invalid destination", "Dragging an ancestor to a decendent!");
@@ -847,6 +854,10 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 					}
 				}
 				refresh();
+				// reselect code here
+				EntryNode node = CDCDataCenter.getInstance().getEntryNode(uuids.get(uuids.size()-1));
+				//treeViewer.setSelection(new TreeSelection(node));
+				treeViewer.setSelection(new StructuredSelection(node),true);
 				return true;
 			}
 		});
