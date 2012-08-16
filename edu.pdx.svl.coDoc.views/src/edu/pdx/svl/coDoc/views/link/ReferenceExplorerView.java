@@ -408,7 +408,7 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 
 	
 	private void highlightSelection(LinkEntry mp) {
-		EntryEditor editor = getActiveEntryEditor();
+		EntryEditor editor = (EntryEditor) CDCEditor.getOpenedEntryEditorTop(projectname);
 		if(editor == null) return;
 		if(editor.getProjectName().equals(projectname)) {
 			String codeFilename1 = mp.codefilename;
@@ -947,12 +947,17 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 	            		IResource res = (IResource) element;
 	            		IProject proj = res.getProject();
 		            	if(proj.isOpen() && CDCEditor.isCDCProject(proj.getName())) {
-			            	projectname = res.getProject().getName();
+		            		if(projectname != res.getProject().getName()) {
+				            	projectname = res.getProject().getName();
+				        	    refresh();		            			
+		            		}
 		            	} else {
 		            		projectname = null;
+			        	    refresh();
 		            	}
 		            } else {
 		            	projectname = null;
+		        	    refresh();
 		            }
 		        }
 		    }
@@ -980,7 +985,6 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 			}
 				});
 		}*/
-	    refresh();
 	
 //		IEditorReference[] editors = part.getSite().getPage().getEditorReferences();
 //		editors[0].getName();

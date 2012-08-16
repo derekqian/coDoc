@@ -72,14 +72,16 @@ public class PageSelectCombo extends WorkbenchWindowControlContribution {
 					IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
 					if(workbenchPage == null) return;
 					IEditorPart activeeditor = workbenchPage.getActiveEditor();
-					if(activeeditor == null) return;
-					if(activeeditor instanceof AbstractMultiEditor) {
+					if((activeeditor != null) && (activeeditor instanceof AbstractMultiEditor)) {
 						editor = activeeditor;
 					} else {
 						// check if it's the child of EntryEditor
 						IEditorReference[] editorrefs = workbenchPage.findEditors(null,"edu.pdx.svl.coDoc.cdc.editor.EntryEditor",IWorkbenchPage.MATCH_ID);
+						if(editorrefs == null) return;
 						for(IEditorReference er : editorrefs) {
-							IEditorPart innerEditors[] = ((AbstractMultiEditor) er.getEditor(false)).getInnerEditors();
+							editor = er.getEditor(false);
+							if(editor == null) return;
+							IEditorPart innerEditors[] = ((AbstractMultiEditor) editor).getInnerEditors();
 							for(IEditorPart ep : innerEditors) {
 								if(ep == activeeditor) {
 									editor = er.getEditor(false);
@@ -118,6 +120,9 @@ public class PageSelectCombo extends WorkbenchWindowControlContribution {
 	}
 	public void removeAll() {
 		combo.removeAll();
+	}
+	public int getItemCount() {
+		return combo.getItemCount();
 	}
 	
 	/**
