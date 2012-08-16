@@ -416,7 +416,7 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 	}
 	public void reselect(String uuid) {
 		String cdcfilename = CDCEditor.projname2cdcName(projectname);
-		EntryNode node = CDCDataCenter.getInstance().getEntryNode(uuid);
+		EntryNode node = CDCDataCenter.getInstance().getEntryNode(cdcfilename, uuid);
 		reselect(node);
 	}
 	

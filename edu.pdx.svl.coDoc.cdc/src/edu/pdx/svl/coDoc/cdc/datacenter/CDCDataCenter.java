@@ -417,7 +417,7 @@ public class CDCDataCenter {
 		}
 		return invisibleroot;
 	}
-	public EntryNode getEntryNode(String uuid) {
+	public EntryNode getEntryNode(String cdcfilename, String uuid) {
 		if((invisibleroot==null) || (!invisibleroot.hasChildren())) {
 			return null;
 		}
@@ -441,6 +441,55 @@ public class CDCDataCenter {
 	public EntryNode sortLinkTree(String cdcfilename, MapSelectionSort sorter) {
 		sortTree(invisibleroot,sorter);
 		return invisibleroot;
+	}
+	public String getPreviousNodeId(String cdcfilename, String uuid) {
+		if((invisibleroot==null) || (!invisibleroot.hasChildren())) {
+			return null;
+		}
+		String preuuid = null;
+		Stack<EntryNode> stack = new Stack<EntryNode>();
+		for(EntryNode n : invisibleroot.getChildren()) {
+			stack.push(n);
+		}
+		while(!stack.empty()) {
+			EntryNode node = stack.pop();
+			if(((BaseEntry)node.getData()).uuid.equals(uuid)) {
+				return preuuid;
+			}
+			if(node.hasChildren()) {
+				for(EntryNode n : node.getChildren()) {
+					stack.push(n);
+				}
+			}
+			preuuid = ((BaseEntry)node.getData()).uuid;
+		}
+		return null;
+	}
+	public String getNextNodeId(String cdcfilename, String uuid) {
+		if((invisibleroot==null) || (!invisibleroot.hasChildren())) {
+			return null;
+		}
+		Stack<EntryNode> stack = new Stack<EntryNode>();
+		for(EntryNode n : invisibleroot.getChildren()) {
+			stack.push(n);
+		}
+		while(!stack.empty()) {
+			EntryNode node = stack.pop();
+			if(((BaseEntry)node.getData()).uuid.equals(uuid)) {
+				if(!stack.empty()) {
+					node = stack.pop();
+					return ((BaseEntry)node.getData()).uuid;
+				} else {
+					return null;
+				}
+			}
+			if(node.hasChildren()) {
+				for(EntryNode n : node.getChildren()) {
+					stack.push(n);
+				}
+			}
+		}
+		return null;
 	}
 	private void sortTree(EntryNode root, MapSelectionSort sorter) {
 		Stack<EntryNode> stack = new Stack<EntryNode>();

@@ -832,7 +832,9 @@ public class CDCEditor implements IEditorLauncher
 		IReferenceExplorer view = (IReferenceExplorer)findView("edu.pdx.svl.coDoc.views.link.ReferenceExplorerView");
 		if(view != null) {
 			view.refresh();
-			view.reselect(uuid);
+			if(uuid != null) {
+				view.reselect(uuid);				
+			}
 		}
 		
 		try {
@@ -903,7 +905,9 @@ public class CDCEditor implements IEditorLauncher
 		IReferenceExplorer view = (IReferenceExplorer)findView("edu.pdx.svl.coDoc.views.link.ReferenceExplorerView");
 		if(view != null) {
 			view.refresh();
-			view.reselect(uuid);
+			if(uuid != null) {
+				view.reselect(uuid);				
+			}
 		}
 		
 		try {
@@ -916,7 +920,10 @@ public class CDCEditor implements IEditorLauncher
 	public static void editReference() {
 		boolean refNotSelected = true;
 		EntryEditor editor = (EntryEditor) CDCEditor.getActiveEntryEditor();
-		if(editor == null) return;
+		if(editor == null) {
+			MessageDialog.openError(null, "Error",  "Editor not open!");
+			return;
+		}
 		IReferenceExplorer view = (IReferenceExplorer)editor.getSite().getPage().findView("edu.pdx.svl.coDoc.views.link.ReferenceExplorerView");
 		ISelection selection = view.getSelection();
 		
@@ -940,8 +947,9 @@ public class CDCEditor implements IEditorLauncher
 				}
 			}
 			view.refresh();
-			view.reselect(uuid);
-			
+			if(uuid != null) {
+				view.reselect(uuid);				
+			}			
 		}
 		if (refNotSelected == true) {
 			MessageDialog.openError(null, "Alert",  "You must select a reference to be able to edit it!");
@@ -959,9 +967,13 @@ public class CDCEditor implements IEditorLauncher
 		
 		if (selection != null && selection instanceof IStructuredSelection) {
 			IStructuredSelection sel = (IStructuredSelection) selection;
-			
+			String nextuuid = null;
 			for (Iterator<EntryNode> iterator = sel.iterator(); iterator.hasNext();) {
 				EntryNode mapEntry = iterator.next();
+				nextuuid = CDCDataCenter.getInstance().getNextNodeId(editor.getCDCFilename(),((BaseEntry)mapEntry.getData()).uuid);
+				if(nextuuid == null) {
+					nextuuid = CDCDataCenter.getInstance().getPreviousNodeId(editor.getCDCFilename(),((BaseEntry)mapEntry.getData()).uuid);					
+				}
 				if(mapEntry.getData() instanceof CategoryEntry) {
 					CDCDataCenter.getInstance().deleteCategoryEntry(editor.getCDCFilename(),((BaseEntry)mapEntry.getData()).uuid);					
 				}
@@ -970,6 +982,9 @@ public class CDCEditor implements IEditorLauncher
 				}
 			}
 			view.refresh();
+			if(nextuuid != null) {
+				view.reselect(nextuuid);				
+			}
 		}
 		
 		try {
