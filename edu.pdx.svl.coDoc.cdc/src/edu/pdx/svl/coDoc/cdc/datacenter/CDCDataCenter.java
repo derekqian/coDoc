@@ -171,10 +171,12 @@ public class CDCDataCenter {
 		}
 	}
 	
-	public void editLinkEntry(String cdcfilename, String uuid, String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
+	public String editLinkEntry(String cdcfilename, String uuid, String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
 		CDCCachedFile f = getCDCCachedFile(cdcfilename);
 		if(f!=null) {
-			f.editMapEntry(uuid, codefilename, codeselpath, specfilename, specselpath, comment);
+			return f.editMapEntry(uuid, codefilename, codeselpath, specfilename, specselpath, comment);
+		} else {
+			return null;
 		}
 	}
 	

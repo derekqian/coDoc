@@ -916,12 +916,13 @@ public class CDCEditor implements IEditorLauncher
 	public static void editReference() {
 		boolean refNotSelected = true;
 		EntryEditor editor = (EntryEditor) CDCEditor.getActiveEntryEditor();
+		if(editor == null) return;
 		IReferenceExplorer view = (IReferenceExplorer)editor.getSite().getPage().findView("edu.pdx.svl.coDoc.views.link.ReferenceExplorerView");
 		ISelection selection = view.getSelection();
 		
 		if (selection != null && selection instanceof IStructuredSelection) {
 			IStructuredSelection sel = (IStructuredSelection) selection;
-			
+			String uuid = null;
 			for (Iterator<EntryNode> iterator = sel.iterator(); iterator.hasNext();) {
 				EntryNode node = iterator.next();
 				refNotSelected = false;
@@ -931,7 +932,7 @@ public class CDCEditor implements IEditorLauncher
 				case Dialog.OK:
 					// CDCDataCenter.getInstance().deleteLinkEntry(editor.getCDCFilename(),refToEdit.uuid);
 					// CDCDataCenter.getInstance().addLinkEntry(editor.getCDCFilename(),editor.getCurCategoryId(),refToEdit.codefilename, refToEdit.codeselpath, refToEdit.specfilename, refToEdit.specselpath, editDialog.getNewCommentText());
-					CDCDataCenter.getInstance().editLinkEntry(editor.getCDCFilename(),refToEdit.uuid,refToEdit.codefilename, refToEdit.codeselpath, refToEdit.specfilename, refToEdit.specselpath, editDialog.getNewCommentText());
+					uuid = CDCDataCenter.getInstance().editLinkEntry(editor.getCDCFilename(),refToEdit.uuid,refToEdit.codefilename, refToEdit.codeselpath, refToEdit.specfilename, refToEdit.specselpath, editDialog.getNewCommentText());
 					break;
 				case Dialog.CANCEL:
 				default:
@@ -939,6 +940,7 @@ public class CDCEditor implements IEditorLauncher
 				}
 			}
 			view.refresh();
+			view.reselect(uuid);
 			
 		}
 		if (refNotSelected == true) {

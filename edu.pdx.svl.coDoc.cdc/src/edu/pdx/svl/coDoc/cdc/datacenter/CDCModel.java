@@ -655,15 +655,15 @@ public class CDCModel {
 		return uuid;
 	}
 	
-	public void editMapEntry(String olduuid, String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
+	public String editMapEntry(String olduuid, String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
 		Properties props=System.getProperties();
 		date = new Date();
 		String time = ft.format(date);
 		String creater = props.getProperty("user.name");
 		String os = props.getProperty("os.name");
-		editMapEntry(time, os, creater, olduuid, codefilename, codeselpath, specfilename, specselpath, comment);
+		return editMapEntry(time, os, creater, olduuid, codefilename, codeselpath, specfilename, specselpath, comment);
 	}
-	public void editMapEntry(String time, String os, String creater, String olduuid, String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
+	public String editMapEntry(String time, String os, String creater, String olduuid, String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
 		addCodeFileEntry(codefilename);
 		addSpecFileEntry(specfilename);
 		String codefileuuid = body.codefiles.getFileEntryId(codefilename);
@@ -674,6 +674,7 @@ public class CDCModel {
 		RelationEntry rentry = body.relations.getRelationEntry(olduuid);
 		rentry.setUUID(uuid);		
 		hist.addOperation(time+"#"+os+"#"+creater+"#edt#mapentry#"+olduuid+"#"+uuid);
+		return uuid;
 	}
 	
 	public MapEntry getMapEntry(String uuid) {

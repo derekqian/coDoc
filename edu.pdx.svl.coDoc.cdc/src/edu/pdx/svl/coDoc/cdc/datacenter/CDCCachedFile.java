@@ -81,9 +81,10 @@ public class CDCCachedFile {
 		flush();
 		return uuid;
 	}
-	public void editMapEntry(String uuid, String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
-		cdcModel.editMapEntry(uuid, codefilename, codeselpath, specfilename, specselpath, comment);
+	public String editMapEntry(String uuid, String codefilename, CodeSelection codeselpath, String specfilename, SpecSelection specselpath, String comment) {
+		String newuuid = cdcModel.editMapEntry(uuid, codefilename, codeselpath, specfilename, specselpath, comment);
 		flush();
+		return newuuid;
 	}
 	public MapEntry getMapEntry(String uuid) {
 		return cdcModel.getMapEntry(uuid);
