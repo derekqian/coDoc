@@ -412,6 +412,11 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		}
 		if(treeViewer != null) {
 			treeViewer.setSelection(new StructuredSelection(node),true);
+			CategoryEntry entry = (node.getData() instanceof CategoryEntry) ? (CategoryEntry) node.getData() : (CategoryEntry) node.getParent().getData();
+			EntryEditor ed = (EntryEditor) CDCEditor.getOpenedEntryEditorTop(projectname);
+			if(ed != null) {
+				ed.setCurCategoryId(entry.uuid);
+			}							
 		}
 	}
 	public void reselect(String uuid) {
