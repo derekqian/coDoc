@@ -99,6 +99,7 @@ public class CDCCachedFile {
 	}
 	public void moveEntry(String sourceuuid, String destuuid) {
 		cdcModel.moveEntry(sourceuuid, destuuid);
+		flush();
 	}
 	
 	public void setLastOpenedCodeFilename(String codeFilename) {
