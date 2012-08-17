@@ -404,6 +404,7 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
      * @param page the PDFPage to draw.
      */
     public void showPage(int page) {
+    	System.out.println("PDFPageViewer->showPage: "+page);
     	// set up the new page
     	currentPageNum = page;
 
@@ -595,8 +596,6 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
 
 	public interface IPDFEditor {
 		public void showPage(int pageNr);
-		public void showPreviousPage();
-		public void showNextPage();
 		public void gotoAction(PDFDestination dest);
 		public void writeStatusLineError(String text);
 	}

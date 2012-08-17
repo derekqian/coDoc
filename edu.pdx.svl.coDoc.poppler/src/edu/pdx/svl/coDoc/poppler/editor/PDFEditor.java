@@ -224,8 +224,6 @@ public class PDFEditor extends EditorPart implements IResourceChangeListener, IN
 		position.setPageInfo(1, 1);
 
 		ResourcesPlugin.getWorkspace().addResourceChangeListener(this);
-
-		showPage(1);
 		
 		initKeyBindingContext();
 	}
@@ -332,24 +330,6 @@ public class PDFEditor extends EditorPart implements IResourceChangeListener, IN
 			pv.showPage(pageNr);
 			updateStatusLine();
 		//}
-	}
-	
-	public void showPreviousPage()
-	{
-		System.out.println("PDFEditor::showPreviousPage()\n");
-		if (currentPage > 1) {
-			showPage(currentPage - 1);
-		}
-		return;
-	}
-	
-	public void showNextPage()
-	{
-		System.out.println("PDFEditor::showNextPage()\n");
-		if (currentPage < pageNumbers) {
-			showPage(currentPage + 1);
-		}
-		return;
 	}
 
 	@Override
