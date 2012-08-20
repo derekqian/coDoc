@@ -1,0 +1,5 @@
+#!/bin/bash
+
+full=$1
+path=${full%eclipse/eclipse}
+echo $path

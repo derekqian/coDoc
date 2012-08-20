@@ -12,7 +12,8 @@ public class PopplerJNI {
 	static
 	{
 		System.out.println(System.getProperty("java.library.path"));
-		try
+		Library.loadLibrary("PopplerJNI");
+		/*try
 		{
 			String popperLibPath = null;
 			File currentWorkingDirFile = new File(".");
@@ -39,7 +40,7 @@ public class PopplerJNI {
 			{
 				System.err.println("Cannot load PopplerJNI library:" + e2.toString());
 			}
-		}
+		}*/
 	}
 
 	/**

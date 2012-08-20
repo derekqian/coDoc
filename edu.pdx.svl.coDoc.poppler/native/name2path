@@ -1,0 +1,7 @@
+#!/bin/bash
+
+full=$1
+name=${full##*/}
+#echo $name
+path=${full%eclipse}
+echo $path
