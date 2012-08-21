@@ -983,7 +983,10 @@ public class CDCEditor implements IEditorLauncher
 					nextuuid = CDCDataCenter.getInstance().getPreviousNodeId(editor.getCDCFilename(),((BaseEntry)mapEntry.getData()).uuid);					
 				}
 				if(mapEntry.getData() instanceof CategoryEntry) {
-					CDCDataCenter.getInstance().deleteCategoryEntry(editor.getCDCFilename(),((BaseEntry)mapEntry.getData()).uuid);					
+					CDCDataCenter.getInstance().deleteCategoryEntry(editor.getCDCFilename(),((BaseEntry)mapEntry.getData()).uuid);
+					if(null != CDCDataCenter.getInstance().getCategoryEntry(editor.getCDCFilename(),((BaseEntry)mapEntry.getData()).uuid)) {
+						nextuuid = ((BaseEntry)mapEntry.getData()).uuid;
+					}
 				}
 				if(mapEntry.getData() instanceof LinkEntry) {
 					CDCDataCenter.getInstance().deleteLinkEntry(editor.getCDCFilename(),((BaseEntry)mapEntry.getData()).uuid);					
