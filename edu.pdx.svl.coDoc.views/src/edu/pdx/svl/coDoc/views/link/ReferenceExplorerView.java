@@ -423,6 +423,24 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		String cdcfilename = CDCEditor.projname2cdcName(projectname);
 		EntryNode node = CDCDataCenter.getInstance().getEntryNode(cdcfilename, uuid);
 		reselect(node);
+		selectEntryNodeInEditor(node);
+	}
+	private void selectEntryNodeInEditor(EntryNode node) {
+		if(node.getData() instanceof CategoryEntry) {
+			CategoryEntry entry = (CategoryEntry) node.getData();
+			EntryEditor ed = getActiveEntryEditor();
+			if(ed != null) {
+				ed.setCurCategoryId(entry.uuid);
+			}							
+		} else {
+			LinkEntry mp = (LinkEntry) node.getData();
+			highlightSelection(mp);							
+			CategoryEntry entry = (CategoryEntry) node.getParent().getData();
+			EntryEditor ed = getActiveEntryEditor();
+			if(ed != null) {
+				ed.setCurCategoryId(entry.uuid);
+			}							
+		}
 	}
 	
 	private void highlightSelection(LinkEntry mp) {
@@ -707,21 +725,7 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 					IStructuredSelection sel = (IStructuredSelection) selection;
 					for (Iterator<EntryNode> iterator = sel.iterator(); iterator.hasNext();) {
 						EntryNode node = iterator.next();
-						if(node.getData() instanceof CategoryEntry) {
-							CategoryEntry entry = (CategoryEntry) node.getData();
-							EntryEditor ed = getActiveEntryEditor();
-							if(ed != null) {
-								ed.setCurCategoryId(entry.uuid);
-							}							
-						} else {
-							LinkEntry mp = (LinkEntry) node.getData();
-							highlightSelection(mp);							
-							CategoryEntry entry = (CategoryEntry) node.getParent().getData();
-							EntryEditor ed = getActiveEntryEditor();
-							if(ed != null) {
-								ed.setCurCategoryId(entry.uuid);
-							}							
-						}
+						selectEntryNodeInEditor(node);
 					}
 				}					
 			}
@@ -734,13 +738,7 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 					IStructuredSelection sel = (IStructuredSelection) selection;
 					for (Iterator<EntryNode> iterator = sel.iterator(); iterator.hasNext();) {
 						EntryNode node = iterator.next();
-						if(node.getData() instanceof CategoryEntry) {
-							CategoryEntry entry = (CategoryEntry) node.getData();
-							EntryEditor ed = getActiveEntryEditor();
-							if(ed != null) {
-								ed.setCurCategoryId(entry.uuid);
-							}
-						} else {
+						if(node.getData() instanceof LinkEntry) {
 							LinkEntry mp = (LinkEntry) node.getData();
 							String codeFilename = mp.codefilename;
 							String specFilename = mp.specfilename;
@@ -749,11 +747,8 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 							IPath specpath = new Path(specFilename);
 							specpath = specpath.removeFirstSegments(1); // remove "project:"
 						    CDCEditor.open(projectname, codepath, specpath);
-							highlightSelection(mp);
-							
-							CategoryEntry entry = (CategoryEntry) node.getParent().getData();
-							getActiveEntryEditor().setCurCategoryId(entry.uuid);
 						}
+						selectEntryNodeInEditor(node);
 					}
 				}
 				setFocus();
