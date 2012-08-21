@@ -433,9 +433,9 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 			IPath codepath2 = editor.getCodeFilepath();
 			String codefilename2 = (codepath2.isAbsolute()?"project://":"project:///")+codepath2;
 			if(codeFilename1.equals(codefilename2)) {
-				editor.highlightCodeAnchor(mp);
+				editor.selectTextInTextEditor(mp.codeselpath);
 			} else {
-				editor.highlightCodeAnchor(null);				
+				editor.selectTextInTextEditor((CodeSelection)null);				
 			}
 			String specFilename1 = mp.specfilename;
 			IPath specpath2 = editor.getSpecFilepath();

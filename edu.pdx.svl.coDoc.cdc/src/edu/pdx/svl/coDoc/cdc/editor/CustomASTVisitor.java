@@ -160,7 +160,7 @@ public class CustomASTVisitor extends ASTVisitor {
 				currentSyntaxSelection = new TextSelection(((ASTNode)declaration).getOffset(),((ASTNode)declaration).getLength());
 				// select double clicked token
 				if(currentTextSelection.getLength() == 0) {
-					((EntryEditor) CDCEditor.getActiveEntryEditor()).selectTextInTextEditor(null);
+					((EntryEditor) CDCEditor.getActiveEntryEditor()).selectTextInTextEditor((TextSelection)null);
 				} else if((currentTextSelection.getOffset() >= currentSyntaxSelection.getOffset())
 						&&(currentTextSelection.getOffset()+currentTextSelection.getLength() <= currentSyntaxSelection.getOffset()+currentSyntaxSelection.getLength())) {
 					((EntryEditor) CDCEditor.getActiveEntryEditor()).selectTextInTextEditor(currentSyntaxSelection);
@@ -250,7 +250,7 @@ public class CustomASTVisitor extends ASTVisitor {
 				currentSyntaxSelection = new TextSelection(((ASTNode)statement).getOffset(),((ASTNode)statement).getLength());
 				// select double clicked token
 				if(currentTextSelection.getLength() == 0) {
-					((EntryEditor) CDCEditor.getActiveEntryEditor()).selectTextInTextEditor(null);
+					((EntryEditor) CDCEditor.getActiveEntryEditor()).selectTextInTextEditor((TextSelection)null);
 				} else if((currentTextSelection.getOffset() >= currentSyntaxSelection.getOffset())
 						&&(currentTextSelection.getOffset()+currentTextSelection.getLength() <= currentSyntaxSelection.getOffset()+currentSyntaxSelection.getLength())) {
 					((EntryEditor) CDCEditor.getActiveEntryEditor()).selectTextInTextEditor(currentSyntaxSelection);
