@@ -944,6 +944,7 @@ public class CDCEditor implements IEditorLauncher
 					uuid = CDCDataCenter.getInstance().editLinkEntry(editor.getCDCFilename(),refToEdit.uuid,refToEdit.codefilename, refToEdit.codeselpath, refToEdit.specfilename, specselpath, editDialog.getNewCommentText());
 					break;
 				case Dialog.CANCEL:
+					uuid = refToEdit.uuid;
 				default:
 					break;
 				}
