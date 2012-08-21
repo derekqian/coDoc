@@ -34,6 +34,11 @@ libPopplerJNI-gtk.so.1.0 : PopplerJNI.o
 ../edu_pdx_svl_coDoc_poppler_lib_PopplerJNI.h : ../../bin/edu/pdx/svl/coDoc/poppler/lib/PopplerJNI.class
 	javah -jni -classpath ../../bin/:$(eclipse_path)plugins/org.eclipse.swt.gtk.linux.x86_64_3.100.0.v4233d.jar -d ../ edu.pdx.svl.coDoc.poppler.lib.PopplerJNI
 
+clean : 
+	rm -rf ./*
+	rm -rf ../*.h
+	rm -rf ../../*.so
+	
 libs : 
 	sudo apt-get install libgtk2.0-dev
 	sudo apt-get install libpoppler-glib-dev

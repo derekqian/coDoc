@@ -803,6 +803,7 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 			private CategoryEntry category = null;
 			@Override
 			public boolean validateDrop(Object target, int operation, TransferData transferType) {
+				System.out.println("validateDrop");
 				if(target instanceof EntryNode) {
 					EntryNode node = (EntryNode) target;
 					if(node.getData() instanceof CategoryEntry) {
@@ -814,6 +815,7 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 			}
 			@Override
 			public void drop(DropTargetEvent event) {
+				System.out.println("drop");
 				EntryNode node = null;
 				int location = determineLocation(event);
 				EntryNode target = (EntryNode) determineTarget(event);
