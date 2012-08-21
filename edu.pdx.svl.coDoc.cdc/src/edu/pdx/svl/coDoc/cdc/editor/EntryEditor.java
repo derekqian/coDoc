@@ -370,12 +370,12 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 					if(((TextSelection) selection).getLength() == 0) {
 						currentRawSelection = null;
 						currentSyntaxSelection = null;
-						selectTextInTextEditor(null,null);						
+						selectTextInTextEditor(new TextSelection(0,0),true);						
 					} else {
-						selectTextInTextEditor(null,null);						
+						selectTextInTextEditor(new TextSelection(0,0),true);						
 						currentRawSelection = (TextSelection) selection;
 						currentSyntaxSelection = myASTTree.adjustSelection1((TextSelection) selection);
-						selectTextInTextEditor(currentRawSelection, currentSyntaxSelection);						
+						selectTextInTextEditor(currentSyntaxSelection,true);						
 					}
 				}
 			}
@@ -385,35 +385,43 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 //		IViewPart ov = outlineView.getView(true);
 //		ContentOutline contentOutline = (ContentOutline)ov;
 	}
-	public void selectTextInTextEditor(TextSelection rawSelection, TextSelection syntaxSelection) {
+	public void selectTextInTextEditor(TextSelection selection, boolean syntax) {
 		IEditorPart cEditor = CDCEditor.getActiveCEditorChild(this);
-		ISelectionProvider selProv = cEditor.getEditorSite().getSelectionProvider();
-		selProv.setSelection(rawSelection);
-		
-		ITextOperationTarget target = (ITextOperationTarget)cEditor.getAdapter(ITextOperationTarget.class);
-		if(syntaxSelection!=null) {
-			if (target instanceof ITextViewer) {
-				//viewer.setTextColor(new Color(null, 255, 0, 0), currentSyntaxSelection.getOffset(), currentSyntaxSelection.getLength(), true);
-				//viewer.setSelectedRange(currentSyntaxSelection.getOffset(), currentSyntaxSelection.getLength());
-				TextPresentation presentation = new TextPresentation();
-				TextAttribute attr = new TextAttribute(new Color(null, 0, 0, 0),
-					      new Color(null, 255, 184, 134), TextAttribute.STRIKETHROUGH);
-				presentation.addStyleRange(new StyleRange(syntaxSelection.getOffset(), syntaxSelection.getLength(), attr.getForeground(),
-					      attr.getBackground()));
-				((ITextViewer) target).changeTextPresentation(presentation, false);
-		    }	
+		if(syntax) {
+			ITextOperationTarget target = (ITextOperationTarget)cEditor.getAdapter(ITextOperationTarget.class);
+			if(selection!=null) {
+				if (target instanceof ITextViewer) {
+					if(selection.getLength() != 0) {
+						//viewer.setTextColor(new Color(null, 255, 0, 0), currentSyntaxSelection.getOffset(), currentSyntaxSelection.getLength(), true);
+						//viewer.setSelectedRange(currentSyntaxSelection.getOffset(), currentSyntaxSelection.getLength());
+						TextPresentation presentation = new TextPresentation();
+						TextAttribute attr = new TextAttribute(new Color(null, 0, 0, 0),
+							      new Color(null, 255, 184, 134), TextAttribute.STRIKETHROUGH);
+						presentation.addStyleRange(new StyleRange(selection.getOffset(), selection.getLength(), attr.getForeground(),
+							      attr.getBackground()));
+						((ITextViewer) target).changeTextPresentation(presentation, false);						
+					} else {
+						((ITextViewer) target).invalidateTextPresentation();
+					}
+			    }
+			}
 		} else {
-			if (target instanceof ITextViewer) {
-				((ITextViewer) target).invalidateTextPresentation();
-		    } 		
+			ISelectionProvider selProv = cEditor.getEditorSite().getSelectionProvider();
+			if(selection != null) {
+				selProv.setSelection(selection);			
+			}
 		}
 	}
+	private int lastOffset = 0;
 	public void selectTextInTextEditor(CodeSelection sel) {
-		selectTextInTextEditor(null,null);
+		selectTextInTextEditor(new TextSelection(lastOffset,0),false);
+		selectTextInTextEditor(new TextSelection(0,0),true);
 		if(sel != null) {
 			TextSelection rawSelection = myASTTree.node2Selection(sel.getSelCodePath());
 			TextSelection syntaxSelection = myASTTree.node2Selection1(sel.getSyntaxCodePath());
-			selectTextInTextEditor(rawSelection,syntaxSelection);
+			selectTextInTextEditor(rawSelection,false);
+			selectTextInTextEditor(syntaxSelection,true);
+			lastOffset = rawSelection.getOffset();
 		}
 	}
 

@@ -395,8 +395,8 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
 	    		y += sel.getTop() - rect.height/2;
 	    	}
 	    	setOrigin(sc.getOrigin().x, y);			
-	    	selectText(selection);
 		}
+    	selectText(selection);
     }
 
     /**
