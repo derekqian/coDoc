@@ -934,14 +934,19 @@ public class CDCEditor implements IEditorLauncher
 				EntryNode node = iterator.next();
 				refNotSelected = false;
 				LinkEntry refToEdit = (LinkEntry)node.getData();
-				EditLinkDialog editDialog = new EditLinkDialog(new Shell(), refToEdit);
+				CodeSelection codeSel = editor.getSelectionInTextEditor();
+				if(codeSel==null) return;
+				SpecSelection specSel = editor.getSelectionInAcrobat();
+				if(specSel==null) return;
+				String codetext = codeSel.getSyntaxCodeText();
+				String spectext = specSel.getPDFText(new String());
+				EditLinkDialog editDialog = new EditLinkDialog(new Shell(), codetext, spectext, refToEdit);
 				switch(editDialog.open()) {
 				case Dialog.OK:
 					// CDCDataCenter.getInstance().deleteLinkEntry(editor.getCDCFilename(),refToEdit.uuid);
 					// CDCDataCenter.getInstance().addLinkEntry(editor.getCDCFilename(),editor.getCurCategoryId(),refToEdit.codefilename, refToEdit.codeselpath, refToEdit.specfilename, refToEdit.specselpath, editDialog.getNewCommentText());
-					SpecSelection specselpath = editor.getSelectionInAcrobat();
 					// uuid = CDCDataCenter.getInstance().editLinkEntry(editor.getCDCFilename(),refToEdit.uuid,refToEdit.codefilename, refToEdit.codeselpath, refToEdit.specfilename, refToEdit.specselpath, editDialog.getNewCommentText());
-					uuid = CDCDataCenter.getInstance().editLinkEntry(editor.getCDCFilename(),refToEdit.uuid,refToEdit.codefilename, refToEdit.codeselpath, refToEdit.specfilename, specselpath, editDialog.getNewCommentText());
+					uuid = CDCDataCenter.getInstance().editLinkEntry(editor.getCDCFilename(),refToEdit.uuid,refToEdit.codefilename, codeSel, refToEdit.specfilename, specSel, editDialog.getNewCommentText());
 					break;
 				case Dialog.CANCEL:
 					uuid = refToEdit.uuid;
