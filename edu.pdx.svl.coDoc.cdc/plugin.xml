@@ -232,7 +232,7 @@
                   commandId="edu.pdx.svl.coDoc.cdc.commands.Preferences"
                   icon="icons/preference.png"
                   style="push"
-                  tooltip="Delete Link"
+                  tooltip="Preference"
                   id="edu.pdx.svl.coDoc.cdc.toolbars.Preferences">
             </command>
          </toolbar>

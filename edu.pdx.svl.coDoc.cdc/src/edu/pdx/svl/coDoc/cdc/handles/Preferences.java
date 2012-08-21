@@ -27,7 +27,7 @@ public class Preferences extends AbstractHandler {
 	
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
-		CDCEditor.convertCDCFile();
+		// CDCEditor.convertCDCFile();
 
 		return null;
 	}
