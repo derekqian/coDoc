@@ -427,6 +427,7 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 	}
 	private void selectEntryNodeInEditor(EntryNode node) {
 		if(node.getData() instanceof CategoryEntry) {
+			//highlightSelection(null);							
 			CategoryEntry entry = (CategoryEntry) node.getData();
 			EntryEditor ed = getActiveEntryEditor();
 			if(ed != null) {
@@ -446,23 +447,28 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 	private void highlightSelection(LinkEntry mp) {
 		EntryEditor editor = (EntryEditor) CDCEditor.getOpenedEntryEditorTop(projectname);
 		if(editor == null) return;
-		if(editor.getProjectName().equals(projectname)) {
-			String codeFilename1 = mp.codefilename;
-			IPath codepath2 = editor.getCodeFilepath();
-			String codefilename2 = (codepath2.isAbsolute()?"project://":"project:///")+codepath2;
-			if(codeFilename1.equals(codefilename2)) {
-				editor.selectTextInTextEditor(mp.codeselpath);
-			} else {
-				editor.selectTextInTextEditor((CodeSelection)null);				
-			}
-			String specFilename1 = mp.specfilename;
-			IPath specpath2 = editor.getSpecFilepath();
-			String specfilename2 = (specpath2.isAbsolute()?"project://":"project:///")+specpath2;
-			if(specFilename1.equals(specfilename2)) {
-				editor.selectTextInAcrobat(mp.specselpath);								
-			} else {
-				editor.selectTextInAcrobat(null);								
-			}
+		if(mp != null) {
+			if(editor.getProjectName().equals(projectname)) {
+				String codeFilename1 = mp.codefilename;
+				IPath codepath2 = editor.getCodeFilepath();
+				String codefilename2 = (codepath2.isAbsolute()?"project://":"project:///")+codepath2;
+				if(codeFilename1.equals(codefilename2)) {
+					editor.selectTextInTextEditor(mp.codeselpath);
+				} else {
+					editor.selectTextInTextEditor((CodeSelection)null);				
+				}
+				String specFilename1 = mp.specfilename;
+				IPath specpath2 = editor.getSpecFilepath();
+				String specfilename2 = (specpath2.isAbsolute()?"project://":"project:///")+specpath2;
+				if(specFilename1.equals(specfilename2)) {
+					editor.selectTextInAcrobat(mp.specselpath);								
+				} else {
+					editor.selectTextInAcrobat(null);								
+				}
+			}			
+		} else {
+			editor.selectTextInTextEditor((CodeSelection)null);
+			editor.selectTextInAcrobat(null);
 		}
 	}
 
