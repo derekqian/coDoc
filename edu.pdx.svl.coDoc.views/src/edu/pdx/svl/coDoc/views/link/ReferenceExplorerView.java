@@ -691,7 +691,21 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 				if (element instanceof EntryNode) {
 					BaseEntry entry = (BaseEntry) ((EntryNode) element).getData();
 					if(entry instanceof LinkEntry) {
-						return ((LinkEntry) entry).specselpath.getPage(new String());
+						String str = " ";
+						str += ((LinkEntry) entry).specselpath.getPage(new String());
+						str += " ";
+						int index1 = 0;
+						int index2 = str.substring(index1+1).indexOf(' ')+index1+1;
+						String res = str.substring(index1,index2+1);
+						index1 = index2;
+						while(!str.substring(index1+1).equals("")) {
+							index2 = str.substring(index1+1).indexOf(' ')+index1+1;
+							if(!res.contains(str.substring(index1,index2+1))) {
+								res += str.substring(index1+1,index2+1);
+							}
+							index1 = index2;
+						}
+						return res.substring(1,res.length()-1);
 					}
 				}
 				return "";
