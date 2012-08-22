@@ -417,11 +417,11 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 		selectTextInTextEditor(new TextSelection(lastOffset,0),false);
 		selectTextInTextEditor(new TextSelection(0,0),true);
 		if(sel != null) {
-			TextSelection rawSelection = myASTTree.node2Selection(sel.getSelCodePath());
-			TextSelection syntaxSelection = myASTTree.node2Selection1(sel.getSyntaxCodePath());
-			selectTextInTextEditor(rawSelection,false);
-			selectTextInTextEditor(syntaxSelection,true);
-			lastOffset = rawSelection.getOffset();
+			currentRawSelection = myASTTree.node2Selection(sel.getSelCodePath());
+			currentSyntaxSelection = myASTTree.node2Selection1(sel.getSyntaxCodePath());
+			selectTextInTextEditor(currentRawSelection,false);
+			selectTextInTextEditor(currentSyntaxSelection,true);
+			lastOffset = currentRawSelection.getOffset();
 		}
 	}
 

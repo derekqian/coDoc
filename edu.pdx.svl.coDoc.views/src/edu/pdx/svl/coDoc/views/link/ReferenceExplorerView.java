@@ -652,7 +652,7 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 				if (element instanceof EntryNode) {
 					BaseEntry entry = (BaseEntry) ((EntryNode) element).getData();
 					if(entry instanceof LinkEntry) {
-						return ((LinkEntry) entry).codeselpath.getSyntaxCodeText().replace('\n', ' ');						
+						return ((LinkEntry) entry).codeselpath.getSyntaxCodeText().replace('\r', ' ').replace('\n', ' ');						
 					}
 				}
 				return "";
