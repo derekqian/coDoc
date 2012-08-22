@@ -34,6 +34,7 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DragSourceEvent;
 import org.eclipse.swt.dnd.DragSourceListener;
@@ -50,6 +51,7 @@ import org.eclipse.ui.part.DrillDownAdapter;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.views.navigator.ResourceNavigator;
+import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.actions.RetargetAction;
 import org.eclipse.ui.navigator.resources.ProjectExplorer;
 
@@ -81,6 +83,7 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 	Button checkButton;
 	private static TableViewer tableViewer = null;
 	private static TreeViewer treeViewer = null;
+	private Clipboard clipboard = null;
 
 	private DrillDownAdapter drillDownAdapter;
 	private Action action1;
@@ -156,6 +159,13 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		filter.setSelector(MapSelectionFilter.ALLDATA);
 		filter.setSearchStr("");
 		refresh();
+	}
+	
+	@Override
+	public void dispose() {
+		if(clipboard != null) {
+			clipboard.dispose();
+		}
 	}
 
 	private void contributeToActionBars() {
@@ -762,7 +772,7 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		});
 		
 		int operations = DND.DROP_MOVE | DND.DROP_COPY;
-		Transfer[] transferTypes = new Transfer[]{TextTransfer.getInstance()};
+		final Transfer[] transferTypes = new Transfer[]{TextTransfer.getInstance()};
 		treeViewer.addDragSupport(operations, transferTypes, new DragSourceListener() {
 			String uuids = null;
 			@Override
@@ -877,6 +887,77 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 				refresh();
 				reselect(uuids.get(uuids.size()-1));
 				return true;
+			}
+		});
+		
+		clipboard = new Clipboard(getSite().getShell().getDisplay());
+		IActionBars bars = getViewSite().getActionBars();
+		bars.setGlobalActionHandler(/*IWorkbenchActionConstants.CUT*/ActionFactory.CUT.getId(), new RetargetAction (ActionFactory.CUT.getId(), "Cut") {
+			@Override
+			public void run() {
+				IStructuredSelection selection = (IStructuredSelection)treeViewer.getSelection();
+				if(selection != null) {
+					Object[] objs = selection.toArray();
+					EntryNode node = (EntryNode) objs[0];
+					String uuids = ((BaseEntry) node.getData()).uuid;
+					for(int i=1; i<objs.length; i++) {
+						node = (EntryNode) objs[i];
+						uuids += "/";
+						uuids += ((BaseEntry) node.getData()).uuid;
+					}	
+					clipboard.setContents(new Object[]{uuids}, transferTypes);
+					// treeViewer.refresh();					
+				}
+			}
+		});
+		// bars.setGlobalActionHandler(IWorkbenchActionConstants.COPY, new CopyGadgetAction(treeViewer,clipboard));
+		bars.setGlobalActionHandler(/*IWorkbenchActionConstants.PASTE*/ActionFactory.PASTE.getId(), new Action(){
+			@Override
+			public void run() {
+				CategoryEntry category = null;
+				IStructuredSelection selection = (IStructuredSelection)treeViewer.getSelection();
+				if(selection == null) return;
+				EntryNode node = (EntryNode)selection.getFirstElement();
+				if(node == null) return;
+				if(node.getData() instanceof CategoryEntry) {
+					category = (CategoryEntry) node.getData();
+				} else {
+					MessageDialog.openError(null, "Invalid destination", "Paste the item onto a category please!");
+				}
+
+				String[] data = (String[])clipboard.getContents(transferTypes[0]);
+				if(data==null || !(data instanceof String[])) {
+					try {
+						throw new Exception("Not the expected type (String[])");
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+				Vector<String> uuids = new Vector<String>();
+				String tempstr = data[0];
+				System.out.println("performPaste: "+tempstr);
+				while(tempstr.lastIndexOf('/') != -1) {
+					int index = tempstr.lastIndexOf('/');
+					String uuid = tempstr.substring(index+1);
+					uuids.add(0, uuid);
+					tempstr = tempstr.substring(0,index);
+				}
+				uuids.add(0, tempstr);
+				
+				if(category != null) {
+					String cdcfilename = CDCEditor.projname2cdcName(projectname);
+					for(int i=0; i<uuids.size(); i++) {
+						if(CDCDataCenter.getInstance().parentOf(cdcfilename, category.uuid, uuids.get(i))) {
+							MessageDialog.openError(null, "Invalid destination", "Dragging an ancestor to a decendent!");
+							return;
+						}
+					}
+					for(int i=0; i<uuids.size(); i++) {
+						CDCDataCenter.getInstance().moveEntry(cdcfilename, uuids.get(i), category.uuid);
+					}
+				}
+				refresh();
+				reselect(uuids.get(uuids.size()-1));
 			}
 		});
 
