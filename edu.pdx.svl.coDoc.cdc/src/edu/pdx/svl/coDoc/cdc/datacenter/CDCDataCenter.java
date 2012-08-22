@@ -273,7 +273,7 @@ public class CDCDataCenter {
 			}
 			break;
 		case MapSelectionFilter.PDFPAGE:
-			if(entry.specselpath.getPage(new String()).equals(filter.getSearchStr())) {
+			if(entry.specselpath.getPage(new String()).contains(filter.getSearchStr())) {
 				res = true;
 			}
 			break;
