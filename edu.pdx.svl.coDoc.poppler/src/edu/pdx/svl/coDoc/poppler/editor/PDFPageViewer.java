@@ -277,12 +277,24 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
 
 		Selection = new Vector<PDFSelection>();
 		text = new Vector<String>();
-		ctrlPressed = false;
 		startPoint = new Point(-1,-1);
 		stopPoint = new Point(-1,-1);
 
     	display = parent.getDisplay();
     	this.poppler = poppler;
+        
+        this.addPaintListener(this);
+        
+        IEclipsePreferences prefs = (new InstanceScope()).getNode(edu.pdx.svl.coDoc.poppler.Activator.PLUGIN_ID);
+		prefs.addPreferenceChangeListener(this);
+		
+		highlightLinks = prefs.getBoolean(ToggleLinkHighlightHandler.PREF_LINKHIGHTLIGHT_ID, true);
+    }
+    
+    public void init() {
+    	Selection.clear();
+    	text.clear();
+		ctrlPressed = false;
 		int pages = poppler.document_get_n_pages();
     	poppler.document_get_page(1);
     	Dimension size = poppler.page_get_size();
@@ -298,13 +310,6 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
 	        //PageSelectCombo.getInstance().select(0);
 	        //PageSelectCombo.getInstance().redraw();        	
         }
-        
-        this.addPaintListener(this);
-        
-        IEclipsePreferences prefs = (new InstanceScope()).getNode(edu.pdx.svl.coDoc.poppler.Activator.PLUGIN_ID);
-		prefs.addPreferenceChangeListener(this);
-		
-		highlightLinks = prefs.getBoolean(ToggleLinkHighlightHandler.PREF_LINKHIGHTLIGHT_ID, true);
     }
 
     private Rectangle pdfselToRect(PDFSelection sel) {

@@ -24,11 +24,11 @@ public class EntryEditorInput extends MultiEditorInput
 	}
 	public String getName()
 	{
-		return "Entry's Editor";
+		return "EntryEditor";
 	}
 	public String getToolTipText()
 	{
-		return "This is the editor of the item of Entry";
+		return "This is the container editor for coDoc project";
 	}
 	public IPersistableElement getPersistable()
 	{

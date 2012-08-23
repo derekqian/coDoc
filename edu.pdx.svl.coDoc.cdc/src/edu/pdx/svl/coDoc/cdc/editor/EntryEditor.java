@@ -88,7 +88,6 @@ import edu.pdx.svl.coDoc.cdc.datacenter.CodeSelection;
 import edu.pdx.svl.coDoc.cdc.datacenter.LinkEntry;
 import edu.pdx.svl.coDoc.cdc.datacenter.SpecSelection;
 import edu.pdx.svl.coDoc.cdc.preferences.PreferenceValues;
-import edu.pdx.svl.coDoc.cdc.referencemodel.References;
 import edu.pdx.svl.coDoc.poppler.editor.PDFEditor;
 import edu.pdx.svl.coDoc.poppler.editor.PDFPageViewer;
 import edu.pdx.svl.coDoc.poppler.editor.PDFSelection;
@@ -96,42 +95,19 @@ import edu.pdx.svl.coDoc.poppler.editor.PDFSelection;
 public class EntryEditor extends MultiEditor implements IReusableEditor, ISelectionListener
 {
 	private static final String CONTEXT_ID = "edu.pdx.svl.coDoc.cdc.editor.EntryEditor.contextid";
-	private Composite container;
 	private SashForm sashForm;
 	private CLabel innerEditorTitle[];
-	public References references;
 	private IPath cdcFilepath;
 	private String projectname = null;
 	private IPath codeFilepath = null;
 	private IPath specFilepath = null;
 	private MyASTTree myASTTree = null;
 	private String curcategoryid = null;
-	
-	public void setInput(IEditorInput input) {
-		super.setInput(input);
-		IEditorInput[] editorinputs = ((EntryEditorInput) input).getInput();
-		// IPath path = ((FileEditorInput) editorinputs[0]).getPath();
-		IPath path = ((FileEditorInput) editorinputs[0]).getFile().getFullPath();
-		if(!path.getFileExtension().equals("pdf")) {
-			codeFilepath = path;
-		}
-		path = ((FileEditorInput) editorinputs[editorinputs.length-1]).getFile().getFullPath();
-		if(path.getFileExtension().equals("pdf")) {
-			specFilepath = path;
-		}
-		firePropertyChange(IEditorPart.PROP_INPUT);
-		return;
-	}
 
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException
 	{
-		System.out.println("EntryEditor.init\n");
+		System.out.println("EntryEditor.init");
 		super.init(site, input);
-		cdcFilepath = CDCEditor.getLatestPath();
-		projectname = CDCEditor.getLatestProjectName();
-		setPartName(projectname);
-		setSite(site);
-		setInput(input);
 		
 		createWorkbenchListener();
 	}
@@ -152,44 +128,25 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 		return CDCEditor.projname2cdcName(projectname);
 	}
 	
-	public void createPartControl(Composite parent)
-	{
-		System.out.println("EntryEditor.createPartControl\n");
-		//container = new Composite(parent, SWT.BORDER);
-		//container.setLayout(new FillLayout());
-		sashForm = new SashForm(parent, SWT.HORIZONTAL);
+	public MyASTNode getMyAST() {
+		return myASTTree.getTree();
+	}
+	
+	public void setInput(IEditorInput input) {
+		System.out.println("EntryEditor.setInput");
+		super.setInput(input);
 		IEditorPart innerEditors[] = getInnerEditors();
-		for (int i = 0; i < innerEditors.length; i++) 
-		{
+		IEditorInput innerEditorInputs[] = ((EntryEditorInput)input).getInput();
+		for(int i = 0; i < innerEditors.length; i++) {
 			final IEditorPart e = innerEditors[i];
-			ViewForm viewForm = new ViewForm(sashForm, SWT.NONE);
-			viewForm.marginWidth = 0;
-			viewForm.marginHeight = 0;
-
-			createInnerEditorTitle(i, viewForm);
-
-			Composite content = createInnerPartControl(viewForm, e);
-
-			viewForm.setContent(content);
-			updateInnerEditorTitle(e, innerEditorTitle[i]);
-
-			final int index = i;
-			e.addPropertyListener(new IPropertyListener() 
-			{
-				public void propertyChanged(Object source, int property) 
-				{
-					if (property == IEditorPart.PROP_DIRTY || property == IWorkbenchPart.PROP_TITLE)
-						if (source instanceof IEditorPart)
-							updateInnerEditorTitle((IEditorPart) source, innerEditorTitle[index]);
-				}
-			});
+			if(e instanceof IReusableEditor) {
+				((IReusableEditor) e).setInput(innerEditorInputs[i]);
+			}
 			if(e instanceof CEditor) {
 				((CEditor)e).getDocumentProvider().getDocument(e.getEditorInput()).addDocumentListener(new IDocumentListener(){
-
 					@Override
 					public void documentAboutToBeChanged(DocumentEvent arg0) {
 					}
-
 					@Override
 					public void documentChanged(DocumentEvent arg0) {
 						myASTTree = buildMyAST();
@@ -198,12 +155,51 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 				myASTTree = buildMyAST();
 			}
 		}
-		
-		initKeyBindingContext();
+		cdcFilepath = CDCEditor.getLatestPath();
+		projectname = CDCEditor.getLatestProjectName();
+		setPartName(projectname);
+		IEditorInput[] editorinputs = ((EntryEditorInput) input).getInput();
+		// IPath path = ((FileEditorInput) editorinputs[0]).getPath();
+		IPath path = ((FileEditorInput) editorinputs[0]).getFile().getFullPath();
+		if(!path.getFileExtension().equals("pdf")) {
+			codeFilepath = path;
+		}
+		path = ((FileEditorInput) editorinputs[editorinputs.length-1]).getFile().getFullPath();
+		if(path.getFileExtension().equals("pdf")) {
+			specFilepath = path;
+		}
+		firePropertyChange(IEditorPart.PROP_INPUT);
+		return;
 	}
 	
-	public MyASTNode getMyAST() {
-		return myASTTree.getTree();
+	public void createPartControl(Composite parent) {
+		System.out.println("EntryEditor.createPartControl");
+		sashForm = new SashForm(parent, SWT.HORIZONTAL);
+		IEditorPart innerEditors[] = getInnerEditors();
+		for(int i = 0; i < innerEditors.length; i++) {
+			final IEditorPart e = innerEditors[i];
+			ViewForm viewForm = new ViewForm(sashForm, SWT.NONE);
+			viewForm.marginWidth = 0;
+			viewForm.marginHeight = 0;
+
+			createInnerEditorTitle(i, viewForm);
+
+			Composite content = createInnerPartControl(viewForm, e);
+			viewForm.setContent(content);
+
+			updateInnerEditorTitle(e, innerEditorTitle[i]);
+
+			final int index = i;
+			e.addPropertyListener(new IPropertyListener() {
+				public void propertyChanged(Object source, int property) {
+					if (property == IEditorPart.PROP_DIRTY || property == IWorkbenchPart.PROP_TITLE)
+						if (source instanceof IEditorPart)
+							updateInnerEditorTitle((IEditorPart) source, innerEditorTitle[index]);
+				}
+			});
+		}
+		
+		initKeyBindingContext();
 	}
 
 	private void initKeyBindingContext() {
@@ -225,18 +221,6 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 			}
 		});
 	}	
-
-	// Draw the gradient for the specified editor.
-	@Override
-	protected void drawGradient(IEditorPart innerEditor, Gradient g) 
-	{
-		CLabel label = innerEditorTitle[getIndex(innerEditor)];
-		if ((label == null) || label.isDisposed())
-			return;
-
-		label.setForeground(g.fgColor);
-		label.setBackground(g.bgColors, g.bgPercents);
-	}
 	
 	// Create the label for each inner editor.
 	protected void createInnerEditorTitle(int index, ViewForm parent) 
@@ -267,36 +251,21 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 		label.setToolTipText(editor.getTitleToolTip());
 	}
 
-	protected int getIndex(IEditorPart editor) 
+	// Draw the gradient for the specified editor.
+	@Override
+	protected void drawGradient(IEditorPart innerEditor, Gradient g) 
 	{
-		IEditorPart innerEditors[] = getInnerEditors();
-		for (int i = 0; i < innerEditors.length; i++) 
-		{
-			if (innerEditors[i] == editor)
-				return i;
-		}
-		return -1;
+		CLabel label = innerEditorTitle[getIndex(innerEditor)];
+		if ((label == null) || label.isDisposed())
+			return;
+
+		label.setForeground(g.fgColor);
+		label.setBackground(g.bgColors, g.bgPercents);
 	}
 
-	public void doSave(IProgressMonitor monitor)
-	{
-		return;
-	}
-	public boolean isSaveAsAllowed()
-	{
-		return false;
-	}
-	public void doSaveAs()
-	{
-		return;
-	}
-	public boolean isDirty()
-	{
-		return false;
-	}
 	public void setFocus()
 	{
-		//super.setFocus();
+		super.setFocus();
 		//sashForm.setFocus();
 		//container.setFocus();
 		System.out.println("get focus");
