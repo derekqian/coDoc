@@ -1,6 +1,7 @@
 platform := gtk
 
 eclipse_exe := $_
+$(shell chmod 755 ../name2path ../name2swpath)
 eclipse_path := $(shell ../name2path $(eclipse_exe))
 software_path := $(shell ../name2swpath $(eclipse_exe))
 jdk_path := $(software_path)jdk/

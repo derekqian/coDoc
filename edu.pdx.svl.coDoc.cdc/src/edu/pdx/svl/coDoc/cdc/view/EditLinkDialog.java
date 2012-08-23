@@ -52,7 +52,7 @@ public class EditLinkDialog extends Dialog {
 		container.setLayout(null);
 		
 		Label lblCode = new Label(container, SWT.NONE);
-		lblCode.setBounds(5, 5, 100, 20);
+		lblCode.setBounds(5, 5, 500, 20);
 		lblCode.setText("Code:");
 		
 		

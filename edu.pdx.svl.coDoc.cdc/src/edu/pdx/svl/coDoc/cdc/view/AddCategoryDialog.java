@@ -58,7 +58,7 @@ public class AddCategoryDialog extends Dialog {
 		container.setLayout(null);
 		
 		Label lblCategory = new Label(container, SWT.NONE);
-		lblCategory.setBounds(5, 25, 300, 20);
+		lblCategory.setBounds(5, 25, 500, 20);
 		lblCategory.setText("Parent Category: " + categorypath);
 		
 		Label lblCode = new Label(container, SWT.NONE);

@@ -62,7 +62,7 @@ public class AddLinkDialog extends Dialog {
 		container.setLayout(null);
 		
 		Label lblCategory = new Label(container, SWT.NONE);
-		lblCategory.setBounds(5, 5, 100, 20);
+		lblCategory.setBounds(5, 5, 500, 20);
 		lblCategory.setText("Category: " + categorypath);
 		
 		Label lblCode = new Label(container, SWT.NONE);
