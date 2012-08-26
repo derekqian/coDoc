@@ -804,8 +804,8 @@ public class CDCEditor implements IEditorLauncher
 		IWorkspace workspace = ResourcesPlugin.getWorkspace();
 		IWorkspaceRoot workspaceroot = workspace.getRoot();
 		String cdcfilename = projname2cdcName(projectname);
-		CDCDataCenter.getInstance().setLastOpenedCodeFilename(cdcfilename, "project:///"+codepath.toString());						
-		CDCDataCenter.getInstance().setLastOpenedSpecFilename(cdcfilename, "project:///"+specpath.toString());						
+		CDCDataCenter.getInstance().setLastOpenedCodeFilename(cdcfilename, codepath.toString().startsWith("/")?"project://"+codepath.toString():"project:///"+codepath.toString());						
+		CDCDataCenter.getInstance().setLastOpenedSpecFilename(cdcfilename, specpath.toString().startsWith("/")?"project://"+specpath.toString():"project:///"+specpath.toString());						
 		//IEditorPart editor = getOpenedEntryEditorTop(projectname);
 		IEditorPart editor = getOpenedEntryEditorTop();
 		if(editor == null) {

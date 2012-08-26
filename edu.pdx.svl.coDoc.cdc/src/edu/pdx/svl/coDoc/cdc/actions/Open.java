@@ -77,14 +77,16 @@ public class Open implements IObjectActionDelegate {
 	                		String temppath = specpath.toString();
 	                		specpath = new Path(temppath.substring(1));
 	                	} else {
-		                	specpath = specpath.makeRelativeTo(workspacerootpath);
+		                	//specpath = specpath.makeRelativeTo(workspacerootpath);
+		                	specpath = file.getFullPath();
 	                	}
 	                } else {
 	                	codepath = file.getRawLocation();
 	                	if(codepath.toString().startsWith("PARENT-")) {
 	                		codepath = file.getFullPath();
 	                	} else {
-		                	codepath = codepath.makeRelativeTo(workspacerootpath);	                		
+		                	//codepath = codepath.makeRelativeTo(workspacerootpath);	                		
+	                		codepath = file.getFullPath();
 	                	}
 	                }
 	            }
