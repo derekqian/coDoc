@@ -1031,7 +1031,7 @@ public class CDCEditor implements IEditorLauncher
 				}
 				if(mapEntry.getData() instanceof CategoryEntry) {
 					CDCDataCenter.getInstance().deleteCategoryEntry(editor.getCDCFilename(),((BaseEntry)mapEntry.getData()).uuid);
-					if(null != CDCDataCenter.getInstance().getCategoryEntry(editor.getCDCFilename(),((BaseEntry)mapEntry.getData()).uuid)) {
+					if(mapEntry.hasChildren()) {
 						nextuuid = ((BaseEntry)mapEntry.getData()).uuid;
 					}
 				}
