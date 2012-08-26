@@ -31,7 +31,7 @@ import org.simpleframework.xml.core.Persister;
  * @author derek
  *
  */
-class HeadV2 {
+class HeadV3 {
 	@Element
 	private String filetype=" ";
 	@Element
@@ -67,7 +67,7 @@ class HeadV2 {
 	}
 }
 
-class CodeSpecFilesV2 {
+class CodeSpecFilesV3 {
 	@ElementMap
 	private Map<String, String> files = new HashMap<String, String>();
 	
@@ -98,7 +98,7 @@ class CodeSpecFilesV2 {
 	}
 }
 
-class CodeSelectionV2 {
+class CodeSelectionV3 {
 	@Element
 	private String syntaxcodepath=" ";
 	@Element
@@ -142,8 +142,8 @@ class CodeSelectionV2 {
 	}
 	@Override
 	public boolean equals(Object o) {
-		if(o instanceof CodeSelectionV2) {
-			CodeSelectionV2 sel = (CodeSelectionV2) o;
+		if(o instanceof CodeSelectionV3) {
+			CodeSelectionV3 sel = (CodeSelectionV3) o;
 			boolean b1 = (sel.getSelCodePath() == null)?selcodepath.equals(" "):selcodepath.equals(sel.getSelCodePath());
 			boolean b2 = (sel.getSelCodeText() == null)?selcodetext.equals(" "):selcodetext.equals(sel.getSelCodeText());
 			boolean b3 = (sel.getSyntaxCodePath() == null)?syntaxcodepath.equals(" "):syntaxcodepath.equals(sel.getSyntaxCodePath());
@@ -157,8 +157,8 @@ class CodeSelectionV2 {
 	public String toString() {
 		return syntaxcodetext+"/"+syntaxcodepath;
 	}
-	public CodeSelectionV3 toCodeSelection() {
-		CodeSelectionV3 temp = new CodeSelectionV3();
+	public CodeSelection toCodeSelection() {
+		CodeSelection temp = new CodeSelection();
 		temp.setSyntaxCodePath(syntaxcodepath);
 		temp.setSelCodePath(selcodepath);
 		temp.setSyntaxCodeText(syntaxcodetext);
@@ -167,72 +167,187 @@ class CodeSelectionV2 {
 	}
 }
 
-class SpecSelectionV2 {
-	@Element
-	private int page;
-	@Element
-	private int top;
-	@Element
-	private int bottom;
-	@Element
-	private int left;
-	@Element
-	private int right;
-	@Element
-	private String pdftext=" ";
+class SpecSelectionV3 {
+	@ElementList
+	private Vector<Integer> page = new Vector<Integer>();
+	@ElementList
+	private Vector<Integer> top = new Vector<Integer>();
+	@ElementList
+	private Vector<Integer> bottom = new Vector<Integer>();
+	@ElementList
+	private Vector<Integer> left = new Vector<Integer>();
+	@ElementList
+	private Vector<Integer> right = new Vector<Integer>();
+	@ElementList
+	private Vector<String> pdftext = new Vector<String>();
 	
-	public void setPage(int page) {
-		this.page = page;
+	public void addPage(int page) {
+		this.page.add(page);
 	}
-	public int getPage() {
+	public void clearPage() {
+		page.clear();
+	}
+	public Vector<Integer> getPage(Vector<Integer> type) {
 		return page;
 	}
-	public void setTop(int top) {
-		this.top = top;
+	public String getPage(String type) {
+		String res = "";
+		Iterator it = page.iterator();
+		while(it.hasNext()) {
+			Integer p = (Integer) it.next();
+			res += p;
+			if(it.hasNext()) {
+				res += " ";
+			}
+		}
+		return res;
 	}
-	public int getTop() {
+	public void addTop(int top) {
+		this.top.add(top); 
+	}
+	public void clearTop() {
+		this.top.clear();
+	}
+	public Vector<Integer> getTop() {
 		return top;
 	}
-	public void setBottom(int bottom) {
-		this.bottom = bottom;
+	public void addBottom(int bottom) {
+		this.bottom.add(bottom);
 	}
-	public int getBottom() {
+	public void clearBottom() {
+		this.bottom.clear();
+	}
+	public Vector<Integer> getBottom() {
 		return bottom;
 	}
-	public void setLeft(int left) {
-		this.left = left;
+	public void addLeft(int left) {
+		this.left.add(left);
 	}
-	public int getLeft() {
+	public void clearLeft() {
+		this.left.clear();
+	}
+	public Vector<Integer> getLeft() {
 		return left;
 	}
-	public void setRight(int right) {
-		this.right = right;
+	public void addRight(int right) {
+		this.right.add(right);
 	}
-	public int getRight() {
+	public void clearRight() {
+		this.right.clear();
+	}
+	public Vector<Integer> getRight() {
 		return right;
 	}
-	public void setPDFText(String pdftext) {
-		this.pdftext = pdftext;
+	public void addPDFText(String pdftext) {
+		this.pdftext.add(pdftext);			
 	}
-	public String getPDFText() {
+	public void clearPDFText() {
+		this.pdftext.clear();
+	}
+	public Vector<String> getPDFText(Vector<String> type) {
 		return pdftext;
 	}
+	public String getPDFText(String type) {
+		String res = "";
+		Iterator it = pdftext.iterator();
+		while(it.hasNext()) {
+			String text = (String) it.next();
+			res += text;
+			if(it.hasNext()) {
+				res += " ";
+			}
+		}
+		return res;
+	}
+	@Override
+	public boolean equals(Object o) {
+		if(o instanceof SpecSelectionV3) {
+			SpecSelectionV3 sel = (SpecSelectionV3) o;
+			if(page.size() != sel.getPage(new Vector<Integer>()).size()) {
+				return false;
+			}
+			Iterator its = page.iterator();
+			Iterator itd = sel.getPage(new Vector<Integer>()).iterator();
+			while(its.hasNext()) {
+				if(!its.next().equals(itd.next())) {
+					return false;
+				}
+			}
+			its = left.iterator();
+			itd = sel.getLeft().iterator();
+			while(its.hasNext()) {
+				if(!its.next().equals(itd.next())) {
+					return false;
+				}
+			}
+			its = right.iterator();
+			itd = sel.getRight().iterator();
+			while(its.hasNext()) {
+				if(!its.next().equals(itd.next())) {
+					return false;
+				}
+			}
+			its = top.iterator();
+			itd = sel.getTop().iterator();
+			while(its.hasNext()) {
+				if(!its.next().equals(itd.next())) {
+					return false;
+				}
+			}
+			its = bottom.iterator();
+			itd = sel.getBottom().iterator();
+			while(its.hasNext()) {
+				if(!its.next().equals(itd.next())) {
+					return false;
+				}
+			}
+			its = pdftext.iterator();
+			itd = sel.getPDFText(new Vector<String>()).iterator();
+			while(its.hasNext()) {
+				if(!its.next().equals(itd.next())) {
+					return false;
+				}
+			}
+		} else {
+			return false;
+		}
+		return true;
+	}
+	@Override
 	public String toString() {
 		return page+"/"+left+"/"+top+"/"+right+"/"+bottom+"/"+pdftext;
 	}
-	public SpecSelectionV3 toSpecSelection() {
-		SpecSelectionV3 temp = new SpecSelectionV3();
-		temp.addBottom(bottom);
-		temp.addLeft(left);
-		temp.addPage(page);
-		temp.addPDFText(pdftext);
-		temp.addRight(right);
-		temp.addTop(top);
+	public SpecSelection toSpecSelection() {
+		SpecSelection temp = new SpecSelection();
+		Iterator it = bottom.iterator();
+		while(it.hasNext()) {
+			temp.addBottom(((Integer)it.next()));
+		}
+		it = left.iterator();
+		while(it.hasNext()) {
+			temp.addLeft(((Integer)it.next()));
+		}
+		it = page.iterator();
+		while(it.hasNext()) {
+			temp.addPage(((Integer)it.next()));
+		}
+		it = pdftext.iterator();
+		while(it.hasNext()) {
+			temp.addPDFText(((String)it.next()));
+		}
+		it = right.iterator();
+		while(it.hasNext()) {
+			temp.addRight(((Integer)it.next()));
+		}
+		it = top.iterator();
+		while(it.hasNext()) {
+			temp.addTop(((Integer)it.next()));
+		}
 		return temp;
 	}
 }
 
-class FolderMapEntryV2 {
+class FolderMapEntryV3 {
 	@Element
 	private String time=" ";
 	@Element
@@ -260,7 +375,7 @@ class FolderMapEntryV2 {
 	}
 }
 
-class FolderEntryV2 extends FolderMapEntryV2 {
+class FolderEntryV3 extends FolderMapEntryV3 {
 	@Element
 	private String folderpath=" ";
 	
@@ -282,11 +397,11 @@ class FolderEntryV2 extends FolderMapEntryV2 {
 	}
 }
 
-class FoldersV2 {
+class FoldersV3 {
 	@ElementMap
-	private Map<String, FolderEntryV2> folders = new HashMap<String, FolderEntryV2>();
+	private Map<String, FolderEntryV3> folders = new HashMap<String, FolderEntryV3>();
 	
-	public FolderEntryV2 getFolderEntry(String uuid) {
+	public FolderEntryV3 getFolderEntry(String uuid) {
 		return folders.get(uuid);
 	}
 	public String getFolderEntryId(String folderpath) {
@@ -307,7 +422,7 @@ class FoldersV2 {
 		String uuid = getFolderEntryId(folderpath);
 		if(null == uuid) {
 			uuid = UUID.randomUUID().toString();
-			FolderEntryV2 entry = new FolderEntryV2();
+			FolderEntryV3 entry = new FolderEntryV3();
 			entry.setTime(time);
 			entry.setOS(os);
 			entry.setCreater(creater);
@@ -324,15 +439,15 @@ class FoldersV2 {
 	}
 }
 
-class MapEntryV2 extends FolderMapEntryV2 {
+class MapEntryV3 extends FolderMapEntryV3 {
 	@Element
 	private String codefileuuid=" ";
 	@Element
-	private CodeSelectionV2 codeselpath = new CodeSelectionV2();
+	private CodeSelectionV3 codeselpath = new CodeSelectionV3();
 	@Element
 	private String specfileuuid=" ";
 	@Element
-	private SpecSelectionV2 specselpath = new SpecSelectionV2();
+	private SpecSelectionV3 specselpath = new SpecSelectionV3();
 	@Element
 	private String comment=" ";
 	
@@ -342,10 +457,10 @@ class MapEntryV2 extends FolderMapEntryV2 {
 	public String getCodefileUUID() {
 		return codefileuuid;
 	}
-	public void setCodeselpath(CodeSelectionV2 codeselpath) {
-		this.codeselpath = codeselpath;
+	public void setCodeselpath(CodeSelectionV3 codeselpath2) {
+		this.codeselpath = codeselpath2;
 	}
-	public CodeSelectionV2 getCodeselpath() {
+	public CodeSelectionV3 getCodeselpath() {
 		return codeselpath;
 	}
 	public void setSpecfileUUID(String specfileuuid) {
@@ -354,10 +469,10 @@ class MapEntryV2 extends FolderMapEntryV2 {
 	public String getSpecfileUUID() {
 		return specfileuuid;
 	}
-	public void setSpecselpath(SpecSelectionV2 specselpath) {
+	public void setSpecselpath(SpecSelectionV3 specselpath) {
 		this.specselpath = specselpath;
 	}
-	public SpecSelectionV2 getSpecselpath() {
+	public SpecSelectionV3 getSpecselpath() {
 		return specselpath;
 	}
 	public void setComment(String comment) {
@@ -368,22 +483,22 @@ class MapEntryV2 extends FolderMapEntryV2 {
 	}
 }
 
-class MapsV2 {
+class MapsV3 {
 	@ElementMap
-	private Map<String, MapEntryV2> maplist = new HashMap<String, MapEntryV2>();
+	private Map<String, MapEntryV3> maplist = new HashMap<String, MapEntryV3>();
 	
-	public MapEntryV2 getMapEntry(String uuid) {
+	public MapEntryV3 getMapEntry(String uuid) {
 		return maplist.get(uuid);
 	}
-	public String getMapEntryId(String codefileuuid, CodeSelectionV2 codeselpath, String specfileuuid, SpecSelectionV2 specselpath, String comment) {
+	public String getMapEntryId(String codefileuuid, CodeSelectionV3 codeSelectionV3, String specfileuuid, SpecSelectionV3 specSelectionV3, String comment) {
 		Set<String> uuids = maplist.keySet();
 		Iterator it = uuids.iterator();
 		while(it.hasNext()) {
 			String uuid = (String) it.next();
-			MapEntryV2 entry = maplist.get(uuid);
-			if(codefileuuid.equals(entry.getCodefileUUID()) && codeselpath.equals(entry.getCodeselpath())
+			MapEntryV3 entry = maplist.get(uuid);
+			if(codefileuuid.equals(entry.getCodefileUUID()) && codeSelectionV3.equals(entry.getCodeselpath())
 					                                        && specfileuuid.equals(entry.getSpecfileUUID())
-					                                        && specselpath.equals(entry.getSpecselpath())
+					                                        && specSelectionV3.equals(entry.getSpecselpath())
 					                                        && comment.equals(entry.getComment())) {
 				return uuid;
 			}
@@ -393,11 +508,11 @@ class MapsV2 {
 	public Set<String> getAllMapEntryId() {
 		return maplist.keySet();
 	}
-	public String addMapEntry(String time, String os, String creater, String codefileuuid, CodeSelectionV2 codeselpath, String specfileuuid, SpecSelectionV2 specselpath, String comment) {
+	public String addMapEntry(String time, String os, String creater, String codefileuuid, CodeSelectionV3 codeselpath, String specfileuuid, SpecSelectionV3 specselpath, String comment) {
 		String uuid = getMapEntryId(codefileuuid, codeselpath, specfileuuid, specselpath, comment);
 		if(null == uuid) {
 			uuid = UUID.randomUUID().toString();
-			MapEntryV2 entry = new MapEntryV2();
+			MapEntryV3 entry = new MapEntryV3();
 			entry.setTime(time);
 			entry.setOS(os);
 			entry.setCreater(creater);
@@ -415,7 +530,7 @@ class MapsV2 {
 	}
 }
 
-class RelationEntryV2 {
+class RelationEntryV3 {
 	@Element
 	private String uuid = " ";
 	@Element
@@ -439,15 +554,15 @@ class RelationEntryV2 {
 	}
 }
 
-class RelationsV2 {
+class RelationsV3 {
 	@ElementList
-	private Vector<RelationEntryV2> relations = new Vector<RelationEntryV2>();
+	private Vector<RelationEntryV3> relations = new Vector<RelationEntryV3>();
 	
-	public Vector<RelationEntryV2> getAllRelationEntries() {
+	public Vector<RelationEntryV3> getAllRelationEntries() {
 		return relations;
 	}
-	public RelationEntryV2 getRelationEntry(String uuid) {
-		for(RelationEntryV2 entry : relations) {
+	public RelationEntryV3 getRelationEntry(String uuid) {
+		for(RelationEntryV3 entry : relations) {
 			if(entry.getUUID().equals(uuid)) {
 				return entry;
 			}
@@ -456,42 +571,42 @@ class RelationsV2 {
 	}
 	public void addRelation(String uuid, String parentuuid) {
 		if(null == getRelationEntry(uuid)) {
-			RelationEntryV2 entry = new RelationEntryV2();
+			RelationEntryV3 entry = new RelationEntryV3();
 			entry.setUUID(uuid);
 			entry.setParentUUID(parentuuid);
 			relations.add(entry);			
 		}
 	}
 	public void removeRelation(String uuid) {
-		RelationEntryV2 entry = getRelationEntry(uuid);
+		RelationEntryV3 entry = getRelationEntry(uuid);
 		if(null != entry) {
 			relations.removeElement(entry);
 		}
 	}
 }
 
-class BodyV2 {
+class BodyV3 {
 	@Element
-	public CodeSpecFilesV2 codefiles = null;
+	public CodeSpecFilesV3 codefiles = null;
 	@Element
-	public CodeSpecFilesV2 specfiles = null;
+	public CodeSpecFilesV3 specfiles = null;
 	@Element
-	public FoldersV2 folders = null;
+	public FoldersV3 folders = null;
 	@Element
-	public MapsV2 maps = null;
+	public MapsV3 maps = null;
 	@Element
-	public RelationsV2 relations = null;
+	public RelationsV3 relations = null;
 	
-	public BodyV2() {
-		codefiles = new CodeSpecFilesV2();
-		specfiles = new CodeSpecFilesV2();
-		folders = new FoldersV2();
-		maps = new MapsV2();
-		relations = new RelationsV2();
+	public BodyV3() {
+		codefiles = new CodeSpecFilesV3();
+		specfiles = new CodeSpecFilesV3();
+		folders = new FoldersV3();
+		maps = new MapsV3();
+		relations = new RelationsV3();
 	}
 }
 
-class OpEntryV2 {
+class OpEntryV3 {
 	@Element
 	private String operation=" ";
 	
@@ -503,7 +618,7 @@ class OpEntryV2 {
 	}
 }
 
-class LastOpenedV2 {
+class LastOpenedV3 {
 	@Element
 	private String codeFileuuid=" ";
 	@Element
@@ -523,11 +638,11 @@ class LastOpenedV2 {
 		return specFileuuid.equals(" ")?null:specFileuuid;
 	}
 }
-class HistoryV2 {
+class HistoryV3 {
 	@Element
-	private LastOpenedV2 lastOpened = new LastOpenedV2();
+	private LastOpenedV3 lastOpened = new LastOpenedV3();
 	@ElementList
-	private Vector<OpEntryV2> operations = new Vector<OpEntryV2>();
+	private Vector<OpEntryV3> operations = new Vector<OpEntryV3>();
 	
 	public void setLastOpenedCodeFileuuid(String codeFileuuid) {
 		lastOpened.setCodeFileuuid(codeFileuuid);
@@ -544,13 +659,13 @@ class HistoryV2 {
 	}
 	
 	public void addOperation(String op) {
-		OpEntryV2 opentry = new OpEntryV2();
+		OpEntryV3 opentry = new OpEntryV3();
 		opentry.setOperation(op);
 		operations.add(opentry);
 	}
 	
 	public void deleteOperation(String op) {
-		for(OpEntryV2 entry : operations) {
+		for(OpEntryV3 entry : operations) {
 			if(entry.getOperation().equals(op)) {
 				operations.removeElement(entry);
 				break;
@@ -558,17 +673,17 @@ class HistoryV2 {
 		}
 	}
 	
-	public Vector<OpEntryV2> getOperationList() {
+	public Vector<OpEntryV3> getOperationList() {
 		return operations;
 	}
 }
 
-class FolderMapTreeNodeV2 {
+class FolderMapTreeNodeV3 {
 	private String uuid = null;
-	private FolderMapTreeNodeV2 parent = null;
-	private Vector<FolderMapTreeNodeV2> children = new Vector<FolderMapTreeNodeV2>();
+	private FolderMapTreeNodeV3 parent = null;
+	private Vector<FolderMapTreeNodeV3> children = new Vector<FolderMapTreeNodeV3>();
 	
-	public FolderMapTreeNodeV2(String uuid) {
+	public FolderMapTreeNodeV3(String uuid) {
 		this.uuid = uuid;
 	}
 	public String getData() {
@@ -577,57 +692,57 @@ class FolderMapTreeNodeV2 {
 	public void setData(String uuid) {
 		this.uuid = uuid;
 	}
-	public void setParent(FolderMapTreeNodeV2 parent) {
+	public void setParent(FolderMapTreeNodeV3 parent) {
 		this.parent = parent;
 	}
-	public FolderMapTreeNodeV2 getParent() {
+	public FolderMapTreeNodeV3 getParent() {
 		return parent;
 	}
-	public void addChild(FolderMapTreeNodeV2 child) {
+	public void addChild(FolderMapTreeNodeV3 child) {
 		children.add(child);
 		child.setParent(this);
 	}
-	public void removeChild(FolderMapTreeNodeV2 child) {
+	public void removeChild(FolderMapTreeNodeV3 child) {
 		children.remove(child);
 	}
 	public boolean hasChildren() {
 		return (!children.isEmpty());
 	}
-	public FolderMapTreeNodeV2[] getChildren() {
-		FolderMapTreeNodeV2[] temp = new FolderMapTreeNodeV2[children.size()];
+	public FolderMapTreeNodeV3[] getChildren() {
+		FolderMapTreeNodeV3[] temp = new FolderMapTreeNodeV3[children.size()];
 		System.arraycopy(children.toArray(), 0, temp, 0, children.size());
 		return temp;
 	}
 }
 
 @Root
-public class CDCModelV2 {
+public class CDCModelV3 {
 	@Element
-	private HeadV2 head;
+	private HeadV3 head;
 	@Element
-	private BodyV2 body;
+	private BodyV3 body;
 	@Element
-	private HistoryV2 hist;
+	private HistoryV3 hist;
 	
 	private Date date;
 	private SimpleDateFormat ft = null;
 	
-	private FolderMapTreeNodeV2 root = null;
+	private FolderMapTreeNodeV3 root = null;
 	
-	public CDCModelV2() {
+	public CDCModelV3() {
 		Properties props=System.getProperties();
 		ft = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss:SSS zzz");
 		date = new Date();
 		String time = ft.format(date);
 		String os = props.getProperty("os.name");
 		String creater = props.getProperty("user.name");
-		head = new HeadV2();
+		head = new HeadV3();
 		head.setFiletype("CDC");
 		head.setCreater(creater);
 		head.setOS(os);
 		head.setCreatetime(time);
-		body = new BodyV2();
-		hist = new HistoryV2();
+		body = new BodyV3();
+		hist = new HistoryV3();
 		
 		if(body.folders.isEmpty()) {
 			body.folders.addFolderEntry(time, os, creater, "/");
@@ -676,28 +791,28 @@ public class CDCModelV2 {
 		hist.addOperation(ft.format(date)+"#"+props.getProperty("os.name")+"#"+props.getProperty("user.name")+"#del#specfileentry#"+uuid);
 	}
 	
-	public FolderMapTreeNodeV2 getMapIdTree() {
-		Map<String, FolderMapTreeNodeV2> created = new HashMap<String, FolderMapTreeNodeV2>();
-		FolderMapTreeNodeV2 child = null;
-		FolderMapTreeNodeV2 parent = null;
+	public FolderMapTreeNodeV3 getMapIdTree() {
+		Map<String, FolderMapTreeNodeV3> created = new HashMap<String, FolderMapTreeNodeV3>();
+		FolderMapTreeNodeV3 child = null;
+		FolderMapTreeNodeV3 parent = null;
 		if(root == null) {
 			String rootuuid = body.folders.getFolderEntryId("/");
-			root = new FolderMapTreeNodeV2(rootuuid);
+			root = new FolderMapTreeNodeV3(rootuuid);
 			created.put(rootuuid, root);
 			// only for edges, so rootuuid can't be in uuid field.
-			for(RelationEntryV2 entry : body.relations.getAllRelationEntries()) {
+			for(RelationEntryV3 entry : body.relations.getAllRelationEntries()) {
 				String uuid = entry.getUUID();
 				String parentuuid = entry.getParentUUID();
 				if(created.containsKey(uuid)) {
 					child = created.get(uuid);
 				} else {
-					child = new FolderMapTreeNodeV2(uuid);
+					child = new FolderMapTreeNodeV3(uuid);
 					created.put(uuid, child);
 				}
 				if(created.containsKey(parentuuid)) {
 					parent = created.get(parentuuid);
 				} else {
-					parent = new FolderMapTreeNodeV2(parentuuid);
+					parent = new FolderMapTreeNodeV3(parentuuid);
 					created.put(parentuuid, parent);
 				}
 				child.setParent(parent);
@@ -707,50 +822,51 @@ public class CDCModelV2 {
 		return root;
 	}
 	
-	private FolderMapTreeNodeV2 getMapIdTreeNode(String uuid) {
-		Stack<FolderMapTreeNodeV2> stack = new Stack<FolderMapTreeNodeV2>();
+	private FolderMapTreeNodeV3 getMapIdTreeNode(String uuid) {
+		Stack<FolderMapTreeNodeV3> stack = new Stack<FolderMapTreeNodeV3>();
 		if(root == null) {
 			getMapIdTree();
 		}
 		stack.push(root);
 		while(!stack.empty()) {
-			FolderMapTreeNodeV2 node = stack.pop();
+			FolderMapTreeNodeV3 node = stack.pop();
 			if(node.getData().equals(uuid)) {
 				return node;
 			}
-			FolderMapTreeNodeV2[] children = node.getChildren();
-			for(FolderMapTreeNodeV2 n : children) {
+			FolderMapTreeNodeV3[] children = node.getChildren();
+			for(FolderMapTreeNodeV3 n : children) {
 				stack.push(n);
 			}
 		}
 		return null;
 	}
 	
-	public void addFolderEntry(String parentfolderuuid, String foldername) {
+	public String addFolderEntry(String parentfolderuuid, String foldername) {
 		Properties props=System.getProperties();
 		date = new Date();
 		String time = ft.format(date);
 		String creater = props.getProperty("user.name");
 		String os = props.getProperty("os.name");
-		addFolderEntry(time, os, creater, parentfolderuuid, foldername);
+		return addFolderEntry(time, os, creater, parentfolderuuid, foldername);
 	}
-	public void addFolderEntry(String time, String os, String creater, String parentfolderuuid, String foldername) {
-		FolderEntryV2 folderentry = body.folders.getFolderEntry(parentfolderuuid);
+	public String addFolderEntry(String time, String os, String creater, String parentfolderuuid, String foldername) {
+		FolderEntryV3 folderentry = body.folders.getFolderEntry(parentfolderuuid);
 		String folderpath = folderentry.getFolderpath();
 		if(!folderentry.getFoldername().equals("/")) {
 			folderpath += "/";
 		}
 		folderpath += foldername;
 		String uuid = body.folders.addFolderEntry(time, os, creater, folderpath);
-		FolderMapTreeNodeV2 parent = getMapIdTreeNode(parentfolderuuid);
-		FolderMapTreeNodeV2 child = new FolderMapTreeNodeV2(uuid);
+		FolderMapTreeNodeV3 parent = getMapIdTreeNode(parentfolderuuid);
+		FolderMapTreeNodeV3 child = new FolderMapTreeNodeV3(uuid);
 		child.setParent(parent);
 		parent.addChild(child);
 		body.relations.addRelation(uuid, parentfolderuuid);
 		hist.addOperation(time+"#"+os+"#"+creater+"#add#folderentry#"+uuid+"#"+parentfolderuuid);
+		return uuid;
 	}
 	
-	public FolderEntryV2 getFolderEntry(String uuid) {
+	public FolderEntryV3 getFolderEntry(String uuid) {
 		return body.folders.getFolderEntry(uuid);
 	}
 	
@@ -764,62 +880,67 @@ public class CDCModelV2 {
 		if(foldername.equals("/")) {
 			return;
 		}
-		FolderMapTreeNodeV2 child = getMapIdTreeNode(uuid);
+		FolderMapTreeNodeV3 child = getMapIdTreeNode(uuid);
 		if(child.hasChildren()) {
 			return;
 		}
 		String parentfolderuuid = body.relations.getRelationEntry(uuid).getParentUUID();
-		FolderMapTreeNodeV2 parent = getMapIdTreeNode(parentfolderuuid);
+		FolderMapTreeNodeV3 parent = getMapIdTreeNode(parentfolderuuid);
 		parent.removeChild(child);
 		body.relations.removeRelation(uuid);
 		// body.folders.deleteFolderEntry(uuid);
 		hist.addOperation(time+"#"+os+"#"+creater+"#del#folderentry#"+uuid);
 	}
 	
-	public void addMapEntry(String parentfolderuuid, String codefilename, CodeSelectionV2 codeselpath, String specfilename, SpecSelectionV2 specselpath, String comment) {
+	public String addMapEntry(String parentfolderuuid, String codefilename, CodeSelectionV3 codeSelectionV3, String specfilename, SpecSelectionV3 specSelectionV3, String comment) {
 		Properties props=System.getProperties();
 		date = new Date();
 		String time = ft.format(date);
 		String creater = props.getProperty("user.name");
 		String os = props.getProperty("os.name");
-		addMapEntry(time, os, creater, parentfolderuuid, codefilename, codeselpath, specfilename, specselpath, comment);
+		return addMapEntry(time, os, creater, parentfolderuuid, codefilename, codeSelectionV3, specfilename, specSelectionV3, comment);
 	}
-	public void addMapEntry(String time, String os, String creater, String parentfolderuuid, String codefilename, CodeSelectionV2 codeselpath, String specfilename, SpecSelectionV2 specselpath, String comment) {
+	public String addMapEntry(String time, String os, String creater, String parentfolderuuid, String codefilename, CodeSelectionV3 codeselpath, String specfilename, SpecSelectionV3 specselpath, String comment) {
 		addCodeFileEntry(codefilename);
 		addSpecFileEntry(specfilename);
 		String codefileuuid = body.codefiles.getFileEntryId(codefilename);
 		String specfileuuid = body.specfiles.getFileEntryId(specfilename);
-		String uuid = body.maps.addMapEntry(time, os, creater, codefileuuid, codeselpath, specfileuuid, specselpath, comment);
-		FolderMapTreeNodeV2 parent = getMapIdTreeNode(parentfolderuuid);
-		FolderMapTreeNodeV2 child = new FolderMapTreeNodeV2(uuid);
-		child.setParent(parent);
-		parent.addChild(child);
-		body.relations.addRelation(uuid, parentfolderuuid);
-		hist.addOperation(time+"#"+os+"#"+creater+"#add#mapentry#"+uuid+"#"+parentfolderuuid);
+		String uuid = body.maps.getMapEntryId(codefileuuid, codeselpath, specfileuuid, specselpath, comment);
+		if(uuid == null) {
+			uuid = body.maps.addMapEntry(time, os, creater, codefileuuid, codeselpath, specfileuuid, specselpath, comment);
+			FolderMapTreeNodeV3 parent = getMapIdTreeNode(parentfolderuuid);
+			FolderMapTreeNodeV3 child = new FolderMapTreeNodeV3(uuid);
+			child.setParent(parent);
+			parent.addChild(child);
+			body.relations.addRelation(uuid, parentfolderuuid);
+			hist.addOperation(time+"#"+os+"#"+creater+"#add#mapentry#"+uuid+"#"+parentfolderuuid);
+		}
+		return uuid;
 	}
 	
-	public void editMapEntry(String olduuid, String codefilename, CodeSelectionV2 codeselpath, String specfilename, SpecSelectionV2 specselpath, String comment) {
+	public String editMapEntry(String olduuid, String codefilename, CodeSelectionV3 codeSelectionV3, String specfilename, SpecSelectionV3 specSelectionV3, String comment) {
 		Properties props=System.getProperties();
 		date = new Date();
 		String time = ft.format(date);
 		String creater = props.getProperty("user.name");
 		String os = props.getProperty("os.name");
-		editMapEntry(time, os, creater, olduuid, codefilename, codeselpath, specfilename, specselpath, comment);
+		return editMapEntry(time, os, creater, olduuid, codefilename, codeSelectionV3, specfilename, specSelectionV3, comment);
 	}
-	public void editMapEntry(String time, String os, String creater, String olduuid, String codefilename, CodeSelectionV2 codeselpath, String specfilename, SpecSelectionV2 specselpath, String comment) {
+	public String editMapEntry(String time, String os, String creater, String olduuid, String codefilename, CodeSelectionV3 codeselpath, String specfilename, SpecSelectionV3 specselpath, String comment) {
 		addCodeFileEntry(codefilename);
 		addSpecFileEntry(specfilename);
 		String codefileuuid = body.codefiles.getFileEntryId(codefilename);
 		String specfileuuid = body.specfiles.getFileEntryId(specfilename);
 		String uuid = body.maps.addMapEntry(time, os, creater, codefileuuid, codeselpath, specfileuuid, specselpath, comment);		
-		FolderMapTreeNodeV2 child = getMapIdTreeNode(olduuid);
+		FolderMapTreeNodeV3 child = getMapIdTreeNode(olduuid);
 		child.setData(uuid);
-		RelationEntryV2 rentry = body.relations.getRelationEntry(olduuid);
+		RelationEntryV3 rentry = body.relations.getRelationEntry(olduuid);
 		rentry.setUUID(uuid);		
 		hist.addOperation(time+"#"+os+"#"+creater+"#edt#mapentry#"+olduuid+"#"+uuid);
+		return uuid;
 	}
 	
-	public MapEntryV2 getMapEntry(String uuid) {
+	public MapEntryV3 getMapEntry(String uuid) {
 		return body.maps.getMapEntry(uuid);
 	}
 	
@@ -830,8 +951,8 @@ public class CDCModelV2 {
 	}
 	public void deleteMapEntry(String time, String os, String creater, String uuid) {
 		String parentfolderuuid = body.relations.getRelationEntry(uuid).getParentUUID();
-		FolderMapTreeNodeV2 child = getMapIdTreeNode(uuid);
-		FolderMapTreeNodeV2 parent = getMapIdTreeNode(parentfolderuuid);
+		FolderMapTreeNodeV3 child = getMapIdTreeNode(uuid);
+		FolderMapTreeNodeV3 parent = getMapIdTreeNode(parentfolderuuid);
 		parent.removeChild(child);
 		body.relations.removeRelation(uuid);
 		// body.maps.deleteMapEntry(uuid);
@@ -839,8 +960,8 @@ public class CDCModelV2 {
 	}
 	
 	public boolean parentOf(String childuuid, String parentuuid) {
-		FolderMapTreeNodeV2 child = getMapIdTreeNode(childuuid);
-		FolderMapTreeNodeV2 parent = child.getParent();
+		FolderMapTreeNodeV3 child = getMapIdTreeNode(childuuid);
+		FolderMapTreeNodeV3 parent = child.getParent();
 		while(parent != null) {
 			if(parent.getData().equals(parentuuid)) {
 				return true;
@@ -860,15 +981,15 @@ public class CDCModelV2 {
 		if(destuuid.equals(parentfolderuuid)) {
 			return;
 		}
-		FolderMapTreeNodeV2 child = getMapIdTreeNode(sourceuuid);
-		FolderMapTreeNodeV2 parent = getMapIdTreeNode(parentfolderuuid);
+		FolderMapTreeNodeV3 child = getMapIdTreeNode(sourceuuid);
+		FolderMapTreeNodeV3 parent = getMapIdTreeNode(parentfolderuuid);
 		parent.removeChild(child);
 		parent = getMapIdTreeNode(destuuid);
 		child.setParent(parent);
 		parent.addChild(child);
 		if(body.folders.getFolderEntry(sourceuuid) != null) {
-			FolderEntryV2 childfolder = body.folders.getFolderEntry(sourceuuid);
-			FolderEntryV2 parentfolder = body.folders.getFolderEntry(destuuid);
+			FolderEntryV3 childfolder = body.folders.getFolderEntry(sourceuuid);
+			FolderEntryV3 parentfolder = body.folders.getFolderEntry(destuuid);
 			childfolder.setFolderpath(parentfolder.getFolderpath()+childfolder.getFoldername());
 		}
 		body.relations.removeRelation(sourceuuid);
@@ -897,40 +1018,40 @@ public class CDCModelV2 {
 		return (uuid==null)?null:body.specfiles.getFilename(uuid);
 	}
 	
-	public HeadV2 getHead() {
+	public HeadV3 getHead() {
 		return head;
 	}
-	public BodyV2 getBody() {
+	public BodyV3 getBody() {
 		return body;
 	}
-	public HistoryV2 getHist() {
+	public HistoryV3 getHist() {
 		return hist;
 	}
 	public static void main(String[] args) {
-		toV3();
+		toV4();
 	}
-	private static void toV3() {
-		CDCModelV2 cdcModelV2 = null;
-		File cdcFileV2 = new File("/home/derek/runtime-EclipseApplication/dio/dio.ver2-2.cdc");
+	private static void toV4() {
+		CDCModelV3 cdcModelV3 = null;
+		File cdcFileV3 = new File("/home/derek/runtime-EclipseApplication/dio/dio.ver3.cdc");
 		Serializer serializer = new Persister();
 		try {
-			cdcModelV2 = serializer.read(CDCModelV2.class, cdcFileV2);
+			cdcModelV3 = serializer.read(CDCModelV3.class, cdcFileV3);
 		} catch (Exception e) {
-			System.out.println("Unable to read cdcFileV2!");
+			System.out.println("Unable to read cdcFileV3!");
 			e.printStackTrace();
 		}
 		
-		CDCModelV3 cdcModelV3 = new CDCModelV3();
-		cdcModelV3.getHead().setCreater(cdcModelV2.getHead().getCreater());
-		cdcModelV3.getHead().setCreatetime(cdcModelV2.getHead().getCreatetime());
-		cdcModelV3.getHead().setFiletype(cdcModelV2.getHead().getFiletype());
-		cdcModelV3.getHead().setOS(cdcModelV2.getHead().getOS());
-		cdcModelV3.getMapIdTree();
+		CDCModel cdcModel = new CDCModel();
+		cdcModel.getHead().setCreater(cdcModelV3.getHead().getCreater());
+		cdcModel.getHead().setCreatetime(cdcModelV3.getHead().getCreatetime());
+		cdcModel.getHead().setFiletype(cdcModelV3.getHead().getFiletype());
+		cdcModel.getHead().setOS(cdcModelV3.getHead().getOS());
+		cdcModel.getMapIdTree();
 		
-		Vector<OpEntryV2> ops = cdcModelV2.getHist().getOperationList();
+		Vector<OpEntryV3> ops = cdcModelV3.getHist().getOperationList();
 		Iterator it = ops.iterator();
 		while(it.hasNext()) {
-			OpEntryV2 op = (OpEntryV2) it.next();
+			OpEntryV3 op = (OpEntryV3) it.next();
 			String tempstr = op.getOperation();
 			Vector<String> opstr = new Vector<String>();
 			while(tempstr.lastIndexOf('#') != -1) {
@@ -943,28 +1064,28 @@ public class CDCModelV2 {
 			if(opstr.get(3).equals("add") && opstr.get(4).equals("mapentry")) {
 				String uuid = opstr.get(5);
 				String parentuuid = opstr.get(6);
-				String folderPath = cdcModelV2.getFolderEntry(parentuuid).getFolderpath();
-				parentuuid = cdcModelV3.getBody().folders.getFolderEntryId(folderPath);
-				MapEntryV2 entry = cdcModelV2.getMapEntry(uuid);
-				String codefilename = cdcModelV2.getCodeFilename(entry.getCodefileUUID());
-				String specfilename = cdcModelV2.getSpecFilename(entry.getSpecfileUUID());
-				cdcModelV3.addMapEntry(parentuuid, codefilename, entry.getCodeselpath().toCodeSelection(), specfilename, entry.getSpecselpath().toSpecSelection(), entry.getComment());
+				String folderPath = cdcModelV3.getFolderEntry(parentuuid).getFolderpath();
+				parentuuid = cdcModel.getBody().folders.getFolderEntryId(folderPath);
+				MapEntryV3 entry = cdcModelV3.getMapEntry(uuid);
+				String codefilename = cdcModelV3.getCodeFilename(entry.getCodefileUUID());
+				String specfilename = cdcModelV3.getSpecFilename(entry.getSpecfileUUID());
+				cdcModel.addMapEntry(parentuuid, codefilename, entry.getCodeselpath().toCodeSelection(), specfilename, entry.getSpecselpath().toSpecSelection(), entry.getComment());
 			} else if(opstr.get(3).equals("edt") && opstr.get(4).equals("mapentry")) {
 				String olduuid = opstr.get(5);
 				String uuid = opstr.get(6);
-				MapEntryV2 oldentry = cdcModelV2.getMapEntry(olduuid);
-				String oldcodefilename = cdcModelV2.getBody().codefiles.getFilename(oldentry.getCodefileUUID());
-				String oldcodefileuuid = cdcModelV3.getBody().codefiles.getFileEntryId(oldcodefilename);
-				CodeSelectionV2 codeselpath = oldentry.getCodeselpath();
-				String oldspecfilename = cdcModelV2.getBody().specfiles.getFilename(oldentry.getSpecfileUUID());
-				String oldspecfileuuid = cdcModelV3.getBody().specfiles.getFileEntryId(oldspecfilename);
-				SpecSelectionV2 specselpath = oldentry.getSpecselpath();
+				MapEntryV3 oldentry = cdcModelV3.getMapEntry(olduuid);
+				String oldcodefilename = cdcModelV3.getBody().codefiles.getFilename(oldentry.getCodefileUUID());
+				String oldcodefileuuid = cdcModel.getBody().codefiles.getFileEntryId(oldcodefilename);
+				CodeSelectionV3 codeselpath = oldentry.getCodeselpath();
+				String oldspecfilename = cdcModelV3.getBody().specfiles.getFilename(oldentry.getSpecfileUUID());
+				String oldspecfileuuid = cdcModel.getBody().specfiles.getFileEntryId(oldspecfilename);
+				SpecSelectionV3 specselpath = oldentry.getSpecselpath();
 				String comment = oldentry.getComment();
-				olduuid = cdcModelV3.getBody().maps.getMapEntryId(oldcodefileuuid, codeselpath.toCodeSelection(), oldspecfileuuid, specselpath.toSpecSelection(), comment);
-				MapEntryV2 entry = cdcModelV2.getMapEntry(uuid);
-				String codefilename = cdcModelV2.getCodeFilename(entry.getCodefileUUID());
-				String specfilename = cdcModelV2.getSpecFilename(entry.getSpecfileUUID());
-				cdcModelV3.editMapEntry(olduuid, codefilename, entry.getCodeselpath().toCodeSelection(), specfilename, entry.getSpecselpath().toSpecSelection(), entry.getComment());
+				olduuid = cdcModel.getBody().maps.getMapEntryId(oldcodefileuuid, codeselpath.toCodeSelection(), oldspecfileuuid, specselpath.toSpecSelection(), comment);
+				MapEntryV3 entry = cdcModelV3.getMapEntry(uuid);
+				String codefilename = cdcModelV3.getCodeFilename(entry.getCodefileUUID());
+				String specfilename = cdcModelV3.getSpecFilename(entry.getSpecfileUUID());
+				cdcModel.editMapEntry(olduuid, codefilename, entry.getCodeselpath().toCodeSelection(), specfilename, entry.getSpecselpath().toSpecSelection(), entry.getComment());
 			} else if(opstr.get(3).equals("add") && opstr.get(4).equals("codefileentry")) {
 			} else if(opstr.get(3).equals("add") && opstr.get(4).equals("specfileentry")) {
 			} else {
@@ -973,11 +1094,11 @@ public class CDCModelV2 {
 			}
 		}
 
-		cdcModelV3.setLastOpenedCodeFilename(cdcModelV2.getLastOpenedCodeFilename());
-		cdcModelV3.setLastOpenedSpecFilename(cdcModelV2.getLastOpenedSpecFilename());
-		File cdcFile = new File("/home/derek/runtime-EclipseApplication/dio/dio.ver3.cdc");
+		cdcModel.setLastOpenedCodeFilename(cdcModelV3.getLastOpenedCodeFilename());
+		cdcModel.setLastOpenedSpecFilename(cdcModelV3.getLastOpenedSpecFilename());
+		File cdcFile = new File("/home/derek/runtime-EclipseApplication/dio/dio.ver4.cdc");
 		try {
-			serializer.write(cdcModelV3, cdcFile);
+			serializer.write(cdcModel, cdcFile);
 		} catch (Exception e) {
 			System.out.println("Unable to write cdcFile!");
 			e.printStackTrace();
