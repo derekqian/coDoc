@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -58,7 +59,7 @@ class Head {
 
 class CodeSpecFiles {
 	@ElementMap
-	private Map<String, String> files = new HashMap<String, String>();
+	private Map<String, String> files = new LinkedHashMap<String, String>();
 	
 	public String getFilename(String uuid) {
 		return files.get(uuid);
@@ -139,7 +140,7 @@ class FolderEntry extends FolderMapEntry {
 
 class Folders {
 	@ElementMap
-	private Map<String, FolderEntry> folders = new HashMap<String, FolderEntry>();
+	private Map<String, FolderEntry> folders = new LinkedHashMap<String, FolderEntry>();
 	
 	public FolderEntry getFolderEntry(String uuid) {
 		return folders.get(uuid);
@@ -225,7 +226,7 @@ class MapEntry extends FolderMapEntry {
 
 class Maps {
 	@ElementMap
-	private Map<String, MapEntry> maplist = new HashMap<String, MapEntry>();
+	private Map<String, MapEntry> maplist = new LinkedHashMap<String, MapEntry>();
 	
 	public MapEntry getMapEntry(String uuid) {
 		return maplist.get(uuid);
