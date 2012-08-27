@@ -467,7 +467,7 @@ public class CDCEditor implements IEditorLauncher
 				// already open
 				editor = er.getEditor(false);
 				workbenchPage.bringToTop(editor);
-				workbenchPage.activate(editor);
+				//workbenchPage.activate(editor);
 			}
 		}
 
