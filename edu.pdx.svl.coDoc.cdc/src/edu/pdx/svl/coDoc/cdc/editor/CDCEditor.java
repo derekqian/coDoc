@@ -113,7 +113,7 @@ class TempCodeEditorInput implements IStorageEditorInput
 	private final class TempCodeStorage implements IStorage {
 		@Override
 		public InputStream getContents() throws CoreException {
-			return new StringBufferInputStream("This is a fake code file. Open the real code file when you need it.");
+			return new StringBufferInputStream("");
 		}
 		@Override
 		public IPath getFullPath() {
@@ -168,7 +168,7 @@ class TempPdfEditorInput implements IStorageEditorInput
 		@Override
 		public InputStream getContents() throws CoreException {
 			//String content = "This is a fake pdf file. Open the real pdf file when you need it.";
-			String content = "This is a fake pdf file. \nOpen the real pdf file when you need it.";
+			String content = "";
 			String head = "%PDF-1.4\n";
 			String obj1 = "1 0 obj\n" + "<<\n" + "/Type /Catalog\n" 
 							+ "/Pages 3 0 R\n" + "/Outlines 2 0 R\n" 
@@ -566,15 +566,15 @@ public class CDCEditor implements IEditorLauncher
 			IFile codefile = (IFile) workspaceroot.getFile(codepath);
 			final FileEditorInput codeEditorInput = new FileEditorInput(codefile);
 
-			String editorID[] = {"org.eclipse.cdt.ui.editor.CEditor"};
-			IEditorInput editorInput[] = {codeEditorInput};
+			String editorID[] = {"org.eclipse.cdt.ui.editor.CEditor","edu.pdx.svl.coDoc.poppler.editor.PDFEditor"};
+			IEditorInput editorInput[] = {codeEditorInput,new TempPdfEditorInput()};
 			entryEditorInput = new EntryEditorInput(editorID, editorInput);
 		} else if((codepath==null)&&(specpath!=null)) {
 			IFile specfile = (IFile) workspaceroot.getFile(specpath);
 			final FileEditorInput specEditorInput = new FileEditorInput(specfile);
 
-			String editorID[] = {"edu.pdx.svl.coDoc.poppler.editor.PDFEditor"};
-			IEditorInput editorInput[] = {specEditorInput};
+			String editorID[] = {"org.eclipse.cdt.ui.editor.CEditor","edu.pdx.svl.coDoc.poppler.editor.PDFEditor"};
+			IEditorInput editorInput[] = {new TempCodeEditorInput(),specEditorInput};
 			entryEditorInput = new EntryEditorInput(editorID, editorInput);
 		} else {
 			String editorID[] = {"org.eclipse.cdt.ui.editor.CEditor","edu.pdx.svl.coDoc.poppler.editor.PDFEditor"};
@@ -594,6 +594,47 @@ public class CDCEditor implements IEditorLauncher
 			e.printStackTrace();
 		}
 		return editor;
+	}
+	
+	public static void reuseEntryEditor(IEditorPart editor, IPath codepath, IPath specpath) {
+		EntryEditorInput entryEditorInput = null;
+		
+		IWorkspace workspace = ResourcesPlugin.getWorkspace();
+		IWorkspaceRoot workspaceroot = workspace.getRoot();
+		
+		if((codepath!=null)&&(specpath!=null)) {
+			IFile codefile = (IFile) workspaceroot.getFile(codepath);
+			final FileEditorInput codeEditorInput = new FileEditorInput(codefile);
+			IFile specfile = (IFile) workspaceroot.getFile(specpath);
+			final FileEditorInput specEditorInput = new FileEditorInput(specfile);
+			
+			String editorID[] = {"org.eclipse.cdt.ui.editor.CEditor","edu.pdx.svl.coDoc.poppler.editor.PDFEditor"};
+			IEditorInput editorInput[] = {codeEditorInput,specEditorInput};
+			entryEditorInput = new EntryEditorInput(editorID, editorInput);
+		} else if((codepath!=null)&&(specpath==null)) {
+			IFile codefile = (IFile) workspaceroot.getFile(codepath);
+			final FileEditorInput codeEditorInput = new FileEditorInput(codefile);
+
+			String editorID[] = {"org.eclipse.cdt.ui.editor.CEditor","edu.pdx.svl.coDoc.poppler.editor.PDFEditor"};
+			IEditorInput editorInput[] = {codeEditorInput,new TempPdfEditorInput()};
+			entryEditorInput = new EntryEditorInput(editorID, editorInput);
+		} else if((codepath==null)&&(specpath!=null)) {
+			IFile specfile = (IFile) workspaceroot.getFile(specpath);
+			final FileEditorInput specEditorInput = new FileEditorInput(specfile);
+
+			String editorID[] = {"org.eclipse.cdt.ui.editor.CEditor","edu.pdx.svl.coDoc.poppler.editor.PDFEditor"};
+			IEditorInput editorInput[] = {new TempCodeEditorInput(),specEditorInput};
+			entryEditorInput = new EntryEditorInput(editorID, editorInput);
+		} else {
+			String editorID[] = {"org.eclipse.cdt.ui.editor.CEditor","edu.pdx.svl.coDoc.poppler.editor.PDFEditor"};
+			IEditorInput editorInput[] = {new TempCodeEditorInput(),new TempPdfEditorInput()};
+			entryEditorInput = new EntryEditorInput(editorID, editorInput);
+		}
+		
+		IWorkbench workbench = PlatformUI.getWorkbench();
+		IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
+		IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
+		workbenchPage.reuseEditor((IReusableEditor) editor, entryEditorInput);
 	}
 
 	@Override
@@ -730,106 +771,53 @@ public class CDCEditor implements IEditorLauncher
 		return cdcfilepath;
 	}
 	
-	// codepath and specpath are relative to project path
-	public static void open1(String projname, IPath codepath, IPath specpath) {
+	public static void open(String projname, IPath codepath, IPath specpath) {
 		projectname = projname;
-		
-		IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
-		IProject[] projs = workspaceRoot.getProjects();
-		for(IProject proj : projs) {
-			if(proj.getName().equals(projname)) {
-				String filename = CDCEditor.proj2cdcName(proj);
-				File tempFile = new File(filename);
-				if(tempFile.exists()) {
-					cdcfilepath = new Path(filename);
-					break;						
+		if(projname != null) {
+			IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
+			IProject[] projs = workspaceRoot.getProjects();
+			for(IProject proj : projs) {
+				if(proj.getName().equals(projname)) {
+					String filename = CDCEditor.proj2cdcName(proj);
+					File tempFile = new File(filename);
+					if(tempFile.exists()) {
+						cdcfilepath = new Path(filename);
+						break;						
+					}
 				}
 			}
-		}
-		
-		IWorkspace workspace = ResourcesPlugin.getWorkspace();
-		IWorkspaceRoot workspaceroot = workspace.getRoot();
-		String cdcfilename = projname2cdcName(projectname);
-		CDCDataCenter.getInstance().setLastOpenedCodeFilename(cdcfilename, "project:///"+codepath.toString());						
-		CDCDataCenter.getInstance().setLastOpenedSpecFilename(cdcfilename, "project:///"+specpath.toString());						
-		//IEditorPart editor = getOpenedEntryEditorTop(projectname);
-		IEditorPart editor = getOpenedEntryEditorTop();
-		if(editor == null) {
-			entryeditor = openEntryEditor(codepath, specpath);
-		} else {
-			IFile codefile = (IFile) workspaceroot.getFile(codepath);
-			final FileEditorInput codeEditorInput = new FileEditorInput(codefile);
-			IFile specfile = (IFile) workspaceroot.getFile(specpath);
-			final FileEditorInput specEditorInput = new FileEditorInput(specfile);
 			
-			String editorID[] = {"org.eclipse.cdt.ui.editor.CEditor","edu.pdx.svl.coDoc.poppler.editor.PDFEditor"};
-			IEditorInput editorInput[] = {codeEditorInput,specEditorInput};
-			EntryEditorInput entryEditorInput = new EntryEditorInput(editorID, editorInput);
-
-			IWorkbench workbench = PlatformUI.getWorkbench();
-			IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
-			IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
-			// workbenchPage.reuseEditor((IReusableEditor) editor, entryEditorInput);
-			workbenchPage.closeEditor(editor, true);
-			try {
-				editor = workbenchPage.openEditor(entryEditorInput, "edu.pdx.svl.coDoc.cdc.editor.EntryEditor");
-			} catch (PartInitException e) {
-				e.printStackTrace();
+			String cdcfilename = projname2cdcName(projectname);
+			if(codepath != null) {
+				CDCDataCenter.getInstance().setLastOpenedCodeFilename(cdcfilename, codepath.toString().startsWith("/")?"project://"+codepath.toString():"project:///"+codepath.toString());						
 			}
-			entryeditor = editor;
-		}
-		MapSelectionFilter filter = new MapSelectionFilter();
-		filter.setSelector(MapSelectionFilter.CODEFILE);
-		filter.setCodeFileName("project:///"+codepath.toString());
-		//((EntryEditor) entryeditor).showCodeAnchors(CDCDataCenter.getInstance().getMapEntries(projectname, filter));
-		((EntryEditor) entryeditor).enableCodeEditorCaret();
-	}
-	
-	public static void open(String projname, IPath codepath, IPath specpath) {//test
-		projectname = projname;
-		
-		IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
-		IProject[] projs = workspaceRoot.getProjects();
-		for(IProject proj : projs) {
-			if(proj.getName().equals(projname)) {
-				String filename = CDCEditor.proj2cdcName(proj);
-				File tempFile = new File(filename);
-				if(tempFile.exists()) {
-					cdcfilepath = new Path(filename);
-					break;						
-				}
+			if(specpath != null) {
+				CDCDataCenter.getInstance().setLastOpenedSpecFilename(cdcfilename, specpath.toString().startsWith("/")?"project://"+specpath.toString():"project:///"+specpath.toString());						
+			}
+			//IEditorPart editor = getOpenedEntryEditorTop(projectname);
+			IEditorPart editor = getOpenedEntryEditorTop();
+			if(editor == null) {
+				entryeditor = openEntryEditor(codepath, specpath);
+			} else {
+				reuseEntryEditor(editor, codepath, specpath);
+				entryeditor = editor;
+			}
+			MapSelectionFilter filter = new MapSelectionFilter();
+			filter.setSelector(MapSelectionFilter.CODEFILE);
+			filter.setCodeFileName("project:///"+codepath.toString());
+			//((EntryEditor) entryeditor).showCodeAnchors(CDCDataCenter.getInstance().getMapEntries(projectname, filter));
+			((EntryEditor) entryeditor).enableCodeEditorCaret();
+		} else {
+			codepath = null;
+			specpath = null;
+			IEditorPart editor = getOpenedEntryEditorTop();
+			if(editor == null) {
+				entryeditor = openEntryEditor(codepath, specpath);
+			} else {
+				reuseEntryEditor(editor, codepath, specpath);
+				entryeditor = editor;
 			}
 		}
-		
-		IWorkspace workspace = ResourcesPlugin.getWorkspace();
-		IWorkspaceRoot workspaceroot = workspace.getRoot();
-		String cdcfilename = projname2cdcName(projectname);
-		CDCDataCenter.getInstance().setLastOpenedCodeFilename(cdcfilename, codepath.toString().startsWith("/")?"project://"+codepath.toString():"project:///"+codepath.toString());						
-		CDCDataCenter.getInstance().setLastOpenedSpecFilename(cdcfilename, specpath.toString().startsWith("/")?"project://"+specpath.toString():"project:///"+specpath.toString());						
-		//IEditorPart editor = getOpenedEntryEditorTop(projectname);
-		IEditorPart editor = getOpenedEntryEditorTop();
-		if(editor == null) {
-			entryeditor = openEntryEditor(codepath, specpath);
-		} else {
-			IFile codefile = (IFile) workspaceroot.getFile(codepath);
-			final FileEditorInput codeEditorInput = new FileEditorInput(codefile);
-			IFile specfile = (IFile) workspaceroot.getFile(specpath);
-			final FileEditorInput specEditorInput = new FileEditorInput(specfile);
-			
-			String editorID[] = {"org.eclipse.cdt.ui.editor.CEditor","edu.pdx.svl.coDoc.poppler.editor.PDFEditor"};
-			IEditorInput editorInput[] = {codeEditorInput,specEditorInput};
-			EntryEditorInput entryEditorInput = new EntryEditorInput(editorID, editorInput);
-			IWorkbench workbench = PlatformUI.getWorkbench();
-			IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
-			IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
-			workbenchPage.reuseEditor((IReusableEditor) editor, entryEditorInput);
-			entryeditor = editor;
-		}
-		MapSelectionFilter filter = new MapSelectionFilter();
-		filter.setSelector(MapSelectionFilter.CODEFILE);
-		filter.setCodeFileName("project:///"+codepath.toString());
-		//((EntryEditor) entryeditor).showCodeAnchors(CDCDataCenter.getInstance().getMapEntries(projectname, filter));
-		((EntryEditor) entryeditor).enableCodeEditorCaret();
 	}
 	
 	public static String getLatestProjectName() {

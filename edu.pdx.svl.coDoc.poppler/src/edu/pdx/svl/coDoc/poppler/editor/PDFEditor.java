@@ -151,20 +151,18 @@ public class PDFEditor extends EditorPart implements IReusableEditor, IResourceC
 		URI uri = null;
 		if(input instanceof FileStoreEditorInput) {
 			uri = ((FileStoreEditorInput)input).getURI();
-		}
-		else if((input instanceof IFileEditorInput)) {
+		} else if((input instanceof IFileEditorInput)) {
 			uri = ((IFileEditorInput) input).getFile().getLocationURI();
 		}
-		else {
-			throw new PartInitException("Messages.PDFEditor_ErrorMsg1");
+		if(uri != null) {
+			pathname = uri.toString();
+			if(poppler != null) {
+				poppler.document_close();
+			}
+	    	//poppler.document_new_from_file("file:///home/derek/Data Check and Restore Manual.pdf", null);
+			poppler.document_new_from_file(pathname, null);
+			pageNumbers = poppler.document_get_n_pages();
 		}
-		pathname = uri.toString();
-		if(poppler != null) {
-			poppler.document_close();
-		}
-    	//poppler.document_new_from_file("file:///home/derek/Data Check and Restore Manual.pdf", null);
-		poppler.document_new_from_file(pathname, null);
-		pageNumbers = poppler.document_get_n_pages();
 		currentPage = -1;
 	}
 

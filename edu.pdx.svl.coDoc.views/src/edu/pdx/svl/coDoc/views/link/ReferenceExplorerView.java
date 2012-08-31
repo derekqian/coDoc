@@ -1078,10 +1078,12 @@ public class ReferenceExplorerView extends ViewPart implements ISelectionListene
 		            	} else {
 		            		projectname = null;
 			        	    refresh();
+			        	    CDCEditor.open(projectname, null, null);
 		            	}
 		            } else {
 		            	projectname = null;
 		        	    refresh();
+		        	    CDCEditor.open(projectname, null, null);
 		            }
 		        }
 		    }

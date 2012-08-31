@@ -160,13 +160,17 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 		setPartName(projectname);
 		IEditorInput[] editorinputs = ((EntryEditorInput) input).getInput();
 		// IPath path = ((FileEditorInput) editorinputs[0]).getPath();
-		IPath path = ((FileEditorInput) editorinputs[0]).getFile().getFullPath();
-		if(!path.getFileExtension().equals("pdf")) {
-			codeFilepath = path;
+		if(editorinputs[0] instanceof FileEditorInput) {
+			IPath path = ((FileEditorInput) editorinputs[0]).getFile().getFullPath();
+			if(!path.getFileExtension().equals("pdf")) {
+				codeFilepath = path;
+			}			
 		}
-		path = ((FileEditorInput) editorinputs[editorinputs.length-1]).getFile().getFullPath();
-		if(path.getFileExtension().equals("pdf")) {
-			specFilepath = path;
+		if(editorinputs[editorinputs.length-1] instanceof FileEditorInput) {
+			IPath path = ((FileEditorInput) editorinputs[editorinputs.length-1]).getFile().getFullPath();
+			if(path.getFileExtension().equals("pdf")) {
+				specFilepath = path;
+			}			
 		}
 		firePropertyChange(IEditorPart.PROP_INPUT);
 		return;
