@@ -44,6 +44,9 @@ public class MyCASTVisitor extends ASTVisitor implements IMyASTVisitor {
 	}
 	private MyASTNode addRoot(IASTNode node) {
 		if(node == null) return null;
+		if(node instanceof ASTNode && ((ASTNode) node).getLength() <= 0) {
+			return new MyASTNode(null);
+		}
 		LinkedList<IASTNode> ancients = new LinkedList<IASTNode>();
 		IASTNode parent = node.getParent();
 		while((parent != null) && !(parent instanceof IASTTranslationUnit)){
