@@ -18,6 +18,21 @@
       </view>
    </extension>
    <extension
+         point="org.eclipse.ui.views">
+      <category
+            name="coDoc"
+            id="edu.pdx.svl.coDoc.views.category">
+      </category>
+      <view
+            allowMultiple="false"
+            name="AST"
+            icon="icons/ast.gif"
+            category="edu.pdx.svl.coDoc.views.category"
+            class="edu.pdx.svl.coDoc.views.ast.ASTView"
+            id="edu.pdx.svl.coDoc.views.ast.ASTView">
+      </view>
+   </extension>
+   <extension
          point="org.eclipse.help.contexts">
       <contexts
             file="contexts.xml">
@@ -29,6 +44,19 @@
             targetID="org.eclipse.cdt.ui.CPerspective">
          <view
                id="edu.pdx.svl.coDoc.views.link.ReferenceExplorerView"
+               minimized="false"
+               relationship="stack"
+               relative="org.eclipse.ui.console.ConsoleView"
+               visible="true">
+         </view>
+      </perspectiveExtension>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="org.eclipse.cdt.ui.CPerspective">
+         <view
+               id="edu.pdx.svl.coDoc.views.ast.ASTView"
                minimized="false"
                relationship="stack"
                relative="org.eclipse.ui.console.ConsoleView"

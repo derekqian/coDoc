@@ -128,8 +128,8 @@ public class EntryEditor extends MultiEditor implements IReusableEditor, ISelect
 		return CDCEditor.projname2cdcName(projectname);
 	}
 	
-	public MyASTNode getMyAST() {
-		return myASTTree.getTree();
+	public MyASTTree getMyAST() {
+		return myASTTree;
 	}
 	
 	public void setInput(IEditorInput input) {

@@ -496,8 +496,11 @@ public class CDCEditor implements IEditorLauncher
 	public static IEditorPart getActiveEntryEditor() {
 		IEditorPart editor = null;
 		IWorkbench workbench = PlatformUI.getWorkbench();
+		if(workbench == null) return null;
 		IWorkbenchWindow workbenchwindow = workbench.getActiveWorkbenchWindow();
+		if(workbenchwindow == null) return null;
 		IWorkbenchPage workbenchPage = workbenchwindow.getActivePage();
+		if(workbenchPage == null) return null;
 		//IWorkbenchPage workbenchPage = getEditorSite().getPage();
 		//IEditorReference[] editorrefs = workbenchPage.getEditorReferences();
 		IEditorPart activeeditor = workbenchPage.getActiveEditor();
@@ -1041,7 +1044,7 @@ public class CDCEditor implements IEditorLauncher
 		}
 	}
 	
-	public static MyASTNode getMyAST() {
+	public static MyASTTree getMyAST() {
 		EntryEditor editor = (EntryEditor) CDCEditor.getActiveEntryEditor();
 		if(editor != null) {
 			return editor.getMyAST();
