@@ -9,6 +9,7 @@
 
 
 static PopplerDocument *g_document = NULL;
+static int g_n_pages = -1;
 static PopplerPage *g_page = NULL;
 static int g_pagenum = -1;
 static int g_width = -1;
@@ -54,6 +55,7 @@ JNIEXPORT jint JNICALL Java_edu_pdx_svl_coDoc_poppler_lib_PopplerJNI_document_1n
 	env->ReleaseStringUTFChars(_uri, (gchar *)uri);
 
 	assert(g_document != NULL);
+	g_n_pages = poppler_document_get_n_pages(g_document);
 
 	return 0;
 }
@@ -72,6 +74,7 @@ JNIEXPORT jint JNICALL Java_edu_pdx_svl_coDoc_poppler_lib_PopplerJNI_document_1c
 	printf("%s (%d): %s\n", __FILE__, __LINE__, __FUNCTION__);
 	g_object_unref(g_document);
 	g_document = NULL;
+	g_n_pages = -1;
 	return 0;
 }
 
@@ -84,11 +87,11 @@ JNIEXPORT jint JNICALL Java_edu_pdx_svl_coDoc_poppler_lib_PopplerJNI_document_1c
 JNIEXPORT jint JNICALL Java_edu_pdx_svl_coDoc_poppler_lib_PopplerJNI_document_1get_1n_1pages
   (JNIEnv *, jobject)
 {
-	assert(g_document != NULL);
+	assert(g_n_pages != -1);
 
 	printf("%s (%d): %s\n", __FILE__, __LINE__, __FUNCTION__);
 
-	return (jint)poppler_document_get_n_pages(g_document);
+	return (jint)g_n_pages;
 }
 
 
@@ -105,6 +108,9 @@ JNIEXPORT jint JNICALL Java_edu_pdx_svl_coDoc_poppler_lib_PopplerJNI_document_1g
 	printf("%s (%d): %s\n", __FILE__, __LINE__, __FUNCTION__);
 
 	g_pagenum = (int)(pagenum_j-1);
+	if(g_pagenum<0 || g_pagenum>=g_n_pages) {
+		printf("error->document_get_page: (g_pagenum, g_n_pages) = (%d, %d)\r\n", g_pagenum, g_n_pages);
+	}
 
 	if(g_page != NULL) g_object_unref(g_page);
 	g_page = poppler_document_get_page (g_document, g_pagenum);

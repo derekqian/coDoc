@@ -104,7 +104,7 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
 			@Override
 			public void mouseUp(MouseEvent e) {				
 				stopPoint.x = e.x;
-				stopPoint.y = e.y;
+				stopPoint.y = fixYvalue(e.y);
 				PDFSelection pdfsel = rectToPdfsel(new Rectangle(startPoint.x,startPoint.y,stopPoint.x-startPoint.x,stopPoint.y-startPoint.y));
 				poppler.document_get_page(pdfsel.getPage());
 				poppler.page_get_size();
@@ -131,7 +131,7 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
 				}
 				
 				startPoint.x = e.x;
-				startPoint.y = e.y;
+				startPoint.y = fixYvalue(e.y);
 				highlight = null;
 				redraw();
 				
@@ -310,6 +310,15 @@ public class PDFPageViewer extends Canvas implements PaintListener, IPreferenceC
 	        //PageSelectCombo.getInstance().select(0);
 	        //PageSelectCombo.getInstance().redraw();        	
         }
+    }
+    
+    private int fixYvalue(int y) {
+    	ScrollBar vBar = sc.getVerticalBar();
+    	int overflow = vBar.getSelection() + vBar.getThumb() / 2;
+    	System.out.println("fixYvalue: before: "+Integer.toHexString(y));
+    	y = (overflow & 0xffff0000) | (y & 0xffff);
+    	System.out.println("fixYvalue: after: "+Integer.toHexString(y));
+    	return y;
     }
 
     private Rectangle pdfselToRect(PDFSelection sel) {
