@@ -313,12 +313,9 @@ public class MyASTTree {
 		} else if(offset1>0 && offset2>0) {
 			IASTFileLocation loc = myASTLeaf[myASTLeaf.length-1].getData().getFileLocation();
 			sel = new TextSelection(loc.getNodeOffset()+loc.getNodeLength()+offset1-1, loc.getNodeOffset()+loc.getNodeLength()+offset2-1);
-		} else {
+		} else if(strvec.size() != 1) {
 			int i,j;
-			for(i=0; i<(myASTLeaf.length-(strvec.size()-1)+1); i++) {
-				if(i == 114) {
-					i=114;
-				}
+			for(i=0; i<(myASTLeaf.length-(strvec.size()-1)); i++) {
 				for(j=1; j<strvec.size(); j++) {
 					temp = strvec.get(j);
 					MyASTNode node = myASTLeaf[i+j-1];
@@ -336,7 +333,7 @@ public class MyASTTree {
 					break;
 				}
 			}
-			if(i != (myASTLeaf.length-(strvec.size()-1)+1)) {
+			if(i != (myASTLeaf.length-(strvec.size()-1))) {
 				IASTFileLocation loc1 = myASTLeaf[i].getData().getFileLocation();
 				IASTFileLocation loc2 = myASTLeaf[i+(strvec.size()-1)-1].getData().getFileLocation();
 				sel = new TextSelection(loc1.getNodeOffset()+offset1, loc2.getNodeOffset()+loc2.getNodeLength()+offset2-loc1.getNodeOffset()-offset1);
