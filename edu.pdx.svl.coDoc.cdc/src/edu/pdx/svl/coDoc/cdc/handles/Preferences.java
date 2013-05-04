@@ -13,7 +13,11 @@ package edu.pdx.svl.coDoc.cdc.handles;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.ui.handlers.HandlerUtil;
+
 import edu.pdx.svl.coDoc.cdc.editor.CDCEditor;
+import edu.pdx.svl.coDoc.cdc.editor.RPE;
 
 
 /**
@@ -28,6 +32,8 @@ public class Preferences extends AbstractHandler {
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		// CDCEditor.convertCDCFile();
+		RPE.main(null);
+		//MessageDialog.openInformation(HandlerUtil.getActiveShell(event), "RPE evaluation", "done!");
 
 		return null;
 	}
